@@ -1,0 +1,3990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>GLP and B12 Nutrition Tracker</title>
+  
+  <!-- Progressive Web App (PWA) & Mobile Homescreen Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GLP & B12 Tracker" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#064e3b" />
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href='data:application/manifest+json;utf-8,{"name":"GLP and B12 Nutrition Tracker","short_name":"GLP & B12 Tracker","start_url":".","display":"standalone","background_color":"#064e3b","theme_color":"#064e3b","icons":[{"src":"https://placehold.co/192x192/059669/ffffff?text=GLP12","sizes":"192x192","type":"image/png"},{"src":"https://placehold.co/512x512/059669/ffffff?text=GLP12","sizes":"512x512","type":"image/png"}]}' />
+  <link rel="apple-touch-icon" href="https://placehold.co/192x192/059669/ffffff?text=GLP12" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for Trending Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Firebase SDK Imports for Optional Cloud Sync -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    window.fbModules = {
+      initializeApp,
+      getAuth,
+      signInAnonymously,
+      signInWithCustomToken,
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot
+    };
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            accent: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input, textarea, select {
+      user-select: auto;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .safe-bottom {
+      padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 4.5rem);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col selection:bg-emerald-200">
+
+  <!-- Top Header / Nav -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-3 shadow-xs">
+    <div class="max-w-xl lg:max-w-2xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-teal-500 to-emerald-500 flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="syringe" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-slate-900 leading-tight">GLP and B12 Nutrition Tracker</h1>
+          <p class="text-[11px] font-medium text-emerald-600" id="headerSubtitle">Target: 1,250 kcal/day</p>
+        </div>
+      </div>
+      
+      <!-- Date Selector, Snapshot Vault & Install Button -->
+      <div class="flex items-center gap-1.5">
+        <div id="cloudSyncIndicator" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-semibold transition-colors" title="Sync Status">
+          <i data-lucide="shield-check" id="cloudSyncIcon" class="w-3 h-3 text-emerald-600"></i>
+          <span id="cloudSyncText" class="hidden sm:inline">Saved Locally</span>
+        </div>
+
+        <!-- Last Updated Header Timestamp Indicator -->
+        <div id="lastUpdatedHeaderBadge" class="hidden xs:flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-medium" title="Last Saved Time">
+          <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
+          <span id="lastUpdatedHeaderText">Saved: Just now</span>
+        </div>
+
+        <!-- Quick Snapshot & Recovery Button -->
+        <button onclick="openDataSnapshotModal()" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 text-[10px] font-bold border border-purple-200 transition" title="Save/Restore Snapshot">
+          <i data-lucide="database" class="w-3 h-3 text-purple-600"></i>
+          <span class="hidden sm:inline">Data Lock</span>
+        </button>
+
+        <button onclick="openInstallModal()" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold border border-emerald-200/80 transition" title="Install to Phone">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+          <span class="hidden xs:inline">Phone App</span>
+        </button>
+
+        <div class="flex items-center gap-0.5 bg-slate-100 p-1 rounded-xl">
+          <button onclick="changeDay(-1)" class="p-1 rounded-lg text-slate-600 hover:bg-white transition-colors" title="Previous Day">
+            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+          </button>
+          <input type="date" id="activeDateInput" onchange="onDateChanged(this.value)" class="text-xs font-semibold bg-transparent text-slate-700 outline-none cursor-pointer text-center w-24" />
+          <button onclick="changeDay(1)" class="p-1 rounded-lg text-slate-600 hover:bg-white transition-colors" title="Next Day">
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SCROLLABLE CONTENT AREA -->
+  <main class="flex-1 max-w-xl lg:max-w-2xl w-full mx-auto p-4 sm:p-5 safe-bottom">
+
+    <!-- ================= TAB 1: DASHBOARD ================= -->
+    <section id="tab-dashboard" class="space-y-4">
+      
+      <!-- Calorie Hero Card -->
+      <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Remaining Calorie Allowance</span>
+            <div class="text-4xl font-extrabold tracking-tight mt-0.5" id="remainingCaloriesDisplay">1,250</div>
+          </div>
+          <button onclick="openTargetModal()" class="text-xs bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/10 flex items-center gap-1 transition">
+            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+            <span id="targetBadge">1,250 Goal</span>
+          </button>
+        </div>
+
+        <!-- Formula breakdown bar -->
+        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-center">
+          <div class="bg-white/5 rounded-xl py-2 px-1">
+            <span class="text-[10px] text-slate-400 block">Base Goal</span>
+            <span class="text-sm font-semibold text-slate-200" id="baseGoalDisplay">1250</span>
+          </div>
+          <div class="bg-white/5 rounded-xl py-2 px-1">
+            <span class="text-[10px] text-amber-300 block">Food Intake</span>
+            <span class="text-sm font-semibold text-amber-400" id="foodConsumedDisplay">0</span>
+          </div>
+          <div class="bg-white/5 rounded-xl py-2 px-1">
+            <span class="text-[10px] text-emerald-300 block">Exercise Burn</span>
+            <span class="text-sm font-semibold text-emerald-400" id="exerciseBurnDisplay">+0</span>
+          </div>
+        </div>
+
+        <!-- Calorie Bar Progress -->
+        <div class="mt-4">
+          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+            <span>Daily Budget Burn Progress</span>
+            <span id="progressPercentDisplay">0%</span>
+          </div>
+          <div class="w-full bg-slate-700/60 rounded-full h-2.5 overflow-hidden">
+            <div id="calorieProgressBar" class="bg-gradient-to-r from-emerald-400 to-teal-300 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="openAIFoodLoggerModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md hover:opacity-95 transition active:scale-95 col-span-1">
+          <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center mb-1 text-white">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-bold leading-tight">AI Log Meal</span>
+        </button>
+
+        <button onclick="openQuickFoodModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-emerald-300 transition active:scale-95">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-700 leading-tight">Food Database</span>
+        </button>
+
+        <button onclick="openFitnessModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-300 transition active:scale-95">
+          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-700 leading-tight">Log Fitness</span>
+        </button>
+      </div>
+
+      <!-- Live Budget Meal Ideas Teaser Card -->
+      <div class="bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-teal-500/10 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+            <i data-lucide="utensils" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-900">Recommended Meals Under Cap</span>
+              <span id="dashRemainingCapTag" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">≤ 1,250 kcal</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Find meals that fit your remaining allowance</p>
+          </div>
+        </div>
+        <button onclick="openRecipesUnderRemaining()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-xs">
+          <span>Browse</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- GLP-1 & B12 Daily Protocol Card with Half-Life Cycle Indicator -->
+      <div id="glpProtocolCard" class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white rounded-2xl p-4 border border-purple-800/60 shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 shrink-0">
+              <i data-lucide="syringe" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-purple-200">GLP-1 & B12 Cycle</span>
+                <span id="glpStatusBadge" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-purple-500/30 text-purple-200">No Shot Today</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-0.5" id="glpSummaryLine">Track weekly microdoses & clinical safeguards</p>
+            </div>
+          </div>
+          <button onclick="switchTab('protocol')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-xl text-xs font-bold text-white transition flex items-center gap-1 shrink-0">
+            <span>Log Shot</span>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Pharmacokinetic Cycle Phase Banner -->
+        <div id="cyclePhaseCard" class="bg-purple-900/40 border border-purple-700/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🧬</span>
+            <div>
+              <span class="font-bold text-purple-200 block text-[11px]" id="cyclePhaseTitle">Cycle Status: Standby</span>
+              <span class="text-[10px] text-slate-300" id="cyclePhaseTip">Log your weekly injection to track appetite curve</span>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 bg-purple-950/80 text-purple-300 rounded-lg border border-purple-600/40" id="cycleDayBadge">Day --</span>
+        </div>
+      </div>
+
+      <!-- Macro Split & GLP-1 Muscle Floor Warning -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Macronutrients</h3>
+          <span id="proteinGoalStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Goal: ≥85g Protein</span>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-rose-50/60 p-2.5 rounded-xl border border-rose-100 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-rose-700">Protein</span>
+              <span class="text-[9px] font-bold text-rose-500 uppercase">GLP Guard</span>
+            </div>
+            <div class="text-lg font-bold text-slate-800" id="totalProtein">0g</div>
+            <div class="text-[10px] text-rose-500 font-medium" id="proteinKcal">0 kcal</div>
+          </div>
+          <div class="bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+            <span class="text-[11px] font-semibold text-amber-700 block">Carbs</span>
+            <div class="text-lg font-bold text-slate-800" id="totalCarbs">0g</div>
+            <div class="text-[10px] text-amber-500 font-medium" id="carbsKcal">0 kcal</div>
+          </div>
+          <div class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100">
+            <span class="text-[11px] font-semibold text-indigo-700 block">Fat</span>
+            <div class="text-lg font-bold text-slate-800" id="totalFat">0g</div>
+            <div class="text-[10px] text-indigo-500 font-medium" id="fatKcal">0 kcal</div>
+          </div>
+        </div>
+
+        <!-- Protein Progress Bar for GLP-1 Muscle Preservation -->
+        <div class="pt-1">
+          <div class="flex justify-between text-[11px] text-slate-500 mb-1">
+            <span class="font-medium">Muscle Defense Floor (<span id="protGoalNum">85</span>g target)</span>
+            <span id="protPctNum" class="font-bold text-rose-600">0%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div id="protProgressBar" class="bg-rose-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Fiber Motility Guard (Crucial on GLP-1 + 1,250 Deficit) -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex justify-between text-[11px] text-slate-500 mb-1">
+            <span class="font-medium flex items-center gap-1">
+              <span>🌾 Motility Fiber Floor (25g target)</span>
+            </span>
+            <span id="fiberProgressText" class="font-bold text-emerald-600">0 / 25g</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div id="fiberProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hydration & Electrolyte Guard Row -->
+      <div class="grid grid-cols-2 gap-2">
+        <!-- Water Hydration -->
+        <div class="bg-white rounded-2xl p-3 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold">
+              <i data-lucide="droplet" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-slate-800 block">Hydration</span>
+              <span class="text-[10px] text-cyan-600 font-bold" id="waterTrackerText">0 / 64 oz</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 justify-end">
+            <button onclick="adjustWater(-8)" class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center font-bold text-xs">-</button>
+            <button onclick="adjustWater(8)" class="px-2 py-1 rounded-lg bg-cyan-50 text-cyan-700 hover:bg-cyan-100 font-bold text-[11px] flex items-center gap-0.5 border border-cyan-200">
+              <i data-lucide="plus" class="w-3 h-3"></i> 8oz
+            </button>
+          </div>
+        </div>
+
+        <!-- Electrolyte Intake Guard -->
+        <div class="bg-white rounded-2xl p-3 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-slate-800 block">Electrolytes</span>
+              <span class="text-[10px] text-slate-400 font-medium" id="electrolyteStatusText">Not Taken</span>
+            </div>
+          </div>
+          <button onclick="toggleElectrolytes()" id="electrolyteToggleBtn" class="w-full py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition text-center border border-slate-200">
+            + Log Minerals
+          </button>
+        </div>
+      </div>
+
+      <!-- Daily Tasks & Protocol Habits Tracker -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800">Daily Tasks & Habits</h3>
+              <p class="text-[10px] text-slate-400">GLP-1 compliance & daily lifestyle checklist</p>
+            </div>
+          </div>
+          <span id="tasksProgressBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0 / 0 Done</span>
+        </div>
+
+        <!-- Task Completion Progress Bar -->
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+          <div id="tasksProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- Tasks Checklist Items -->
+        <div id="dailyTasksList" class="space-y-1.5 pt-1"></div>
+
+        <!-- Add Custom Task Form -->
+        <div class="pt-2 border-t border-slate-100 flex gap-1.5">
+          <input type="text" id="newCustomTaskInput" placeholder="Add custom task (e.g. Magnesium citrate at bed)..." class="flex-1 text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTask();}" />
+          <button onclick="addCustomTask()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- How I Feel Today Field -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center">
+              <i data-lucide="smile" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800">How I Feel Today</h3>
+              <p class="text-[10px] text-slate-400">Track energy, symptoms, digestion & mental clarity</p>
+            </div>
+          </div>
+          <span id="feelStatusSavedBadge" class="text-[10px] font-semibold text-emerald-600 hidden">Saved ✓</span>
+        </div>
+
+        <!-- Feeling Quick Tags -->
+        <div class="flex flex-wrap gap-1.5" id="feelingTagsList">
+          <button type="button" onclick="selectFeelingTag('Great & Energized')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">✨ Energized</button>
+          <button type="button" onclick="selectFeelingTag('Full & Satiated')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🎯 Strong Satiety</button>
+          <button type="button" onclick="selectFeelingTag('Mild Nausea')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🤢 Mild Nausea</button>
+          <button type="button" onclick="selectFeelingTag('Fatigued / Low Energy')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">😴 Low Energy</button>
+          <button type="button" onclick="selectFeelingTag('Food Noise Returning')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🧠 Food Noise</button>
+          <button type="button" onclick="selectFeelingTag('Sluggish Gut')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🐢 Sluggish Gut</button>
+        </div>
+
+        <!-- Custom Feeling Input & Note -->
+        <div class="relative">
+          <textarea id="dailyFeelingInput" rows="2" oninput="debounceSaveFeeling()" placeholder="e.g. B12 gives great energy today. Zero stomach upset, feeling light and satisfied." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+      </div>
+
+      <!-- Meal Categories Sections: Breakfast, Lunch, Dinner, Snacks, Drinks -->
+      <div class="space-y-3">
+        <!-- Breakfast -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">☕</div>
+              <div>
+                <span class="font-bold text-sm text-slate-800">Breakfast</span>
+                <span class="text-[11px] text-slate-400 block font-normal">Target ~300-350 kcal</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-700" id="b-cal-sum">0 kcal</span>
+              <button onclick="openAddModalForMeal('breakfast')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div id="meal-breakfast-list" class="divide-y divide-slate-100 p-2 min-h-[44px]">
+            <p class="text-xs text-slate-400 text-center py-2">No breakfast logged yet.</p>
+          </div>
+        </div>
+
+        <!-- Lunch -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">🥗</div>
+              <div>
+                <span class="font-bold text-sm text-slate-800">Lunch</span>
+                <span class="text-[11px] text-slate-400 block font-normal">Target ~400-450 kcal</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-700" id="l-cal-sum">0 kcal</span>
+              <button onclick="openAddModalForMeal('lunch')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div id="meal-lunch-list" class="divide-y divide-slate-100 p-2 min-h-[44px]">
+            <p class="text-xs text-slate-400 text-center py-2">No lunch logged yet.</p>
+          </div>
+        </div>
+
+        <!-- Dinner -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">🍲</div>
+              <div>
+                <span class="font-bold text-sm text-slate-800">Dinner</span>
+                <span class="text-[11px] text-slate-400 block font-normal">Target ~400-450 kcal</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-700" id="d-cal-sum">0 kcal</span>
+              <button onclick="openAddModalForMeal('dinner')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div id="meal-dinner-list" class="divide-y divide-slate-100 p-2 min-h-[44px]">
+            <p class="text-xs text-slate-400 text-center py-2">No dinner logged yet.</p>
+          </div>
+        </div>
+
+        <!-- Snacks -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">🍎</div>
+              <div>
+                <span class="font-bold text-sm text-slate-800">Snacks</span>
+                <span class="text-[11px] text-slate-400 block font-normal">Flex budget ~100 kcal</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-700" id="s-cal-sum">0 kcal</span>
+              <button onclick="openAddModalForMeal('snack')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div id="meal-snack-list" class="divide-y divide-slate-100 p-2 min-h-[44px]">
+            <p class="text-xs text-slate-400 text-center py-2">No snacks logged.</p>
+          </div>
+        </div>
+
+        <!-- Drinks & Beverages -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-sky-50/70 border-b border-sky-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xs">🥤</div>
+              <div>
+                <span class="font-bold text-sm text-slate-800">Drinks & Beverages</span>
+                <span class="text-[11px] text-sky-600 block font-normal">Shakes, coffees, juices & tea</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-slate-700" id="dr-cal-sum">0 kcal</span>
+              <button onclick="openAddModalForMeal('drink')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div id="meal-drink-list" class="divide-y divide-slate-100 p-2 min-h-[44px]">
+            <p class="text-xs text-slate-400 text-center py-2">No drinks logged yet.</p>
+          </div>
+        </div>
+
+        <!-- Exercises logged today -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div class="p-3.5 bg-blue-50/50 border-b border-blue-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center font-bold text-xs">🏃</div>
+              <div>
+                <span class="font-bold text-sm text-slate-800">Fitness / Activity</span>
+                <span class="text-[11px] text-blue-600 block font-normal">Adds to allowance</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-sm text-emerald-600" id="f-cal-sum">+0 kcal</span>
+              <button onclick="openFitnessModal()" class="p-1 rounded-lg text-blue-600 hover:bg-blue-100">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div id="fitness-day-list" class="divide-y divide-slate-100 p-2 min-h-[44px]">
+            <p class="text-xs text-slate-400 text-center py-2">No fitness logged today.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB: GLP-1 & B12 PROTOCOL ================= -->
+    <section id="tab-protocol" class="space-y-4 hidden">
+      <!-- Protocol Header Banner -->
+      <div class="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <div class="flex items-center gap-2.5 mb-2">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-200">
+            <i data-lucide="syringe" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white">GLP-1 & B12 Weekly Protocol</h2>
+            <p class="text-xs text-purple-200">Microdosing & nutritional safety tracker</p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed mt-2">
+          Weekly microdosing mitigates harsh appetite cliffs and nausea while sustaining satiety. Vitamin B12 protects energy metabolism on a 1,250-calorie target.
+        </p>
+      </div>
+
+      <!-- Weekly Injections Logger Form -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">Log Injection for Today (<span id="protocolActiveDateLabel"></span>)</h3>
+          <span id="activeShotRecordedBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+            ✓ Shot Recorded Today
+          </span>
+        </div>
+
+        <!-- Recorded Summary Banner when shot exists -->
+        <div id="shotRecordedSummaryBanner" class="hidden p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-1 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-purple-900" id="summaryBannerDoses">GLP-1 & B12 Recorded</span>
+            <span class="text-[10px] font-semibold text-purple-700" id="summaryBannerSite"></span>
+          </div>
+          <p class="text-[11px] text-slate-600" id="summaryBannerNotes"></p>
+        </div>
+        
+        <form onsubmit="event.preventDefault(); saveProtocolEntry();" class="space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">GLP-1 Microdose</label>
+              <input type="text" id="injGlpDose" placeholder="e.g. 0.10 mg (5 units)" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Vitamin B12 Dose</label>
+              <input type="text" id="injB12Dose" placeholder="e.g. 1,000 mcg (1 mL)" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Injection Site</label>
+              <select id="injSite" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                <option value="Abdomen (Left)">Abdomen (Left)</option>
+                <option value="Abdomen (Right)">Abdomen (Right)</option>
+                <option value="Thigh (Left)">Thigh (Left)</option>
+                <option value="Thigh (Right)">Thigh (Right)</option>
+                <option value="Deltoid / Arm">Deltoid / Arm</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Appetite Suppr. (1-10)</label>
+              <select id="injAppetiteScore" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                <option value="10">10 - Zero hunger / Strong</option>
+                <option value="8" selected>8 - Controlled satiety</option>
+                <option value="6">6 - Normal baseline hunger</option>
+                <option value="4">4 - Increased hunger</option>
+                <option value="2">2 - High food noise</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Bowel Motility & GI Health Check -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Bowel Motility</label>
+              <select id="injMotility" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                <option value="Regular" selected>Regular / Normal</option>
+                <option value="Sluggish">Sluggish / Mild Constipation</option>
+                <option value="No BM >48h">No BM >48h (Hydrate & Fiber!)</option>
+                <option value="Loose">Loose / Diarrhea</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Energy / B12 Lift</label>
+              <select id="injEnergy" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                <option value="High / Refreshed">High / Refreshed</option>
+                <option value="Normal / Steady" selected>Normal / Steady</option>
+                <option value="Mild Fatigue">Mild Fatigue</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">GI Symptoms & Notes</label>
+            <input type="text" id="injNotes" placeholder="e.g. Mild morning fullness, high energy from B12, good hydration" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+          </div>
+
+          <div class="flex gap-2">
+            <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5">
+              <i data-lucide="check" class="w-4 h-4"></i> Save Weekly Injection
+            </button>
+            <button type="button" onclick="clearProtocolToday()" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition">
+              Clear
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Clinical Safeguards Checklist -->
+      <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-4 space-y-2 text-xs text-purple-900">
+        <h4 class="font-bold flex items-center gap-1.5">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-purple-600"></i>
+          GLP-1 + 1,250 Deficit Golden Rules:
+        </h4>
+        <ul class="list-disc list-inside space-y-1 text-purple-800 text-[11px] leading-relaxed">
+          <li><strong>Protect Muscle:</strong> Aim for at least <strong>85g–100g protein daily</strong> to prevent metabolic slowdown.</li>
+          <li><strong>Fiber Floor (&ge; 25g):</strong> Slower gastric emptying means low food volume can cause constipation without daily fiber.</li>
+          <li><strong>Hydrate Continuously:</strong> Delayed gastric emptying masks thirst; target 64+ oz of fluids daily to protect kidneys.</li>
+          <li><strong>Electrolytes:</strong> Add a pinch of sea salt or electrolyte powder in water on days 1–3 to prevent postural dizziness.</li>
+          <li><strong>Energy Guard:</strong> Weekly B12 shots bypass gastrointestinal absorption limits, keeping mitochondrial energy stable.</li>
+          <li><strong>Rotate Sites:</strong> Alternating sides (Abdomen vs Thigh) optimizes absorption and prevents localized lipodystrophy.</li>
+        </ul>
+      </div>
+
+      <!-- Historical Injection Log Table -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <h3 class="text-sm font-bold text-slate-900">Injection History</h3>
+        <div id="protocolHistoryList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: RECIPES & BUILDER ================= -->
+    <section id="tab-calculator" class="space-y-4 hidden">
+      <!-- AI Recipe Nutrition Generator Card -->
+      <div class="bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-300">
+            <i data-lucide="wand-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">AI Recipe Nutrition Generator</h2>
+            <p class="text-[11px] text-purple-200">Describe or paste ingredients to calculate precise macros</p>
+          </div>
+        </div>
+
+        <div class="space-y-2 mt-3">
+          <textarea id="aiRecipePromptInput" rows="3" placeholder="e.g. Thai coconut lime shrimp with 1 lb shrimp, 1 can light coconut milk, 2 tbsp red curry paste, 1 red bell pepper, 1 cup snap peas, serves 4" class="w-full text-xs p-3 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-purple-400"></textarea>
+          
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] text-purple-300">Calculates per-serving calories, protein, carbs, fat & steps</span>
+            <button id="aiRecipeBtn" onclick="generateAIRecipeNutrition()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-emerald-400 hover:opacity-90 font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Generate with AI</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Recipe Loading State -->
+        <div id="aiRecipeLoading" class="hidden mt-3 p-3 bg-white/10 rounded-2xl text-center space-y-2">
+          <div class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs font-medium text-purple-200">Analyzing ingredient density and computing accurate macro breakdown...</p>
+        </div>
+
+        <!-- AI Generated Recipe Result Card -->
+        <div id="aiRecipeResultCard" class="hidden mt-3 p-4 bg-white/10 backdrop-blur rounded-2xl border border-white/20 space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 id="airResultTitle" class="font-bold text-sm text-white"></h3>
+              <p id="airResultServings" class="text-[11px] text-purple-200"></p>
+            </div>
+            <div class="text-right">
+              <span id="airResultCal" class="text-lg font-extrabold text-emerald-300 block"></span>
+              <span class="text-[10px] text-purple-200">per serving</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1 text-center bg-black/20 p-2 rounded-xl text-[11px]">
+            <div><span class="text-purple-300 block text-[9px]">Protein</span><strong id="airResultP">0g</strong></div>
+            <div><span class="text-purple-300 block text-[9px]">Carbs</span><strong id="airResultC">0g</strong></div>
+            <div><span class="text-purple-300 block text-[9px]">Fat</span><strong id="airResultF">0g</strong></div>
+            <div><span class="text-purple-300 block text-[9px]">Fiber</span><strong id="airResultFib">0g</strong></div>
+          </div>
+
+          <div class="text-xs space-y-1">
+            <span class="font-semibold text-purple-200 block text-[11px]">Ingredients:</span>
+            <ul id="airResultIngredients" class="list-disc list-inside text-[11px] text-slate-200 space-y-0.5"></ul>
+          </div>
+
+          <div class="text-xs space-y-1">
+            <span class="font-semibold text-purple-200 block text-[11px]">Instructions:</span>
+            <p id="airResultInstructions" class="text-[11px] text-slate-200 leading-relaxed"></p>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button onclick="saveAIRecipeToLibrary()" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition">
+              Save Recipe to Library
+            </button>
+            <button onclick="logAIRecipeServingNow()" class="flex-1 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl text-xs transition">
+              Log 1 Serving Today
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Recipe Nutrition Builder -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Manual Recipe Nutrition Builder</h2>
+            <p class="text-xs text-slate-500">Combine custom ingredients and compute batch nutrition per serving.</p>
+          </div>
+          <button onclick="clearRecipeForm()" class="text-xs text-slate-400 hover:text-slate-600 font-medium">Reset</button>
+        </div>
+
+        <div class="space-y-2">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Recipe Name</label>
+            <input type="text" id="rcName" placeholder="e.g. High-Protein Turkey Chili" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Batch Servings</label>
+              <input type="number" id="rcServings" value="2" min="1" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" oninput="updateLiveRecipeTotal()" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-600 block mb-1">Default Meal Slot</label>
+              <select id="rcTargetMeal" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                <option value="dinner">Dinner</option>
+                <option value="lunch">Lunch</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="snack">Snack</option>
+                <option value="drink">Drink</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredient Rows List -->
+        <div class="space-y-1.5 pt-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">Ingredients</span>
+            <button onclick="addRecipeIngredientRow()" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Ingredient
+            </button>
+          </div>
+          <div id="recipeIngredientsContainer" class="space-y-2"></div>
+        </div>
+
+        <!-- Realtime Per-Serving Nutrition Summary -->
+        <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-emerald-800">Per-Serving Nutrition</span>
+            <span id="previewPerServingCal" class="text-sm font-extrabold text-emerald-700">0 kcal</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center text-[11px] font-semibold text-slate-600 bg-white/70 py-1.5 rounded-lg">
+            <div><span class="text-slate-400 block text-[9px]">Protein</span><span id="previewPerServingP">0g</span></div>
+            <div><span class="text-slate-400 block text-[9px]">Carbs</span><span id="previewPerServingC">0g</span></div>
+            <div><span class="text-slate-400 block text-[9px]">Fat</span><span id="previewPerServingF">0g</span></div>
+          </div>
+        </div>
+
+        <button onclick="calculateAndSaveRecipe()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs">
+          <i data-lucide="save" class="w-4 h-4"></i> Save Recipe to My Library
+        </button>
+      </div>
+
+      <!-- Saved Custom Recipes Section -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <h3 class="text-sm font-bold text-slate-900">My Saved Custom Recipes</h3>
+        <div id="savedRecipesList" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: SMART MEAL FINDER (IDEAS <= CAP) ================= -->
+    <section id="tab-recipes" class="space-y-4 hidden">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+              <i data-lucide="utensils" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Recommended Meals Under Calorie Cap</h2>
+              <p class="text-xs text-slate-500">Filtered by max calories & optimized for 1,250 daily limit</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick One-Tap Meal Cap Presets -->
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Quick Calorie Limit Presets:</span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <button onclick="setRecipeCapPreset('breakfast', 350)" class="p-2 rounded-xl text-left bg-amber-50 hover:bg-amber-100/80 border border-amber-200 transition">
+              <span class="text-[10px] font-semibold text-amber-700 block">☕ Breakfast Cap</span>
+              <strong class="text-xs text-amber-900">≤ 350 kcal</strong>
+            </button>
+            <button onclick="setRecipeCapPreset('lunch', 450)" class="p-2 rounded-xl text-left bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition">
+              <span class="text-[10px] font-semibold text-emerald-700 block">🥗 Lunch Cap</span>
+              <strong class="text-xs text-emerald-900">≤ 450 kcal</strong>
+            </button>
+            <button onclick="setRecipeCapPreset('dinner', 450)" class="p-2 rounded-xl text-left bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 transition">
+              <span class="text-[10px] font-semibold text-indigo-700 block">🍲 Dinner Cap</span>
+              <strong class="text-xs text-indigo-900">≤ 450 kcal</strong>
+            </button>
+            <button onclick="setRecipeCapPreset('all', 'remaining')" class="p-2 rounded-xl text-left bg-purple-50 hover:bg-purple-100/80 border border-purple-200 transition">
+              <span class="text-[10px] font-semibold text-purple-700 block">🎯 Remaining Today</span>
+              <strong class="text-xs text-purple-900" id="presetRemainingDisplay">≤ -- kcal</strong>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Meal Period</label>
+            <select id="filterMealSlot" onchange="renderRecipeRecommendations()" class="w-full text-xs font-semibold px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+              <option value="all">All Meals & Snacks</option>
+              <option value="breakfast">Breakfast Only</option>
+              <option value="lunch">Lunch Only</option>
+              <option value="dinner">Dinner Only</option>
+              <option value="snack">Snacks Only</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Max Calorie Cap</label>
+            <select id="filterCalCap" onchange="renderRecipeRecommendations()" class="w-full text-xs font-semibold px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+              <option value="remaining">Remaining Allowance Today</option>
+              <option value="180">Strict Snack (≤ 180 kcal)</option>
+              <option value="250">Light Meal (≤ 250 kcal)</option>
+              <option value="350">Moderate (≤ 350 kcal)</option>
+              <option value="425" selected>Standard (≤ 425 kcal)</option>
+              <option value="500">Max Cap (≤ 500 kcal)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- AI On-Demand Custom Meal Generator Under Cap -->
+        <div class="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-4 h-4 text-purple-300"></i>
+              <span class="text-xs font-bold">Need a specific meal idea under this cap?</span>
+            </div>
+            <span class="text-[10px] bg-purple-500/40 text-purple-200 px-2 py-0.5 rounded font-mono" id="aiCapLimitBadge">≤ 425 kcal</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="aiCustomCapPrompt" placeholder="e.g. Quick high protein breakfast using eggs and toast..." class="flex-1 text-xs px-3 py-1.5 bg-white/10 border border-white/20 rounded-xl outline-none text-white placeholder-slate-400 focus:ring-1 focus:ring-purple-300" onkeydown="if(event.key==='Enter'){event.preventDefault();generateAICappedMeal();}" />
+            <button onclick="generateAICappedMeal()" id="aiCustomCapBtn" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition shrink-0 flex items-center gap-1 shadow-xs">
+              <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+              <span>Generate</span>
+            </button>
+          </div>
+          <!-- Loading state for AI Capped Meal -->
+          <div id="aiCapLoading" class="hidden text-center py-2 space-y-1">
+            <div class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-[10px] text-purple-200">Formulating high-protein recipe under the strict calorie limit...</p>
+          </div>
+          <!-- AI Capped Result Preview Container -->
+          <div id="aiCappedResultContainer" class="hidden"></div>
+        </div>
+
+        <!-- Active Filter Indicator Banner -->
+        <div class="flex items-center justify-between text-xs px-3 py-2 bg-slate-50 rounded-xl border border-slate-200/70">
+          <span class="text-slate-600 font-medium">Showing recipes matching: <strong class="text-slate-900" id="activeFilterDesc">All meals ≤ 425 kcal</strong></span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800" id="activeFilterMatchesCount">0 matches</span>
+        </div>
+
+        <div id="recipeSuggestionsList" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: FITNESS & WEIGHT LOG ================= -->
+    <section id="tab-fitness" class="space-y-4 hidden">
+      <!-- Weight Tracker Widget -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Daily Weigh-In</h2>
+            <p class="text-xs text-slate-500">Track weight to correlate with your 1,250 deficit</p>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+            <i data-lucide="scale" class="w-4 h-4"></i>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <input type="number" step="0.1" id="weightInput" placeholder="e.g. 158.4" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500" />
+            <span class="absolute right-3 top-2.5 text-xs font-bold text-slate-400">lbs</span>
+          </div>
+          <button onclick="saveDailyWeight()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm rounded-xl transition shadow-xs">
+            Save
+          </button>
+        </div>
+
+        <div class="mt-3 flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+          <span>Today's Weight: <strong id="todayWeightDisplay" class="text-slate-800">Not recorded</strong></span>
+          <span id="weightDiffDisplay" class="text-[11px] font-semibold text-emerald-600"></span>
+        </div>
+      </div>
+
+      <!-- Quick Exercise Logger Form -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <h3 class="text-sm font-bold text-slate-900 mb-1">Add Workout / Active Burn</h3>
+        <p class="text-xs text-slate-500 mb-3">Calories subtracted from consumed, raising your remaining food allowance.</p>
+
+        <form onsubmit="event.preventDefault(); submitFitnessEntry();" class="space-y-3">
+          <div>
+            <label class="text-xs font-medium text-slate-600 block mb-1">Activity Type</label>
+            <select id="fitActivityType" onchange="autoFillFitnessEstimate()" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+              <option value="Strength Training">Strength & Weight Training (Muscle Preservation)</option>
+              <option value="Brisk Walking">Brisk Walking (3.5 mph)</option>
+              <option value="Running/Jogging">Running / Jogging (5 mph)</option>
+              <option value="Cycling">Cycling / Stationary Bike</option>
+              <option value="HIIT Workout">HIIT Workout</option>
+              <option value="Swimming">Swimming</option>
+              <option value="Yoga / Pilates">Yoga / Pilates</option>
+              <option value="Custom">Custom Activity</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-medium text-slate-600 block mb-1">Duration (mins)</label>
+              <input type="number" id="fitDuration" value="30" min="1" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" oninput="autoFillFitnessEstimate()" />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-600 block mb-1">Burned (kcal)</label>
+              <input type="number" id="fitCalories" value="150" min="1" required class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-emerald-600" />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl shadow-xs text-sm transition flex items-center justify-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> Add to Today's Fitness
+          </button>
+        </form>
+      </div>
+
+      <!-- Recent Logged Exercises -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Today's Activity Sessions</h4>
+        <div id="fullFitnessListToday" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: TRENDS & ANALYTICS ================= -->
+    <section id="tab-analytics" class="space-y-4 hidden">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Trending Analysis</h2>
+            <p class="text-xs text-slate-500">Historical performance & deficit compliance</p>
+          </div>
+          <span class="text-xs bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg font-bold">Includes Injections 💉</span>
+        </div>
+
+        <!-- Calorie History Chart -->
+        <div class="mt-4">
+          <h3 class="text-xs font-bold text-slate-600 mb-2 flex items-center justify-between">
+            <span>Calorie Intake vs 1,250 Cap</span>
+            <span class="text-[10px] text-emerald-600 font-normal">Green line: Target</span>
+          </h3>
+          <div class="w-full h-48">
+            <canvas id="caloriesTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Weight History Chart with GLP-1 Shot Markers -->
+        <div class="mt-6 pt-4 border-t border-slate-100">
+          <h3 class="text-xs font-bold text-slate-600 mb-2 flex items-center justify-between">
+            <span>Weight Progress Trend (lbs)</span>
+            <span class="text-[10px] text-purple-600 font-semibold">Purple points = Shot Day</span>
+          </h3>
+          <div class="w-full h-48">
+            <canvas id="weightTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Macro Split Doughnut -->
+        <div class="mt-6 pt-4 border-t border-slate-100">
+          <h3 class="text-xs font-bold text-slate-600 mb-2">Macronutrient Distribution (Today)</h3>
+          <div class="w-full h-44 flex items-center justify-center">
+            <canvas id="macroDonutChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Export / Clear Section -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs text-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h4 class="font-bold text-slate-800">Database & Backup</h4>
+          <span id="lastUpdatedDetailBadge" class="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+            <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
+            <span id="lastUpdatedDetailText">Last Saved: Just now</span>
+          </span>
+        </div>
+
+        <!-- Live Storage Diagnostics Inspector -->
+        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-1 text-[11px]">
+          <div class="flex items-center justify-between font-semibold text-slate-700">
+            <span>Storage Status:</span>
+            <span id="diagnosticStatusText" class="text-emerald-700 font-bold">Active & Verified</span>
+          </div>
+          <div class="text-slate-500 flex items-center justify-between">
+            <span>Recorded Entries:</span>
+            <span id="diagnosticCountText" class="font-mono font-bold text-slate-800">0 items</span>
+          </div>
+          <div class="text-slate-500 flex items-center justify-between">
+            <span>Active Days Saved:</span>
+            <span id="diagnosticDaysText" class="font-mono font-bold text-slate-800">0 dates</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="forceReloadAllStorage()" class="flex-1 py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold rounded-xl text-center transition">
+            ↻ Reload from Storage
+          </button>
+          <button onclick="exportUserDataJSON()" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-center transition">
+            Backup (JSON)
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-2 py-1 shadow-lg">
+    <div class="max-w-xl lg:max-w-2xl mx-auto grid grid-cols-6 text-center">
+      <button onclick="switchTab('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center py-1.5 text-emerald-600 font-semibold">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Today</span>
+      </button>
+
+      <button onclick="switchTab('recipes')" id="nav-btn-recipes" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <i data-lucide="utensils" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Ideas</span>
+      </button>
+
+      <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Builder</span>
+      </button>
+
+      <button onclick="switchTab('protocol')" id="nav-btn-protocol" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <i data-lucide="syringe" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">GLP & B12</span>
+      </button>
+
+      <button onclick="switchTab('fitness')" id="nav-btn-fitness" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <i data-lucide="activity" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Fitness</span>
+      </button>
+
+      <button onclick="switchTab('analytics')" id="nav-btn-analytics" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <i data-lucide="line-chart" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Trends</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal 0: AI Smart Food Logger Modal -->
+  <div id="aiFoodModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Smart AI Food Logger</h3>
+            <p class="text-[11px] text-emerald-100">Describe what you ate in natural plain English</p>
+          </div>
+        </div>
+        <button onclick="closeAIFoodModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-3 flex-1">
+        <div>
+          <label class="text-xs font-semibold text-slate-700 block mb-1">What did you eat?</label>
+          <textarea id="aiFoodPromptInput" rows="3" placeholder="e.g. 2 scrambled eggs with 1 slice of whole wheat toast and half an avocado for breakfast" class="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">GLP-1 High-Protein Staples:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="setAIPromptExample('4 egg whites and 1 whole egg scrambled with spinach for breakfast')" class="text-[10px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+              🍳 High-protein egg scramble
+            </button>
+            <button type="button" onclick="setAIPromptExample('6 oz baked wild salmon with lemon and roasted asparagus for dinner')" class="text-[10px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+              🐟 Salmon & asparagus dinner
+            </button>
+            <button type="button" onclick="setAIPromptExample('1 cup nonfat Greek yogurt with 1 scoop whey protein and blueberries')" class="text-[10px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
+              🫐 Greek yogurt protein bowl
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Loading Spinner -->
+        <div id="aiFoodLoading" class="hidden py-4 text-center space-y-2">
+          <div class="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs font-semibold text-slate-600">Analyzing portions and estimating macronutrients with AI...</p>
+        </div>
+
+        <!-- AI Parsed Results Confirmation Area -->
+        <div id="aiFoodParsedContainer" class="hidden space-y-2 pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">Identified Food Items:</span>
+            <span id="aiParsedMealBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800"></span>
+          </div>
+          <div id="aiParsedItemsList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="p-3 border-t border-slate-100 bg-slate-50 flex gap-2">
+        <button id="aiParseSubmitBtn" onclick="analyzeFoodWithAI()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>Parse & Estimate with AI</span>
+        </button>
+        <button id="aiConfirmLogBtn" onclick="confirmAIFoodLog()" class="hidden flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1 shadow-xs">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Log All to Diary</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 1: Quick Food & Food Database Logger -->
+  <div id="quickFoodModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 class="font-bold text-slate-800 text-base" id="modalMealTitle">Log Food to Breakfast</h3>
+        <button onclick="closeQuickFoodModal()" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+        <div>
+          <label class="text-xs font-semibold text-slate-600 block mb-1">Meal Period</label>
+          <select id="modalMealSelector" class="w-full text-sm px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl font-medium outline-none">
+            <option value="breakfast">Breakfast (~300-350 kcal)</option>
+            <option value="lunch">Lunch (~400-450 kcal)</option>
+            <option value="dinner">Dinner (~400-450 kcal)</option>
+            <option value="snack">Snack (~100 kcal)</option>
+            <option value="drink">Drinks & Beverages (Coffee, Shake, Tea)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-700 block mb-1">Pick from Verified Common Foods</label>
+          <div class="relative">
+            <input type="text" id="foodSearchInput" oninput="filterCommonFoods(this.value)" placeholder="Search eggs, chicken, avocado, yogurt..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-100 border border-slate-200 rounded-xl outline-none" />
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5"></i>
+          </div>
+
+          <div id="commonFoodsGrid" class="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 space-y-2">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Or Enter Custom Item</h4>
+          <input type="text" id="custFoodName" placeholder="Food name (e.g., Greek Salad)" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+          
+          <div class="grid grid-cols-4 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-500 font-semibold block">Calories</span>
+              <input type="number" id="custFoodCal" placeholder="kcal" class="w-full text-xs px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-emerald-600" />
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 font-semibold block">Protein (g)</span>
+              <input type="number" id="custFoodProt" placeholder="0" class="w-full text-xs px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 font-semibold block">Carbs (g)</span>
+              <input type="number" id="custFoodCarb" placeholder="0" class="w-full text-xs px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 font-semibold block">Fat (g)</span>
+              <input type="number" id="custFoodFat" placeholder="0" class="w-full text-xs px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+          </div>
+          <div class="w-1/3">
+            <span class="text-[10px] text-slate-500 font-semibold block">Fiber (g)</span>
+            <input type="number" id="custFoodFib" placeholder="0" class="w-full text-xs px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 border-t border-slate-100 bg-slate-50 flex gap-2">
+        <button onclick="submitCustomFoodEntry()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+          Add Food Entry
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Target Calorie Settings -->
+  <div id="targetModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-slate-900">Set Calorie & Protein Targets</h3>
+      <p class="text-xs text-slate-500">Optimized for 1,250 kcal/day and GLP-1 muscle preservation.</p>
+      <div>
+        <label class="text-xs font-semibold text-slate-600 block mb-1">Target Calories (kcal)</label>
+        <input type="number" id="customTargetInput" value="1250" class="w-full text-lg font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-emerald-600" />
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-slate-600 block mb-1">Protein Target Floor (g)</label>
+        <input type="number" id="customProtTargetInput" value="85" class="w-full text-lg font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-rose-600" />
+      </div>
+      <div class="flex gap-2">
+        <button onclick="saveDailyTargetSettings()" class="flex-1 bg-emerald-600 text-white font-semibold py-2 rounded-xl text-xs">Save</button>
+        <button onclick="closeTargetModal()" class="px-4 py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-xs">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Install to Phone Guide -->
+  <div id="installGuideModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+            <i data-lucide="smartphone" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">Add to Your Phone</h3>
+            <p class="text-[11px] text-slate-500">Opens in full screen with no browser address bar</p>
+          </div>
+        </div>
+        <button onclick="closeInstallModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
+          <strong class="text-slate-800 flex items-center gap-1.5 text-xs">
+            <span class="text-base">🍎</span> On iPhone (Safari):
+          </strong>
+          <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600 pl-1">
+            <li>Tap the <strong>Share</strong> button (square with arrow pointing up).</li>
+            <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+            <li>Tap <strong>Add</strong> in the top-right corner.</li>
+          </ol>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-1">
+          <strong class="text-slate-800 flex items-center gap-1.5 text-xs">
+            <span class="text-base">🤖</span> On Android (Chrome):
+          </strong>
+          <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-600 pl-1">
+            <li>Tap the <strong>three dots menu (⋮)</strong> in the top right.</li>
+            <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+            <li>Follow the prompt to install the icon to your home screen.</li>
+          </ol>
+        </div>
+      </div>
+
+      <button onclick="closeInstallModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Data Snapshot & Persistence Vault Modal -->
+  <div id="dataSnapshotModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-3.5 animate-in fade-in">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">Data Vault & Persistence Lock</h3>
+            <p class="text-[11px] text-slate-500">Fast backup and restore for your records</p>
+          </div>
+        </div>
+        <button onclick="closeDataSnapshotModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Your data is saved automatically on this device. You can also copy your entire encrypted state here anytime as a backup:
+      </p>
+
+      <div class="space-y-2">
+        <button onclick="copyDataSnapshotToClipboard()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs transition">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span>Copy Data Snapshot (1-Click Safe Lock)</span>
+        </button>
+
+        <div class="pt-2 border-t border-slate-100">
+          <label class="text-[11px] font-semibold text-slate-600 block mb-1">Restore Past Snapshot (Paste text here):</label>
+          <textarea id="restoreSnapshotInput" rows="2" placeholder="Paste your snapshot text here to immediately restore all days..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-400 font-mono"></textarea>
+          <button onclick="applyPastedSnapshot()" class="w-full mt-1.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Restore & Lock into Tracker</span>
+          </button>
+        </div>
+      </div>
+
+      <button onclick="closeDataSnapshotModal()" class="w-full py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-xl text-xs transition">
+        Done
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 3: Toast Notification Box -->
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
+    Item logged successfully
+  </div>
+
+  <input type="file" id="jsonFileInput" class="hidden" accept=".json" onchange="handleImportFile(event)" />
+
+  <!-- ================= APP LOGIC ================= -->
+  <script>
+    // Verified food database tailored for high-protein, GLP-1 protection
+    const COMMON_FOODS = [
+      { name: "Egg (Large, Boiled/Poached)", portion: "1 egg", cal: 72, p: 6.3, c: 0.4, f: 4.8, fib: 0 },
+      { name: "Egg Whites", portion: "3 whites (100g)", cal: 52, p: 11, c: 0.7, f: 0.2, fib: 0 },
+      { name: "Chicken Breast (Grilled)", portion: "4 oz (113g)", cal: 185, p: 35, c: 0, f: 4, fib: 0 },
+      { name: "Atlantic Salmon (Baked)", portion: "4 oz (113g)", cal: 230, p: 25, c: 0, f: 14, fib: 0 },
+      { name: "Shrimp (Steamed/Grilled)", portion: "4 oz (113g)", cal: 112, p: 24, c: 0.2, f: 1.2, fib: 0 },
+      { name: "Tuna (Canned in Water)", portion: "1 can (165g)", cal: 130, p: 30, c: 0, f: 1, fib: 0 },
+      { name: "Non-Fat Greek Yogurt", portion: "3/4 cup (170g)", cal: 100, p: 17, c: 6, f: 0.7, fib: 0 },
+      { name: "Whey Protein Isolate", portion: "1 scoop (30g)", cal: 120, p: 25, c: 2, f: 1, fib: 0 },
+      { name: "Cottage Cheese (1% Low Fat)", portion: "1/2 cup (113g)", cal: 81, p: 14, c: 3, f: 1.2, fib: 0 },
+      { name: "Rolled Oats (Dry)", portion: "1/2 cup (40g)", cal: 150, p: 5, c: 27, f: 2.5, fib: 4 },
+      { name: "Chia Seeds", portion: "1 tbsp (12g)", cal: 58, p: 2, c: 5, f: 3.5, fib: 4 },
+      { name: "Avocado", portion: "1/4 medium (50g)", cal: 80, p: 1, c: 4, f: 7.3, fib: 3.4 },
+      { name: "Jasmine White Rice (Cooked)", portion: "1/2 cup (79g)", cal: 102, p: 2.1, c: 22, f: 0.2, fib: 0.6 },
+      { name: "Broccoli (Steamed)", portion: "1 cup (150g)", cal: 55, p: 3.7, c: 11, f: 0.6, fib: 5 },
+      { name: "Baby Spinach (Raw)", portion: "2 cups (60g)", cal: 14, p: 1.7, c: 2.2, f: 0.2, fib: 1.5 },
+      { name: "Asparagus (Roasted)", portion: "6 spears (90g)", cal: 20, p: 2, c: 3.7, f: 0.2, fib: 1.8 },
+      { name: "Extra Virgin Olive Oil", portion: "1 tsp (4.5g)", cal: 40, p: 0, c: 0, f: 4.5, fib: 0 },
+      { name: "Almonds", portion: "14 nuts (16g)", cal: 95, p: 3.5, c: 3.5, f: 8, fib: 2 },
+      { name: "Apple (Medium)", portion: "1 apple (182g)", cal: 95, p: 0.5, c: 25, f: 0.3, fib: 4.4 },
+      { name: "Blueberries (Fresh)", portion: "1/2 cup (74g)", cal: 42, p: 0.5, c: 10.7, f: 0.2, fib: 2 },
+      { name: "Premier Protein Shake", portion: "1 carton (325ml)", cal: 160, p: 30, c: 4, f: 3, fib: 1 },
+      { name: "Cold Brew / Black Coffee", portion: "12 oz (355ml)", cal: 5, p: 0.3, c: 0, f: 0, fib: 0 },
+      { name: "Almond Milk (Unsweetened)", portion: "1 cup (240ml)", cal: 30, p: 1, c: 1, f: 2.5, fib: 0.5 },
+      { name: "Fairlife 2% Ultra-Filtered Milk", portion: "1 cup (240ml)", cal: 120, p: 13, c: 6, f: 4.5, fib: 0 },
+      { name: "Green Tea / Herbal Tea (Plain)", portion: "1 cup (240ml)", cal: 2, p: 0, c: 0, f: 0, fib: 0 },
+      { name: "Coconut Water", portion: "1 cup (240ml)", cal: 45, p: 1.7, c: 8.9, f: 0.5, fib: 0 }
+    ];
+
+    const CURATED_RECIPES = [
+      {
+        id: "cr-1",
+        title: "Poached Lime Shrimp & Asparagus",
+        meal: "lunch",
+        cal: 235,
+        protein: 32,
+        carbs: 8,
+        fat: 4,
+        fiber: 3,
+        prepTime: "12 mins",
+        ingredients: ["5 oz fresh shrimp", "8 spears asparagus", "1 tsp olive oil", "1 tbsp lime juice & cilantro", "Pinch garlic powder & salt"],
+        steps: "Steam asparagus 3 mins. Sauté shrimp in olive oil and garlic for 4 minutes until pink. Toss with asparagus, squeeze fresh lime juice, and season."
+      },
+      {
+        id: "cr-2",
+        title: "Fluffy Spinach & Feta Egg White Scramble",
+        meal: "breakfast",
+        cal: 210,
+        protein: 24,
+        carbs: 6,
+        fat: 8,
+        fiber: 2,
+        prepTime: "8 mins",
+        ingredients: ["4 egg whites + 1 whole egg", "1.5 cups fresh baby spinach", "1 oz crumbled light feta", "Cooking spray", "Black pepper"],
+        steps: "Wilt spinach in pan with light spray. Whisk eggs and pour in, scrambling softly. Fold in feta crumbles right before serving."
+      },
+      {
+        id: "cr-3",
+        title: "Seared Lemon Herb Salmon with Zucchini",
+        meal: "dinner",
+        cal: 370,
+        protein: 34,
+        carbs: 7,
+        fat: 18,
+        fiber: 2,
+        prepTime: "15 mins",
+        ingredients: ["4.5 oz wild salmon fillet", "1 medium zucchini (sliced into coins)", "1 tsp olive oil", "Fresh dill & lemon slice"],
+        steps: "Heat skillet with olive oil. Sear salmon 4 mins per side. Cook zucchini slices alongside until lightly browned. Drizzle with lemon juice."
+      },
+      {
+        id: "cr-4",
+        title: "Grilled Chicken & Rainbow Chopped Salad",
+        meal: "lunch",
+        cal: 320,
+        protein: 38,
+        carbs: 12,
+        fat: 9,
+        fiber: 4,
+        prepTime: "10 mins",
+        ingredients: ["4.5 oz grilled chicken breast", "2 cups romaine lettuce", "1/2 cup sliced cucumber", "6 cherry tomatoes", "1 tbsp light balsamic vinaigrette"],
+        steps: "Chop crisp greens, cucumber, and tomatoes. Top with warm sliced grilled chicken. Drizzle lightly with balsamic vinaigrette."
+      },
+      {
+        id: "cr-5",
+        title: "Creamy High-Protein Berry Parfait",
+        meal: "breakfast",
+        cal: 240,
+        protein: 26,
+        carbs: 28,
+        fat: 2,
+        fiber: 4,
+        prepTime: "4 mins",
+        ingredients: ["1 cup non-fat Greek yogurt", "1/2 scoop vanilla protein powder", "1/2 cup fresh blueberries", "Cinnamon dusting"],
+        steps: "Stir protein powder thoroughly into Greek yogurt until velvety smooth. Layer with fresh berries and dust with cinnamon."
+      },
+      {
+        id: "cr-6",
+        title: "Garlic Herb Turkey & Riced Cauliflower Skillet",
+        meal: "dinner",
+        cal: 290,
+        protein: 35,
+        carbs: 9,
+        fat: 11,
+        fiber: 4,
+        prepTime: "14 mins",
+        ingredients: ["4 oz 93% lean ground turkey", "1.5 cups riced cauliflower", "1/2 cup diced bell pepper", "1 tsp olive oil", "Smoked paprika, onion powder, salt"],
+        steps: "Brown ground turkey in olive oil with seasonings. Add riced cauliflower and bell peppers, cooking for 5 minutes until tender and hot."
+      },
+      {
+        id: "cr-7",
+        title: "Smoked Salmon & Avocado Cucumber Boats",
+        meal: "breakfast",
+        cal: 260,
+        protein: 22,
+        carbs: 5,
+        fat: 14,
+        fiber: 3,
+        prepTime: "6 mins",
+        ingredients: ["3 oz wild smoked salmon", "1 whole english cucumber (halved & seeded)", "1/4 avocado mashed", "1 tbsp fresh chives & everything bagel seasoning"],
+        steps: "Hollow out cucumber halves. Spread mashed avocado evenly inside. Layer smoked salmon on top and garnish with chives and bagel seasoning."
+      },
+      {
+        id: "cr-8",
+        title: "Zesty Lime Cilantro Tuna Lettuce Wraps",
+        meal: "lunch",
+        cal: 220,
+        protein: 32,
+        carbs: 4,
+        fat: 7,
+        fiber: 2,
+        prepTime: "5 mins",
+        ingredients: ["1 can chunk light tuna (drained)", "1 tbsp light mayo or Greek yogurt", "1 tbsp lime juice", "Pinch chili flakes", "4 large butter lettuce leaves"],
+        steps: "Mix tuna with Greek yogurt or light mayo, lime juice, and chili flakes. Spoon into crisp butter lettuce cups and serve immediately."
+      },
+      {
+        id: "cr-9",
+        title: "Cottage Cheese & Cinnamon Apple Crunch",
+        meal: "snack",
+        cal: 155,
+        protein: 15,
+        carbs: 18,
+        fat: 2,
+        fiber: 3,
+        prepTime: "3 mins",
+        ingredients: ["1/2 cup 1% low-fat cottage cheese", "1/2 diced honeycrisp apple", "Generous pinch Ceylon cinnamon", "1 tsp chia seeds"],
+        steps: "Top cold cottage cheese with freshly diced apple, sprinkle with cinnamon, and finish with chia seeds for added fiber."
+      },
+      {
+        id: "cr-10",
+        title: "Lemon Pepper Cod with Steamed Green Beans",
+        meal: "dinner",
+        cal: 245,
+        protein: 33,
+        carbs: 8,
+        fat: 6,
+        fiber: 4,
+        prepTime: "12 mins",
+        ingredients: ["5 oz fresh cod fillet", "1.5 cups fresh green beans", "1 tsp olive oil", "Lemon pepper seasoning", "Lemon wedges"],
+        steps: "Season cod fillet with lemon pepper and sear in olive oil for 3-4 mins per side. Steam green beans until bright green and tender-crisp."
+      }
+    ];
+
+    // State management
+    let appState = {
+      targetBudget: 1250,
+      targetProtein: 85, // Muscle floor target
+      targetFiber: 25,   // Motility target
+      activeDate: getTodayDateString(),
+      lastUpdated: new Date().toISOString(),
+      days: {},          // key: "YYYY-MM-DD" -> { breakfast:[], lunch:[], dinner:[], snack:[], drink:[], fitness:[], weight: null, waterOz: 0, electrolytes: false, tasks: [], howIFeel: '', protocol: null }
+      customRecipes: []
+    };
+
+    let calorieChartInstance = null;
+    let weightChartInstance = null;
+    let macroDonutInstance = null;
+
+    let currentAIParsedResult = null;
+    let currentAIRecipeResult = null;
+
+    let cloudDb = null;
+    let cloudAuth = null;
+    let cloudUser = null;
+    let cloudDocRef = null;
+    let isRemoteUpdate = false;
+    let saveTimeout = null;
+    let feelingSaveTimeout = null;
+
+    const LOCAL_CACHE_KEY = 'nutritrack_1250_persistent_cache_v3';
+    const IDB_NAME = 'nutritrack_persistent_idb';
+    const IDB_STORE = 'app_state_store';
+
+    // Cross-frame window hierarchy persistence bridge
+    function getRootStorageWindow() {
+      try {
+        if (window.top && window.top !== window && window.top.localStorage) {
+          return window.top;
+        }
+      } catch (e) {}
+      try {
+        if (window.parent && window.parent !== window && window.parent.localStorage) {
+          return window.parent;
+        }
+      } catch (e) {}
+      return window;
+    }
+
+    window.__emergencyMemoryVault = window.__emergencyMemoryVault || null;
+
+    function getTodayDateString() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // --- ROCK-SOLID INDEXEDDB & STORAGE PERSISTENCE LAYER ---
+    function openIDB() {
+      return new Promise((resolve) => {
+        try {
+          if (!window.indexedDB) {
+            resolve(null);
+            return;
+          }
+          const req = window.indexedDB.open(IDB_NAME, 2);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+              db.createObjectStore(IDB_STORE);
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+          req.onblocked = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }
+
+    async function saveToIDB(data) {
+      try {
+        const db = await openIDB();
+        if (!db) return;
+        return new Promise((resolve) => {
+          try {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            const store = tx.objectStore(IDB_STORE);
+            store.put(JSON.parse(JSON.stringify(data)), 'main_state');
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+          } catch (err) {
+            resolve(false);
+          }
+        });
+      } catch (e) {
+        console.debug("IDB save error:", e);
+      }
+    }
+
+    async function loadFromIDB() {
+      try {
+        const db = await openIDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+          try {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const store = tx.objectStore(IDB_STORE);
+            const req = store.get('main_state');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          } catch (err) {
+            resolve(null);
+          }
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Hybrid Cache Layer: Safe read wrapper across all storage mechanisms
+    function loadLocalCache() {
+      let saved = null;
+
+      // 0. Check cross-frame parent window vault
+      try {
+        const rootWin = getRootStorageWindow();
+        if (rootWin && rootWin.__globalNutriVault) {
+          saved = rootWin.__globalNutriVault;
+        }
+      } catch (e) {}
+
+      // 1. Check persistent localStorage
+      if (!saved) {
+        try {
+          const lRaw = window.localStorage ? window.localStorage.getItem(LOCAL_CACHE_KEY) : null;
+          if (lRaw && lRaw.startsWith('{')) {
+            saved = JSON.parse(lRaw);
+          }
+        } catch (e) {
+          console.debug("localStorage read restricted by iframe:", e);
+        }
+      }
+
+      // 2. Check sessionStorage
+      if (!saved) {
+        try {
+          const sRaw = window.sessionStorage ? window.sessionStorage.getItem(LOCAL_CACHE_KEY) : null;
+          if (sRaw && sRaw.startsWith('{')) {
+            saved = JSON.parse(sRaw);
+          }
+        } catch (e) {}
+      }
+
+      // 3. Check window.name
+      if (!saved) {
+        try {
+          if (window.name && window.name.startsWith('{') && window.name.includes('days')) {
+            saved = JSON.parse(window.name);
+          }
+        } catch (e) {}
+      }
+
+      // 4. Check emergency memory vault
+      if (!saved && window.__emergencyMemoryVault) {
+        saved = window.__emergencyMemoryVault;
+      }
+
+      if (saved && saved.days && Object.keys(saved.days).length > 0) {
+        appState = deepMergeState(appState, saved);
+      }
+    }
+
+    function saveLocalCache() {
+      const serialized = JSON.stringify(appState);
+      window.__emergencyMemoryVault = JSON.parse(serialized);
+
+      try {
+        const rootWin = getRootStorageWindow();
+        if (rootWin) {
+          rootWin.__globalNutriVault = JSON.parse(serialized);
+        }
+      } catch (e) {}
+
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(LOCAL_CACHE_KEY, serialized);
+        }
+      } catch (e) {
+        console.debug("localStorage write restricted:", e);
+      }
+
+      try {
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(LOCAL_CACHE_KEY, serialized);
+        }
+      } catch (e) {}
+
+      try {
+        window.name = serialized;
+      } catch (e) {}
+
+      saveToIDB(appState);
+    }
+
+    function countDataEntries(st) {
+      if (!st || !st.days) return 0;
+      let count = (st.customRecipes || []).length;
+      for (const d of Object.values(st.days)) {
+        if (!d) continue;
+        count += (d.breakfast || []).length;
+        count += (d.lunch || []).length;
+        count += (d.dinner || []).length;
+        count += (d.snack || []).length;
+        count += (d.drink || []).length;
+        count += (d.fitness || []).length;
+        if (d.tasks) {
+          count += d.tasks.filter(t => t.completed).length;
+        }
+        if (d.weight) count++;
+        if (d.howIFeel && d.howIFeel.trim() !== '') count++;
+        if (d.protocol && (d.protocol.glpDose || d.protocol.b12Dose)) count += 2;
+      }
+      return count;
+    }
+
+    const DEFAULT_DAILY_TASKS = [
+      { id: 't_water', text: 'Hydration Floor (64 oz reached)', completed: false, isDefault: true },
+      { id: 't_protein', text: 'Hit ≥85g Protein Muscle Shield', completed: false, isDefault: true },
+      { id: 't_fiber', text: 'Reach 25g Motility Fiber Floor', completed: false, isDefault: true },
+      { id: 't_electrolytes', text: 'Electrolytes / Minerals Taken', completed: false, isDefault: true },
+      { id: 't_weigh', text: 'Morning Weigh-In Logged', completed: false, isDefault: true },
+      { id: 't_exercise', text: '30+ min Resistance or Movement', completed: false, isDefault: true },
+      { id: 't_supps', text: 'Vitamins & Micro Supplements', completed: false, isDefault: true }
+    ];
+
+    function deepMergeState(base, incoming) {
+      if (!incoming) return base;
+      const merged = { ...base, ...incoming };
+      merged.days = { ...(base.days || {}) };
+      if (incoming.lastUpdated) {
+        merged.lastUpdated = (!base.lastUpdated || new Date(incoming.lastUpdated) > new Date(base.lastUpdated))
+          ? incoming.lastUpdated
+          : base.lastUpdated;
+      }
+      if (incoming.days) {
+        for (const d of Object.keys(incoming.days)) {
+          if (!merged.days[d]) {
+            merged.days[d] = incoming.days[d];
+          } else {
+            const currDay = merged.days[d];
+            const incDay = incoming.days[d];
+            merged.days[d] = {
+              breakfast: (incDay.breakfast && incDay.breakfast.length > 0) ? incDay.breakfast : (currDay.breakfast || []),
+              lunch: (incDay.lunch && incDay.lunch.length > 0) ? incDay.lunch : (currDay.lunch || []),
+              dinner: (incDay.dinner && incDay.dinner.length > 0) ? incDay.dinner : (currDay.dinner || []),
+              snack: (incDay.snack && incDay.snack.length > 0) ? incDay.snack : (currDay.snack || []),
+              drink: (incDay.drink && incDay.drink.length > 0) ? incDay.drink : (currDay.drink || []),
+              fitness: (incDay.fitness && incDay.fitness.length > 0) ? incDay.fitness : (currDay.fitness || []),
+              tasks: (incDay.tasks && incDay.tasks.length > 0) ? incDay.tasks : (currDay.tasks || []),
+              weight: (incDay.weight !== null && incDay.weight !== undefined) ? incDay.weight : currDay.weight,
+              waterOz: incDay.waterOz !== undefined ? Math.max(incDay.waterOz, currDay.waterOz || 0) : (currDay.waterOz || 0),
+              electrolytes: incDay.electrolytes !== undefined ? (incDay.electrolytes || currDay.electrolytes) : !!currDay.electrolytes,
+              howIFeel: (incDay.howIFeel !== undefined && incDay.howIFeel !== '') ? incDay.howIFeel : (currDay.howIFeel || ''),
+              protocol: (incDay.protocol && (incDay.protocol.glpDose || incDay.protocol.b12Dose)) ? incDay.protocol : (currDay.protocol || null)
+            };
+          }
+        }
+      }
+      if (incoming.customRecipes && incoming.customRecipes.length > 0) {
+        const recMap = new Map();
+        (base.customRecipes || []).forEach(r => recMap.set(r.id, r));
+        incoming.customRecipes.forEach(r => recMap.set(r.id, r));
+        merged.customRecipes = Array.from(recMap.values());
+      }
+      return merged;
+    }
+
+    async function initCloudSync() {
+      if (!window.fbModules) return;
+      const {
+        initializeApp,
+        getAuth,
+        signInAnonymously,
+        signInWithCustomToken,
+        getFirestore,
+        doc,
+        setDoc,
+        onSnapshot
+      } = window.fbModules;
+
+      try {
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nutritrack-1250';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        if (!firebaseConfig) {
+          updateSyncStatusBadge('local', 'Saved Locally');
+          return;
+        }
+
+        const app = initializeApp(firebaseConfig);
+        cloudDb = getFirestore(app);
+        cloudAuth = getAuth(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(cloudAuth, __initial_auth_token);
+          cloudUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(cloudAuth);
+          cloudUser = cred.user;
+        }
+
+        if (!cloudUser) {
+          updateSyncStatusBadge('local', 'Saved Locally');
+          return;
+        }
+
+        const userId = cloudUser.uid;
+        cloudDocRef = doc(cloudDb, 'artifacts', appId, 'users', userId, 'userData', 'state');
+        updateSyncStatusBadge('synced', 'Cloud Synced');
+
+        onSnapshot(cloudDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const remoteData = docSnap.data();
+            if (remoteData && remoteData.appState) {
+              const remoteEntries = countDataEntries(remoteData.appState);
+              const localEntries = countDataEntries(appState);
+
+              isRemoteUpdate = true;
+              if (remoteEntries > 0) {
+                appState = deepMergeState(appState, remoteData.appState);
+              }
+              if (remoteData.updatedAt && (!appState.lastUpdated || new Date(remoteData.updatedAt) > new Date(appState.lastUpdated))) {
+                appState.lastUpdated = remoteData.updatedAt;
+              }
+              if (!appState.targetBudget) appState.targetBudget = 1250;
+              if (!appState.targetProtein) appState.targetProtein = 85;
+              if (!appState.customRecipes) appState.customRecipes = [];
+              if (!appState.days) appState.days = {};
+              if (!appState.activeDate) appState.activeDate = getTodayDateString();
+              ensureDayExists(appState.activeDate);
+
+              saveLocalCache();
+              refreshUI();
+              updateLastUpdatedDisplay();
+              updateDiagnosticsDisplay();
+              if (document.getElementById('savedRecipesList')) {
+                renderSavedRecipesList();
+              }
+              renderProtocolTab();
+              updateSyncStatusBadge('synced', 'Cloud Synced');
+              isRemoteUpdate = false;
+
+              if (localEntries > remoteEntries) {
+                pushStateToCloud();
+              }
+            }
+          } else {
+            if (countDataEntries(appState) > 0) {
+              pushStateToCloud();
+            }
+          }
+        }, (err) => {
+          console.debug("Cloud sync snapshot error:", err);
+          updateSyncStatusBadge('local', 'Saved Locally');
+        });
+      } catch (err) {
+        console.debug("Cloud init failed:", err);
+        updateSyncStatusBadge('local', 'Saved Locally');
+      }
+    }
+
+    function updateSyncStatusBadge(status, text) {
+      const container = document.getElementById('cloudSyncIndicator');
+      const icon = document.getElementById('cloudSyncIcon');
+      const textEl = document.getElementById('cloudSyncText');
+      if (!container || !icon || !textEl) return;
+
+      textEl.innerText = text;
+      if (status === 'synced') {
+        container.className = "flex items-center gap-1 px-2 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200/60";
+        icon.setAttribute('data-lucide', 'cloud');
+        icon.className = "w-3 h-3 text-emerald-600";
+      } else if (status === 'syncing') {
+        container.className = "flex items-center gap-1 px-2 py-1 rounded-xl bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200/60";
+        icon.setAttribute('data-lucide', 'refresh-cw');
+        icon.className = "w-3 h-3 text-amber-600 animate-spin";
+      } else {
+        container.className = "flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-semibold";
+        icon.setAttribute('data-lucide', 'shield-check');
+        icon.className = "w-3 h-3 text-emerald-600";
+      }
+      lucide.createIcons();
+    }
+
+    function pushStateToCloud() {
+      saveLocalCache();
+
+      if (isRemoteUpdate || !cloudDocRef || !cloudUser || !window.fbModules) return;
+      const { setDoc } = window.fbModules;
+
+      updateSyncStatusBadge('syncing', 'Syncing...');
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        try {
+          const nowIso = new Date().toISOString();
+          appState.lastUpdated = nowIso;
+          await setDoc(cloudDocRef, {
+            appState: appState,
+            updatedAt: nowIso
+          });
+          updateSyncStatusBadge('synced', 'Cloud Synced');
+          updateLastUpdatedDisplay();
+        } catch (e) {
+          console.debug("Cloud write error:", e);
+          updateSyncStatusBadge('local', 'Saved Locally');
+        }
+      }, 300);
+    }
+
+    async function loadState() {
+      loadLocalCache();
+
+      try {
+        const idbData = await loadFromIDB();
+        if (idbData && idbData.days && countDataEntries(idbData) >= countDataEntries(appState)) {
+          appState = deepMergeState(appState, idbData);
+        }
+      } catch (e) {
+        console.debug("IDB restore check:", e);
+      }
+
+      if (!appState.targetBudget) appState.targetBudget = 1250;
+      if (!appState.targetProtein) appState.targetProtein = 85;
+      if (!appState.targetFiber) appState.targetFiber = 25;
+      if (!appState.customRecipes) appState.customRecipes = [];
+      if (!appState.days) appState.days = {};
+      if (!appState.lastUpdated) appState.lastUpdated = new Date().toISOString();
+      if (!appState.activeDate) appState.activeDate = getTodayDateString();
+      ensureDayExists(appState.activeDate);
+      
+      saveLocalCache();
+      refreshUI();
+      updateLastUpdatedDisplay();
+      updateDiagnosticsDisplay();
+      if (document.getElementById('savedRecipesList')) {
+        renderSavedRecipesList();
+      }
+      renderProtocolTab();
+    }
+
+    function saveState() {
+      appState.lastUpdated = new Date().toISOString();
+      saveLocalCache();
+      pushStateToCloud();
+      updateLastUpdatedDisplay();
+      updateDiagnosticsDisplay();
+    }
+
+    function updateDiagnosticsDisplay() {
+      const countEl = document.getElementById('diagnosticCountText');
+      const daysEl = document.getElementById('diagnosticDaysText');
+      const statusEl = document.getElementById('diagnosticStatusText');
+      if (!countEl || !daysEl) return;
+
+      const totalItems = countDataEntries(appState);
+      const totalDays = Object.keys(appState.days || {}).filter(k => {
+        const d = appState.days[k];
+        return d && (
+          (d.breakfast && d.breakfast.length > 0) ||
+          (d.lunch && d.lunch.length > 0) ||
+          (d.dinner && d.dinner.length > 0) ||
+          (d.snack && d.snack.length > 0) ||
+          (d.drink && d.drink.length > 0) ||
+          (d.fitness && d.fitness.length > 0) ||
+          d.weight ||
+          (d.protocol && (d.protocol.glpDose || d.protocol.b12Dose))
+        );
+      }).length;
+
+      countEl.innerText = `${totalItems} items`;
+      daysEl.innerText = `${totalDays} dates logged`;
+      if (statusEl) {
+        statusEl.innerText = totalItems > 0 ? "Saved & Protected ✓" : "Ready";
+      }
+    }
+
+    async function forceReloadAllStorage() {
+      await loadState();
+      showToast(`Reloaded! Found ${countDataEntries(appState)} items in storage.`);
+    }
+
+    function formatTimeRelative(dateObj) {
+      if (!dateObj || isNaN(dateObj.getTime())) return "Just now";
+      const now = new Date();
+      const diffSec = Math.floor((now - dateObj) / 1000);
+      if (diffSec < 15) return "Just now";
+      if (diffSec < 60) return `${diffSec}s ago`;
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHours = Math.floor(diffMin / 60);
+      if (diffHours < 24) {
+        return dateObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      }
+      return dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function updateLastUpdatedDisplay() {
+      const headerText = document.getElementById('lastUpdatedHeaderText');
+      const detailText = document.getElementById('lastUpdatedDetailText');
+      if (!appState.lastUpdated) return;
+
+      const d = new Date(appState.lastUpdated);
+      const relative = formatTimeRelative(d);
+
+      if (headerText) {
+        headerText.innerText = `Updated: ${relative}`;
+      }
+      if (detailText) {
+        const fullStr = d.toLocaleDateString([], { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric', 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          second: '2-digit' 
+        });
+        detailText.innerText = `Last Saved: ${fullStr}`;
+      }
+    }
+
+    setInterval(updateLastUpdatedDisplay, 30000);
+
+    function ensureDayExists(dateStr) {
+      if (!appState.days[dateStr]) {
+        appState.days[dateStr] = {
+          breakfast: [],
+          lunch: [],
+          dinner: [],
+          snack: [],
+          drink: [],
+          fitness: [],
+          tasks: JSON.parse(JSON.stringify(DEFAULT_DAILY_TASKS)),
+          weight: null,
+          waterOz: 0,
+          electrolytes: false,
+          howIFeel: '',
+          protocol: null
+        };
+      }
+      if (!appState.days[dateStr].drink) appState.days[dateStr].drink = [];
+      if (!appState.days[dateStr].tasks || appState.days[dateStr].tasks.length === 0) {
+        appState.days[dateStr].tasks = JSON.parse(JSON.stringify(DEFAULT_DAILY_TASKS));
+      }
+      if (appState.days[dateStr].waterOz === undefined) appState.days[dateStr].waterOz = 0;
+      if (appState.days[dateStr].electrolytes === undefined) appState.days[dateStr].electrolytes = false;
+      if (appState.days[dateStr].howIFeel === undefined) appState.days[dateStr].howIFeel = '';
+      if (appState.days[dateStr].protocol === undefined) appState.days[dateStr].protocol = null;
+    }
+
+    function switchTab(tabId) {
+      const tabs = ['dashboard', 'protocol', 'calculator', 'recipes', 'fitness', 'analytics'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`nav-btn-${t}`);
+        if (sec && btn) {
+          if (t === tabId) {
+            sec.classList.remove('hidden');
+            btn.classList.add('text-emerald-600', 'font-semibold');
+            btn.classList.remove('text-slate-400');
+          } else {
+            sec.classList.add('hidden');
+            btn.classList.remove('text-emerald-600', 'font-semibold');
+            btn.classList.add('text-slate-400');
+          }
+        }
+      });
+
+      if (tabId === 'protocol') {
+        renderProtocolTab();
+      } else if (tabId === 'recipes') {
+        renderRecipeRecommendations();
+      } else if (tabId === 'analytics') {
+        setTimeout(renderAnalyticsCharts, 100);
+      } else if (tabId === 'fitness') {
+        renderFitnessTab();
+      } else if (tabId === 'calculator') {
+        renderSavedRecipesList();
+        if (document.getElementById('recipeIngredientsContainer').children.length === 0) {
+          addRecipeIngredientRow();
+          addRecipeIngredientRow();
+        }
+      }
+    }
+
+    function changeDay(deltaDays) {
+      const parts = appState.activeDate.split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      d.setDate(d.getDate() + deltaDays);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const newStr = `${year}-${month}-${day}`;
+      onDateChanged(newStr);
+    }
+
+    function onDateChanged(dateStr) {
+      appState.activeDate = dateStr;
+      ensureDayExists(dateStr);
+      saveState();
+      document.getElementById('activeDateInput').value = dateStr;
+      refreshUI();
+      renderProtocolTab();
+    }
+
+    function refreshUI() {
+      document.getElementById('activeDateInput').value = appState.activeDate;
+      document.getElementById('targetBadge').innerText = `${appState.targetBudget} Goal`;
+      document.getElementById('baseGoalDisplay').innerText = appState.targetBudget;
+      document.getElementById('headerSubtitle').innerText = `Target: ${appState.targetBudget.toLocaleString()} kcal/day`;
+
+      const day = appState.days[appState.activeDate];
+      const calcMeal = (items) => (items || []).reduce((acc, i) => ({
+        cal: acc.cal + (Number(i.cal) || 0),
+        p: acc.p + (Number(i.p) || 0),
+        c: acc.c + (Number(i.c) || 0),
+        f: acc.f + (Number(i.f) || 0),
+        fib: acc.fib + (Number(i.fib) || 0)
+      }), { cal: 0, p: 0, c: 0, f: 0, fib: 0 });
+
+      const bTotals = calcMeal(day.breakfast);
+      const lTotals = calcMeal(day.lunch);
+      const dTotals = calcMeal(day.dinner);
+      const sTotals = calcMeal(day.snack);
+      const drTotals = calcMeal(day.drink);
+
+      const totalFoodCalories = bTotals.cal + lTotals.cal + dTotals.cal + sTotals.cal + drTotals.cal;
+      const totalProt = bTotals.p + lTotals.p + dTotals.p + sTotals.p + drTotals.p;
+      const totalCarb = bTotals.c + lTotals.c + dTotals.c + sTotals.c + drTotals.c;
+      const totalFat = bTotals.f + lTotals.f + dTotals.f + sTotals.f + drTotals.f;
+      const totalFib = bTotals.fib + lTotals.fib + dTotals.fib + sTotals.fib + drTotals.fib;
+
+      const fitnessBurn = day.fitness.reduce((sum, f) => sum + (Number(f.cal) || 0), 0);
+      const remainingCal = (appState.targetBudget - totalFoodCalories + fitnessBurn);
+
+      document.getElementById('remainingCaloriesDisplay').innerText = remainingCal.toLocaleString();
+      document.getElementById('foodConsumedDisplay').innerText = totalFoodCalories.toLocaleString();
+      document.getElementById('exerciseBurnDisplay').innerText = `+${fitnessBurn.toLocaleString()}`;
+
+      const allowedBudget = appState.targetBudget + fitnessBurn;
+      const pct = allowedBudget > 0 ? Math.min(100, Math.round((totalFoodCalories / allowedBudget) * 100)) : 0;
+      document.getElementById('calorieProgressBar').style.width = `${pct}%`;
+      document.getElementById('progressPercentDisplay').innerText = `${pct}% used`;
+
+      if (remainingCal < 0) {
+        document.getElementById('remainingCaloriesDisplay').classList.add('text-rose-400');
+        document.getElementById('remainingCaloriesDisplay').classList.remove('text-white');
+      } else {
+        document.getElementById('remainingCaloriesDisplay').classList.remove('text-rose-400');
+        document.getElementById('remainingCaloriesDisplay').classList.add('text-white');
+      }
+
+      // Macro totals
+      document.getElementById('totalProtein').innerText = `${Math.round(totalProt)}g`;
+      document.getElementById('proteinKcal').innerText = `${Math.round(totalProt * 4)} kcal`;
+      document.getElementById('totalCarbs').innerText = `${Math.round(totalCarb)}g`;
+      document.getElementById('carbsKcal').innerText = `${Math.round(totalCarb * 4)} kcal`;
+      document.getElementById('totalFat').innerText = `${Math.round(totalFat)}g`;
+      document.getElementById('fatKcal').innerText = `${Math.round(totalFat * 9)} kcal`;
+
+      // GLP-1 Protein Floor Calculations
+      const protFloor = appState.targetProtein || 85;
+      document.getElementById('protGoalNum').innerText = protFloor;
+      const protPct = Math.min(100, Math.round((totalProt / protFloor) * 100));
+      document.getElementById('protPctNum').innerText = `${protPct}% (${Math.round(totalProt)}/${protFloor}g)`;
+      document.getElementById('protProgressBar').style.width = `${protPct}%`;
+      
+      const protStatus = document.getElementById('proteinGoalStatus');
+      if (totalProt >= protFloor) {
+        protStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+        protStatus.innerText = "Muscle Shield Active ✓";
+      } else {
+        protStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800";
+        protStatus.innerText = `Need ${Math.round(protFloor - totalProt)}g more protein`;
+      }
+
+      // Fiber Motility Display
+      const fibTarget = appState.targetFiber || 25;
+      const fibPct = Math.min(100, Math.round((totalFib / fibTarget) * 100));
+      document.getElementById('fiberProgressText').innerText = `${Math.round(totalFib)} / ${fibTarget}g`;
+      document.getElementById('fiberProgressBar').style.width = `${fibPct}%`;
+
+      // Water Hydration display
+      document.getElementById('waterTrackerText').innerText = `${day.waterOz || 0} / 64 oz`;
+
+      // Electrolyte Status
+      const elText = document.getElementById('electrolyteStatusText');
+      const elBtn = document.getElementById('electrolyteToggleBtn');
+      if (day.electrolytes) {
+        elText.innerText = "Logged ✓";
+        elText.className = "text-[10px] text-amber-600 font-bold";
+        elBtn.className = "w-full py-1 rounded-lg bg-amber-100 text-amber-800 font-bold text-[11px] transition text-center border border-amber-300";
+        elBtn.innerText = "Taken ✓";
+      } else {
+        elText.innerText = "Not Taken";
+        elText.className = "text-[10px] text-slate-400 font-medium";
+        elBtn.className = "w-full py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition text-center border border-slate-200";
+        elBtn.innerText = "+ Log Minerals";
+      }
+
+      syncHabitTasksWithMetrics(day, totalProt, totalFib, protFloor, fibTarget);
+      renderDailyTasks(day.tasks);
+
+      const feelInput = document.getElementById('dailyFeelingInput');
+      if (feelInput) {
+        feelInput.value = day.howIFeel || '';
+      }
+      updateFeelingTagHighlight(day.howIFeel || '');
+
+      updateGLPCycleBanner();
+      updateRemainingCapDisplays(remainingCal);
+
+      document.getElementById('b-cal-sum').innerText = `${bTotals.cal} kcal`;
+      document.getElementById('l-cal-sum').innerText = `${lTotals.cal} kcal`;
+      document.getElementById('d-cal-sum').innerText = `${dTotals.cal} kcal`;
+      document.getElementById('s-cal-sum').innerText = `${sTotals.cal} kcal`;
+      if (document.getElementById('dr-cal-sum')) {
+        document.getElementById('dr-cal-sum').innerText = `${drTotals.cal} kcal`;
+      }
+      document.getElementById('f-cal-sum').innerText = `+${fitnessBurn} kcal`;
+
+      renderMealSection('breakfast', day.breakfast);
+      renderMealSection('lunch', day.lunch);
+      renderMealSection('dinner', day.dinner);
+      renderMealSection('snack', day.snack);
+      renderMealSection('drink', day.drink);
+      renderFitnessDashList(day.fitness);
+
+      lucide.createIcons();
+    }
+
+    function updateRemainingCapDisplays(remainingCal) {
+      const positiveRemaining = Math.max(0, remainingCal);
+      const dashTag = document.getElementById('dashRemainingCapTag');
+      if (dashTag) {
+        dashTag.innerText = `≤ ${positiveRemaining.toLocaleString()} kcal`;
+      }
+      const presetDisp = document.getElementById('presetRemainingDisplay');
+      if (presetDisp) {
+        presetDisp.innerText = `≤ ${positiveRemaining.toLocaleString()} kcal`;
+      }
+    }
+
+    function syncHabitTasksWithMetrics(day, totalProt, totalFib, protFloor, fibTarget) {
+      if (!day.tasks) return;
+      day.tasks.forEach(t => {
+        if (t.id === 't_water') {
+          t.completed = (day.waterOz || 0) >= 64;
+        } else if (t.id === 't_protein') {
+          t.completed = totalProt >= protFloor;
+        } else if (t.id === 't_fiber') {
+          t.completed = totalFib >= fibTarget;
+        } else if (t.id === 't_electrolytes') {
+          t.completed = !!day.electrolytes;
+        } else if (t.id === 't_weigh') {
+          t.completed = day.weight !== null && day.weight !== undefined && day.weight > 0;
+        } else if (t.id === 't_exercise') {
+          t.completed = (day.fitness || []).length > 0;
+        }
+      });
+    }
+
+    function renderDailyTasks(tasks) {
+      const container = document.getElementById('dailyTasksList');
+      const badge = document.getElementById('tasksProgressBadge');
+      const bar = document.getElementById('tasksProgressBar');
+      if (!container || !tasks) return;
+
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.completed).length;
+      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      badge.innerText = `${completed} / ${total} Done`;
+      badge.className = completed === total && total > 0 
+        ? "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800"
+        : "text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700";
+      bar.style.width = `${pct}%`;
+
+      container.innerHTML = tasks.map((t, idx) => `
+        <div class="flex items-center justify-between p-2 rounded-xl transition ${t.completed ? 'bg-emerald-50/60 border border-emerald-100' : 'bg-slate-50 border border-slate-100'}">
+          <label class="flex items-center gap-2 cursor-pointer flex-1 select-none">
+            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTaskCompletion(${idx})" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer" />
+            <span class="text-xs font-medium ${t.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${escapeHtml(t.text)}</span>
+          </label>
+          ${!t.isDefault ? `
+            <button onclick="removeCustomTask(${idx})" class="text-slate-300 hover:text-rose-500 p-1 transition" title="Delete Task">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function toggleTaskCompletion(index) {
+      const day = appState.days[appState.activeDate];
+      if (!day.tasks || !day.tasks[index]) return;
+      
+      const t = day.tasks[index];
+      t.completed = !t.completed;
+
+      if (t.id === 't_electrolytes') {
+        day.electrolytes = t.completed;
+      }
+
+      saveState();
+      refreshUI();
+      if (t.completed) showToast(`Task completed: "${t.text}" ✓`);
+    }
+
+    function addCustomTask() {
+      const input = document.getElementById('newCustomTaskInput');
+      const text = input.value.trim();
+      if (!text) {
+        showToast("Please enter a task description");
+        return;
+      }
+
+      const day = appState.days[appState.activeDate];
+      if (!day.tasks) day.tasks = [];
+
+      day.tasks.push({
+        id: 'cust_t_' + Date.now(),
+        text,
+        completed: false,
+        isDefault: false
+      });
+
+      input.value = '';
+      saveState();
+      refreshUI();
+      showToast(`Added task: "${text}"`);
+    }
+
+    function removeCustomTask(index) {
+      const day = appState.days[appState.activeDate];
+      if (!day.tasks) return;
+      day.tasks.splice(index, 1);
+      saveState();
+      refreshUI();
+      showToast("Task removed");
+    }
+
+    function toggleElectrolytes() {
+      const day = appState.days[appState.activeDate];
+      day.electrolytes = !day.electrolytes;
+      saveState();
+      refreshUI();
+      showToast(day.electrolytes ? "Electrolytes & mineral guard logged!" : "Electrolyte log cleared");
+    }
+
+    function updateGLPCycleBanner() {
+      const day = appState.days[appState.activeDate];
+      const hasShotToday = day.protocol && (day.protocol.glpDose || day.protocol.b12Dose);
+
+      if (hasShotToday) {
+        document.getElementById('glpStatusBadge').className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950";
+        document.getElementById('glpStatusBadge').innerText = "Shot Logged Today 💉";
+        document.getElementById('glpSummaryLine').innerText = `${day.protocol.glpDose ? 'GLP-1: ' + day.protocol.glpDose : ''} ${day.protocol.b12Dose ? '• B12: ' + day.protocol.b12Dose : ''} (${day.protocol.site || ''})`;
+      } else {
+        document.getElementById('glpStatusBadge').className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-purple-500/30 text-purple-200";
+        document.getElementById('glpStatusBadge').innerText = "No Shot Today";
+        const lastShot = findLastInjectionDate();
+        if (lastShot) {
+          document.getElementById('glpSummaryLine').innerText = `Last injection: ${lastShot.date} (${lastShot.site})`;
+        } else {
+          document.getElementById('glpSummaryLine').innerText = `Tap to log weekly GLP-1 microdose & B12 injection`;
+        }
+      }
+
+      const dates = Object.keys(appState.days).filter(d => d <= appState.activeDate && appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)).sort();
+      if (dates.length === 0) {
+        document.getElementById('cyclePhaseTitle').innerText = "Cycle: No Recorded Injections";
+        document.getElementById('cyclePhaseTip').innerText = "Log your weekly dose in the GLP & B12 tab to activate pharmacokinetic prediction.";
+        document.getElementById('cycleDayBadge').innerText = "Day --";
+        return;
+      }
+
+      const lastDate = dates[dates.length - 1];
+      const diffDays = Math.round((new Date(appState.activeDate) - new Date(lastDate)) / (1000 * 60 * 60 * 24));
+      const cycleDay = (diffDays % 7) + 1;
+
+      document.getElementById('cycleDayBadge').innerText = `Day ${cycleDay} of 7`;
+
+      if (cycleDay === 1) {
+        document.getElementById('cyclePhaseTitle').innerText = "Day 1: Injection Day (Onset Phase)";
+        document.getElementById('cyclePhaseTip').innerText = "Medication absorbing. Hydrate well & take with high protein to prevent early nausea.";
+      } else if (cycleDay >= 2 && cycleDay <= 3) {
+        document.getElementById('cyclePhaseTitle').innerText = `Day ${cycleDay}: Peak Satiety & Appetite Suppression 🎯`;
+        document.getElementById('cyclePhaseTip').innerText = "Serum peak. Food volume may feel heavy; prioritize small, protein-dense meals.";
+      } else if (cycleDay >= 4 && cycleDay <= 5) {
+        document.getElementById('cyclePhaseTitle').innerText = `Day ${cycleDay}: Stable Therapeutic Window`;
+        document.getElementById('cyclePhaseTip').innerText = "Steady metabolism & satiety. Great window for resistance strength training.";
+      } else {
+        document.getElementById('cyclePhaseTitle').innerText = `Day ${cycleDay}: Trough / Expected Appetite Rebound ⚠️`;
+        document.getElementById('cyclePhaseTip').innerText = "Medication tapering. Mild food noise is normal—rely on fiber and volume vegetables.";
+      }
+    }
+
+    function adjustWater(amount) {
+      const day = appState.days[appState.activeDate];
+      day.waterOz = Math.max(0, (day.waterOz || 0) + amount);
+      saveState();
+      refreshUI();
+      if (amount > 0) showToast(`+${amount} oz water logged!`);
+    }
+
+    function debounceSaveFeeling() {
+      clearTimeout(feelingSaveTimeout);
+      const badge = document.getElementById('feelStatusSavedBadge');
+      if (badge) badge.classList.add('hidden');
+
+      feelingSaveTimeout = setTimeout(() => {
+        const text = document.getElementById('dailyFeelingInput').value;
+        appState.days[appState.activeDate].howIFeel = text;
+        saveState();
+        if (badge) {
+          badge.classList.remove('hidden');
+          setTimeout(() => badge.classList.add('hidden'), 2000);
+        }
+        updateFeelingTagHighlight(text);
+      }, 400);
+    }
+
+    function selectFeelingTag(tagText) {
+      const input = document.getElementById('dailyFeelingInput');
+      let current = input.value.trim();
+      if (!current) {
+        input.value = tagText;
+      } else if (!current.includes(tagText)) {
+        input.value = current + ' • ' + tagText;
+      }
+      debounceSaveFeeling();
+      showToast(`Logged: "${tagText}"`);
+    }
+
+    function updateFeelingTagHighlight(text) {
+      const btns = document.querySelectorAll('.feeling-tag-btn');
+      btns.forEach(btn => {
+        const label = btn.innerText.replace(/^[^\s]+\s*/, '');
+        if (text && text.toLowerCase().includes(label.toLowerCase())) {
+          btn.classList.add('bg-pink-100', 'text-pink-800', 'border-pink-300', 'font-bold');
+          btn.classList.remove('bg-slate-100', 'text-slate-600');
+        } else {
+          btn.classList.remove('bg-pink-100', 'text-pink-800', 'border-pink-300', 'font-bold');
+          btn.classList.add('bg-slate-100', 'text-slate-600');
+        }
+      });
+    }
+
+    function findLastInjectionDate() {
+      const dates = Object.keys(appState.days).sort().reverse();
+      for (let d of dates) {
+        if (appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)) {
+          return { date: d, ...appState.days[d].protocol };
+        }
+      }
+      return null;
+    }
+
+    function renderProtocolTab() {
+      const day = appState.days[appState.activeDate];
+      document.getElementById('protocolActiveDateLabel').innerText = appState.activeDate;
+
+      const hasShot = day && day.protocol && (day.protocol.glpDose || day.protocol.b12Dose);
+      const badge = document.getElementById('activeShotRecordedBadge');
+      const summaryBanner = document.getElementById('shotRecordedSummaryBanner');
+
+      if (hasShot) {
+        if (badge) badge.classList.remove('hidden');
+        if (summaryBanner) {
+          summaryBanner.classList.remove('hidden');
+          const doses = [];
+          if (day.protocol.glpDose) doses.push(`GLP-1: ${day.protocol.glpDose}`);
+          if (day.protocol.b12Dose) doses.push(`B12: ${day.protocol.b12Dose}`);
+          document.getElementById('summaryBannerDoses').innerText = doses.join(' • ');
+          document.getElementById('summaryBannerSite').innerText = `Site: ${day.protocol.site || 'Abdomen'}`;
+          document.getElementById('summaryBannerNotes').innerText = day.protocol.notes 
+            ? `Notes: ${day.protocol.notes} (Appetite: ${day.protocol.appetiteScore || 8}/10)` 
+            : `Appetite Satiety: ${day.protocol.appetiteScore || 8}/10 • Motility: ${day.protocol.motility || 'Regular'}`;
+        }
+
+        document.getElementById('injGlpDose').value = day.protocol.glpDose || '';
+        document.getElementById('injB12Dose').value = day.protocol.b12Dose || '';
+        document.getElementById('injSite').value = day.protocol.site || 'Abdomen (Left)';
+        document.getElementById('injAppetiteScore').value = day.protocol.appetiteScore || '8';
+        if (document.getElementById('injMotility')) document.getElementById('injMotility').value = day.protocol.motility || 'Regular';
+        if (document.getElementById('injEnergy')) document.getElementById('injEnergy').value = day.protocol.energy || 'Normal / Steady';
+        document.getElementById('injNotes').value = day.protocol.notes || '';
+      } else {
+        if (badge) badge.classList.add('hidden');
+        if (summaryBanner) summaryBanner.classList.add('hidden');
+        document.getElementById('injGlpDose').value = '';
+        document.getElementById('injB12Dose').value = '';
+        document.getElementById('injNotes').value = '';
+      }
+
+      const histEl = document.getElementById('protocolHistoryList');
+      const datesWithProt = Object.keys(appState.days).filter(d => 
+        appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)
+      ).sort().reverse();
+
+      if (datesWithProt.length === 0) {
+        histEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-3">No injections logged yet. Enter your weekly dose above.</p>`;
+      } else {
+        histEl.innerHTML = datesWithProt.map(d => {
+          const p = appState.days[d].protocol;
+          return `
+            <div class="p-3 bg-purple-50/50 rounded-xl border border-purple-100 text-xs space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-purple-900">${d}</span>
+                <span class="text-[10px] font-semibold bg-purple-200/70 text-purple-900 px-2 py-0.5 rounded-full">${p.site || 'Site unlisted'}</span>
+              </div>
+              <div class="text-[11px] text-slate-700">
+                ${p.glpDose ? `<strong>GLP-1:</strong> ${escapeHtml(p.glpDose)}` : ''} 
+                ${p.b12Dose ? `<span class="mx-1">•</span><strong>B12:</strong> ${escapeHtml(p.b12Dose)}` : ''}
+              </div>
+              ${p.motility ? `<div class="text-[10px] text-purple-700 font-medium">Motility: ${escapeHtml(p.motility)} • Energy: ${escapeHtml(p.energy || 'Normal')}</div>` : ''}
+              ${p.notes ? `<p class="text-[10px] text-slate-500 italic">${escapeHtml(p.notes)}</p>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+      lucide.createIcons();
+    }
+
+    function saveProtocolEntry() {
+      const glp = document.getElementById('injGlpDose').value.trim();
+      const b12 = document.getElementById('injB12Dose').value.trim();
+      const site = document.getElementById('injSite').value;
+      const appetite = document.getElementById('injAppetiteScore').value;
+      const motility = document.getElementById('injMotility') ? document.getElementById('injMotility').value : 'Regular';
+      const energy = document.getElementById('injEnergy') ? document.getElementById('injEnergy').value : 'Normal / Steady';
+      const notes = document.getElementById('injNotes').value.trim();
+
+      if (!glp && !b12) {
+        showToast("Please enter either a GLP-1 or B12 dose");
+        return;
+      }
+
+      ensureDayExists(appState.activeDate);
+
+      appState.days[appState.activeDate].protocol = {
+        glpDose: glp,
+        b12Dose: b12,
+        site,
+        appetiteScore: appetite,
+        motility,
+        energy,
+        notes
+      };
+
+      saveState();
+      refreshUI();
+      renderProtocolTab();
+      showToast("Weekly injection logged successfully!");
+    }
+
+    function clearProtocolToday() {
+      appState.days[appState.activeDate].protocol = null;
+      saveState();
+      refreshUI();
+      renderProtocolTab();
+      showToast("Injection entry removed for today");
+    }
+
+    function renderMealSection(mealKey, items) {
+      const listEl = document.getElementById(`meal-${mealKey}-list`);
+      if (!items || items.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2.5">No ${mealKey} logged yet.</p>`;
+        return;
+      }
+
+      listEl.innerHTML = items.map((item, idx) => `
+        <div class="py-2 px-1 flex items-center justify-between text-xs">
+          <div class="flex-1 pr-2">
+            <span class="font-semibold text-slate-800 block truncate">${escapeHtml(item.name)}</span>
+            <span class="text-[10px] text-slate-400 font-medium">
+              ${item.p || 0}g P • ${item.c || 0}g C • ${item.f || 0}g F
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-700">${item.cal} kcal</span>
+            <button onclick="removeMealItem('${mealKey}', ${idx})" class="text-slate-300 hover:text-rose-500 p-1 transition" title="Delete">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFitnessDashList(items) {
+      const listEl = document.getElementById('fitness-day-list');
+      if (!items || items.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2.5">No exercises logged today.</p>`;
+        return;
+      }
+
+      listEl.innerHTML = items.map((fit, idx) => `
+        <div class="py-2 px-1 flex items-center justify-between text-xs">
+          <div>
+            <span class="font-semibold text-slate-800 block">${escapeHtml(fit.name)}</span>
+            <span class="text-[10px] text-slate-400">${fit.duration} mins</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-emerald-600">+${fit.cal} kcal</span>
+            <button onclick="removeFitnessItem(${idx})" class="text-slate-300 hover:text-rose-500 p-1 transition">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeMealItem(mealKey, index) {
+      appState.days[appState.activeDate][mealKey].splice(index, 1);
+      saveState();
+      refreshUI();
+      showToast("Meal item removed");
+    }
+
+    function removeFitnessItem(index) {
+      appState.days[appState.activeDate].fitness.splice(index, 1);
+      saveState();
+      refreshUI();
+      renderFitnessTab();
+      showToast("Fitness entry removed");
+    }
+
+    function openAddModalForMeal(mealKey) {
+      document.getElementById('modalMealSelector').value = mealKey;
+      document.getElementById('modalMealTitle').innerText = `Log to ${capitalize(mealKey)}`;
+      openQuickFoodModal();
+    }
+
+    function openQuickFoodModal() {
+      document.getElementById('custFoodName').value = '';
+      document.getElementById('custFoodCal').value = '';
+      document.getElementById('custFoodProt').value = '';
+      document.getElementById('custFoodCarb').value = '';
+      document.getElementById('custFoodFat').value = '';
+      if (document.getElementById('custFoodFib')) document.getElementById('custFoodFib').value = '';
+      document.getElementById('foodSearchInput').value = '';
+      renderCommonFoodsList(COMMON_FOODS);
+      document.getElementById('quickFoodModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeQuickFoodModal() {
+      document.getElementById('quickFoodModal').classList.add('hidden');
+    }
+
+    function renderCommonFoodsList(foods) {
+      const container = document.getElementById('commonFoodsGrid');
+      container.innerHTML = foods.map((f, i) => `
+        <button type="button" onclick="selectQuickFoodItem('${encodeURIComponent(JSON.stringify(f))}')" class="text-left p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/70 hover:border-emerald-300 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-xs text-slate-800 line-clamp-1">${f.name}</div>
+            <div class="text-[10px] text-slate-400">${f.portion}</div>
+          </div>
+          <div class="mt-1 flex items-center justify-between text-[11px]">
+            <span class="font-bold text-emerald-700">${f.cal} kcal</span>
+            <span class="text-[9px] text-rose-600 font-bold">${f.p}g P ${f.fib ? '• ' + f.fib + 'g fib' : ''}</span>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    function filterCommonFoods(query) {
+      const q = query.toLowerCase().trim();
+      const filtered = COMMON_FOODS.filter(item => 
+        item.name.toLowerCase().includes(q) || item.portion.toLowerCase().includes(q)
+      );
+      renderCommonFoodsList(filtered);
+    }
+
+    function selectQuickFoodItem(encodedFood) {
+      const food = JSON.parse(decodeURIComponent(encodedFood));
+      document.getElementById('custFoodName').value = food.name;
+      document.getElementById('custFoodCal').value = food.cal;
+      document.getElementById('custFoodProt').value = food.p;
+      document.getElementById('custFoodCarb').value = food.c;
+      document.getElementById('custFoodFat').value = food.f;
+      if (document.getElementById('custFoodFib')) document.getElementById('custFoodFib').value = food.fib || 0;
+      submitCustomFoodEntry();
+    }
+
+    function submitCustomFoodEntry() {
+      const name = document.getElementById('custFoodName').value.trim();
+      const cal = Number(document.getElementById('custFoodCal').value);
+      const p = Number(document.getElementById('custFoodProt').value) || 0;
+      const c = Number(document.getElementById('custFoodCarb').value) || 0;
+      const f = Number(document.getElementById('custFoodFat').value) || 0;
+      const fib = Number(document.getElementById('custFoodFib') ? document.getElementById('custFoodFib').value : 0) || 0;
+      const meal = document.getElementById('modalMealSelector').value;
+
+      if (!name || isNaN(cal) || cal <= 0) {
+        showToast("Please enter a valid food name & calories");
+        return;
+      }
+
+      appState.days[appState.activeDate][meal].push({
+        id: 'food_' + Date.now(),
+        name,
+        cal,
+        p,
+        c,
+        f,
+        fib
+      });
+
+      saveState();
+      refreshUI();
+      closeQuickFoodModal();
+      showToast(`Added ${name} (${cal} kcal) to ${capitalize(meal)}`);
+    }
+
+    function openTargetModal() {
+      document.getElementById('customTargetInput').value = appState.targetBudget;
+      document.getElementById('customProtTargetInput').value = appState.targetProtein || 85;
+      document.getElementById('targetModal').classList.remove('hidden');
+    }
+
+    function closeTargetModal() {
+      document.getElementById('targetModal').classList.add('hidden');
+    }
+
+    function openInstallModal() {
+      document.getElementById('installGuideModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeInstallModal() {
+      document.getElementById('installGuideModal').classList.add('hidden');
+    }
+
+    function saveDailyTargetSettings() {
+      const target = Number(document.getElementById('customTargetInput').value);
+      const prot = Number(document.getElementById('customProtTargetInput').value);
+      if (target > 500 && target < 5000) {
+        appState.targetBudget = target;
+        appState.targetProtein = prot || 85;
+        saveState();
+        refreshUI();
+        closeTargetModal();
+        showToast(`Target: ${target} kcal | Protein floor: ${appState.targetProtein}g`);
+      } else {
+        showToast("Enter a reasonable calorie goal");
+      }
+    }
+
+    function openFitnessModal() {
+      switchTab('fitness');
+    }
+
+    const FITNESS_RATES = {
+      "Strength Training": 5.5,
+      "Brisk Walking": 4.5,
+      "Running/Jogging": 10.0,
+      "Cycling": 7.5,
+      "HIIT Workout": 9.0,
+      "Swimming": 8.0,
+      "Yoga / Pilates": 3.5,
+      "Custom": 5.0
+    };
+
+    function autoFillFitnessEstimate() {
+      const act = document.getElementById('fitActivityType').value;
+      const mins = Number(document.getElementById('fitDuration').value) || 30;
+      const rate = FITNESS_RATES[act] || 5;
+      const burned = Math.round(mins * rate);
+      document.getElementById('fitCalories').value = burned;
+    }
+
+    function submitFitnessEntry() {
+      const name = document.getElementById('fitActivityType').value;
+      const duration = Number(document.getElementById('fitDuration').value) || 30;
+      const cal = Number(document.getElementById('fitCalories').value) || 0;
+
+      if (cal <= 0) {
+        showToast("Please enter valid calories burned");
+        return;
+      }
+
+      appState.days[appState.activeDate].fitness.push({
+        id: 'fit_' + Date.now(),
+        name,
+        duration,
+        cal
+      });
+
+      saveState();
+      refreshUI();
+      renderFitnessTab();
+      showToast(`Logged +${cal} kcal fitness burn!`);
+    }
+
+    function renderFitnessTab() {
+      const day = appState.days[appState.activeDate];
+      const container = document.getElementById('fullFitnessListToday');
+      if (!day.fitness || day.fitness.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No exercises logged today yet.</p>`;
+      } else {
+        container.innerHTML = day.fitness.map((f, i) => `
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+            <div>
+              <span class="font-bold text-slate-800">${escapeHtml(f.name)}</span>
+              <span class="text-[11px] text-slate-400 block">${f.duration} mins duration</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-emerald-600">+${f.cal} kcal</span>
+              <button onclick="removeFitnessItem(${i})" class="text-slate-300 hover:text-rose-500">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const wVal = day.weight;
+      if (wVal) {
+        document.getElementById('todayWeightDisplay').innerText = `${wVal} lbs`;
+        document.getElementById('weightInput').value = wVal;
+      } else {
+        document.getElementById('todayWeightDisplay').innerText = `Not recorded`;
+        document.getElementById('weightInput').value = '';
+      }
+
+      updateWeightDiffDisplay(wVal);
+      lucide.createIcons();
+    }
+
+    function saveDailyWeight() {
+      const val = parseFloat(document.getElementById('weightInput').value);
+      if (isNaN(val) || val <= 40 || val > 700) {
+        showToast("Please enter a valid weight in lbs");
+        return;
+      }
+      appState.days[appState.activeDate].weight = val;
+      saveState();
+      renderFitnessTab();
+      showToast(`Weight saved: ${val} lbs`);
+    }
+
+    function updateWeightDiffDisplay(currentWeight) {
+      if (!currentWeight) {
+        document.getElementById('weightDiffDisplay').innerText = '';
+        return;
+      }
+      const dates = Object.keys(appState.days).sort();
+      let prevWeight = null;
+      for (let d of dates) {
+        if (d < appState.activeDate && appState.days[d].weight) {
+          prevWeight = appState.days[d].weight;
+        }
+      }
+      if (prevWeight) {
+        const diff = (currentWeight - prevWeight).toFixed(1);
+        if (diff < 0) {
+          document.getElementById('weightDiffDisplay').innerText = `(${diff} lbs vs prev)`;
+          document.getElementById('weightDiffDisplay').className = "text-[11px] font-semibold text-emerald-600";
+        } else if (diff > 0) {
+          document.getElementById('weightDiffDisplay').innerText = `(+${diff} lbs vs prev)`;
+          document.getElementById('weightDiffDisplay').className = "text-[11px] font-semibold text-rose-500";
+        } else {
+          document.getElementById('weightDiffDisplay').innerText = `(No change)`;
+        }
+      } else {
+        document.getElementById('weightDiffDisplay').innerText = '';
+      }
+    }
+
+    function addRecipeIngredientRow(name = '', cal = '', p = '', c = '', f = '') {
+      const container = document.getElementById('recipeIngredientsContainer');
+      const rowId = 'ing_' + Math.random().toString(36).substr(2, 6);
+      const div = document.createElement('div');
+      div.className = "p-2 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5 ing-row";
+      div.id = rowId;
+      div.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="text" placeholder="Ingredient name (e.g. 150g Chicken)" value="${name}" class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none ing-name" oninput="updateLiveRecipeTotal()" />
+          <button type="button" onclick="removeIngredientRow('${rowId}')" class="text-slate-300 hover:text-rose-500 p-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <input type="number" placeholder="kcal" value="${cal}" class="w-full text-[11px] px-2 py-1 bg-white border border-slate-200 rounded-lg outline-none ing-cal font-bold text-emerald-600" oninput="updateLiveRecipeTotal()" />
+          <input type="number" placeholder="P (g)" value="${p}" class="w-full text-[11px] px-2 py-1 bg-white border border-slate-200 rounded-lg outline-none ing-p" oninput="updateLiveRecipeTotal()" />
+          <input type="number" placeholder="C (g)" value="${c}" class="w-full text-[11px] px-2 py-1 bg-white border border-slate-200 rounded-lg outline-none ing-c" oninput="updateLiveRecipeTotal()" />
+          <input type="number" placeholder="F (g)" value="${f}" class="w-full text-[11px] px-2 py-1 bg-white border border-slate-200 rounded-lg outline-none ing-f" oninput="updateLiveRecipeTotal()" />
+        </div>
+      `;
+      container.appendChild(div);
+      lucide.createIcons();
+      updateLiveRecipeTotal();
+    }
+
+    function removeIngredientRow(rowId) {
+      const el = document.getElementById(rowId);
+      if (el) el.remove();
+      updateLiveRecipeTotal();
+    }
+
+    function updateLiveRecipeTotal() {
+      const servings = Math.max(1, Number(document.getElementById('rcServings').value) || 1);
+      const rows = document.querySelectorAll('.ing-row');
+      let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+
+      rows.forEach(r => {
+        totalCal += Number(r.querySelector('.ing-cal').value) || 0;
+        totalP += Number(r.querySelector('.ing-p').value) || 0;
+        totalC += Number(r.querySelector('.ing-c').value) || 0;
+        totalF += Number(r.querySelector('.ing-f').value) || 0;
+      });
+
+      const perCal = Math.round(totalCal / servings);
+      const perP = Math.round(totalP / servings);
+      const perC = Math.round(totalC / servings);
+      const perF = Math.round(totalF / servings);
+
+      document.getElementById('previewPerServingCal').innerText = `${perCal} kcal`;
+      document.getElementById('previewPerServingP').innerText = `${perP}g`;
+      document.getElementById('previewPerServingC').innerText = `${perC}g`;
+      document.getElementById('previewPerServingF').innerText = `${perF}g`;
+    }
+
+    function calculateAndSaveRecipe() {
+      const name = document.getElementById('rcName').value.trim();
+      const servings = Math.max(1, Number(document.getElementById('rcServings').value) || 1);
+      const meal = document.getElementById('rcTargetMeal').value;
+      const rows = document.querySelectorAll('.ing-row');
+
+      if (!name) {
+        showToast("Please give your recipe a name");
+        return;
+      }
+
+      let ingredients = [];
+      let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+
+      rows.forEach(r => {
+        const iName = r.querySelector('.ing-name').value.trim();
+        const cal = Number(r.querySelector('.ing-cal').value) || 0;
+        const p = Number(r.querySelector('.ing-p').value) || 0;
+        const c = Number(r.querySelector('.ing-c').value) || 0;
+        const f = Number(r.querySelector('.ing-f').value) || 0;
+        if (iName) {
+          ingredients.push({ name: iName, cal, p, c, f });
+          totalCal += cal;
+          totalP += p;
+          totalC += c;
+          totalF += f;
+        }
+      });
+
+      if (ingredients.length === 0 || totalCal <= 0) {
+        showToast("Please add at least one ingredient with calories");
+        return;
+      }
+
+      const newRecipe = {
+        id: 'rec_' + Date.now(),
+        name,
+        servings,
+        meal,
+        totalCal,
+        perServing: {
+          cal: Math.round(totalCal / servings),
+          p: Math.round(totalP / servings),
+          c: Math.round(totalC / servings),
+          f: Math.round(totalF / servings),
+        },
+        ingredients
+      };
+
+      appState.customRecipes.unshift(newRecipe);
+      saveState();
+      renderSavedRecipesList();
+      showToast(`Recipe saved! ${newRecipe.perServing.cal} kcal per serving`);
+    }
+
+    function clearRecipeForm() {
+      document.getElementById('rcName').value = '';
+      document.getElementById('rcServings').value = 2;
+      document.getElementById('recipeIngredientsContainer').innerHTML = '';
+      addRecipeIngredientRow();
+      addRecipeIngredientRow();
+      updateLiveRecipeTotal();
+    }
+
+    function renderSavedRecipesList() {
+      const listEl = document.getElementById('savedRecipesList');
+      if (!listEl) return;
+      if (!appState.customRecipes || appState.customRecipes.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No custom recipes saved yet. Create one above!</p>`;
+        return;
+      }
+
+      listEl.innerHTML = appState.customRecipes.map((r, idx) => `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+          <div class="flex items-start justify-between">
+            <div>
+              <h4 class="font-bold text-slate-800 text-xs">${escapeHtml(r.name)}</h4>
+              <p class="text-[10px] text-slate-400">${r.servings} servings • ${r.meal.toUpperCase()}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-extrabold text-emerald-600 block">${r.perServing.cal} kcal</span>
+              <span class="text-[10px] text-slate-500">${r.perServing.p}g P • ${r.perServing.c}g C • ${r.perServing.f}g F</span>
+            </div>
+          </div>
+          <div class="flex gap-2 pt-1 border-t border-slate-200/50">
+            <button onclick="logRecipeServingToDay('${r.id}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[11px] transition">
+              Log 1 Serving to Today (${r.perServing.cal} kcal)
+            </button>
+            <button onclick="deleteSavedRecipe(${idx})" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition" title="Delete">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function logRecipeServingToDay(recipeId) {
+      const rec = appState.customRecipes.find(r => r.id === recipeId);
+      if (!rec) return;
+
+      const targetMeal = rec.meal || 'dinner';
+      appState.days[appState.activeDate][targetMeal].push({
+        id: 'rec_log_' + Date.now(),
+        name: `${rec.name} (1 serving)`,
+        cal: rec.perServing.cal,
+        p: rec.perServing.p,
+        c: rec.perServing.c,
+        f: rec.perServing.f
+      });
+
+      saveState();
+      refreshUI();
+      showToast(`Logged 1 serving to ${capitalize(targetMeal)}!`);
+    }
+
+    function deleteSavedRecipe(index) {
+      appState.customRecipes.splice(index, 1);
+      saveState();
+      renderSavedRecipesList();
+      showToast("Recipe removed");
+    }
+
+    // --- SMART RECOMMENDED RECIPES UNDER CALORIE CAP ---
+    function setRecipeCapPreset(mealSlot, capValue) {
+      const slotSelect = document.getElementById('filterMealSlot');
+      const capSelect = document.getElementById('filterCalCap');
+      if (slotSelect) slotSelect.value = mealSlot;
+      if (capSelect) capSelect.value = capValue.toString();
+      renderRecipeRecommendations();
+    }
+
+    function openRecipesUnderRemaining() {
+      switchTab('recipes');
+      setRecipeCapPreset('all', 'remaining');
+    }
+
+    function getActiveCalorieCapValue() {
+      const capOption = document.getElementById('filterCalCap').value;
+      const day = appState.days[appState.activeDate];
+      const foodTotal = ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].reduce((acc, m) => 
+        acc + (day[m] || []).reduce((sum, item) => sum + (Number(item.cal) || 0), 0), 0
+      );
+      const fitnessBurn = (day.fitness || []).reduce((sum, f) => sum + (Number(f.cal) || 0), 0);
+      const remainingToday = Math.max(0, appState.targetBudget - foodTotal + fitnessBurn);
+
+      if (capOption === 'remaining') {
+        return remainingToday > 0 ? remainingToday : 350;
+      }
+      return Number(capOption) || 425;
+    }
+
+    function renderRecipeRecommendations() {
+      const mealFilter = document.getElementById('filterMealSlot').value;
+      const maxCal = getActiveCalorieCapValue();
+
+      const capBadge = document.getElementById('aiCapLimitBadge');
+      if (capBadge) capBadge.innerText = `≤ ${maxCal} kcal`;
+
+      const allPool = [
+        ...CURATED_RECIPES,
+        ...(appState.customRecipes || []).map(cr => ({
+          id: cr.id,
+          title: cr.name,
+          meal: cr.meal || 'dinner',
+          cal: cr.perServing.cal,
+          protein: cr.perServing.p,
+          carbs: cr.perServing.c,
+          fat: cr.perServing.f,
+          fiber: 2,
+          prepTime: "Custom",
+          ingredients: cr.ingredients ? cr.ingredients.map(i => i.name) : ["Custom saved ingredients"],
+          steps: `Custom user recipe batch (${cr.servings} servings).`
+        }))
+      ];
+
+      let suggestions = allPool.filter(r => {
+        const matchesMeal = (mealFilter === 'all') || (r.meal === mealFilter);
+        const matchesCal = r.cal <= maxCal;
+        return matchesMeal && matchesCal;
+      });
+
+      suggestions.sort((a, b) => (b.protein / (b.cal || 1)) - (a.protein / (a.cal || 1)));
+
+      const descEl = document.getElementById('activeFilterDesc');
+      const countEl = document.getElementById('activeFilterMatchesCount');
+      if (descEl) {
+        const mealLabel = mealFilter === 'all' ? 'All meals' : capitalize(mealFilter);
+        descEl.innerText = `${mealLabel} ≤ ${maxCal} kcal`;
+      }
+      if (countEl) {
+        countEl.innerText = `${suggestions.length} match${suggestions.length === 1 ? '' : 'es'}`;
+      }
+
+      const container = document.getElementById('recipeSuggestionsList');
+      if (suggestions.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <i data-lucide="info" class="w-6 h-6 text-slate-400 mx-auto mb-1"></i>
+            <p class="text-xs font-semibold text-slate-700">No preset recipes found under ${maxCal} kcal for this filter</p>
+            <p class="text-[11px] text-slate-400 mt-1">Try using the AI generator above to craft a custom meal under ${maxCal} kcal!</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = suggestions.map(r => `
+        <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-xs space-y-2.5 hover:border-emerald-300 transition">
+          <div class="flex items-start justify-between">
+            <div class="pr-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md">${r.meal}</span>
+                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold">Fits Cap ✓</span>
+              </div>
+              <h3 class="font-bold text-slate-900 text-sm mt-1">${escapeHtml(r.title)}</h3>
+              <span class="text-[11px] text-slate-400">${r.prepTime} prep</span>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-lg font-black text-emerald-600">${r.cal}</span>
+              <span class="text-[10px] font-medium text-slate-400 block -mt-1">kcal</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1.5 text-center text-[10px] font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100">
+            <div>
+              <span class="text-rose-500 block text-[9px] font-bold">PROTEIN</span>
+              <strong class="text-slate-800 text-xs">${r.protein}g</strong>
+            </div>
+            <div>
+              <span class="text-amber-500 block text-[9px] font-bold">CARBS</span>
+              <strong class="text-slate-800 text-xs">${r.carbs}g</strong>
+            </div>
+            <div>
+              <span class="text-indigo-500 block text-[9px] font-bold">FAT</span>
+              <strong class="text-slate-800 text-xs">${r.fat}g</strong>
+            </div>
+            <div>
+              <span class="text-emerald-500 block text-[9px] font-bold">FIBER</span>
+              <strong class="text-slate-800 text-xs">${r.fiber || 0}g</strong>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-600 space-y-1 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
+            <p class="font-semibold text-slate-800 text-[11px]">Ingredients:</p>
+            <p class="text-[11px] text-slate-500">${Array.isArray(r.ingredients) ? r.ingredients.join(', ') : escapeHtml(r.ingredients)}</p>
+            ${r.steps ? `
+              <p class="font-semibold text-slate-800 text-[11px] pt-1">Quick Prep:</p>
+              <p class="text-[11px] text-slate-500 leading-relaxed">${escapeHtml(r.steps)}</p>
+            ` : ''}
+          </div>
+
+          <button onclick="logCuratedMeal('${r.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Log to Today's ${capitalize(r.meal)} (${r.cal} kcal)
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    async function generateAICappedMeal() {
+      const cap = getActiveCalorieCapValue();
+      const customPrompt = document.getElementById('aiCustomCapPrompt').value.trim();
+      const mealSlot = document.getElementById('filterMealSlot').value;
+      const slotText = mealFilterDesc(mealSlot);
+
+      const userText = customPrompt 
+        ? `${customPrompt}. Must be under ${cap} calories total, optimized for ${slotText} with high protein density.`
+        : `Generate a delicious, quick high-protein ${slotText} recipe strictly under ${cap} calories total for a 1,250 daily deficit.`;
+
+      document.getElementById('aiCapLoading').classList.remove('hidden');
+      document.getElementById('aiCustomCapBtn').disabled = true;
+
+      const systemInstruction = `You are a clinical culinary dietitian specializing in a strict 1,250 calorie daily deficit regimen with high protein preservation (>=85g protein floor) and high dietary fiber.
+Formulate a satisfying single-serving meal that strictly contains AT MOST ${cap} calories (do not exceed ${cap} kcal under any circumstances).
+Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogurt, lean turkey, tofu).`;
+
+      const responseSchema = {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          mealSlot: { type: "STRING", enum: ["breakfast", "lunch", "dinner", "snack"] },
+          cal: { type: "INTEGER", description: `Must be <= ${cap}` },
+          protein: { type: "NUMBER" },
+          carbs: { type: "NUMBER" },
+          fat: { type: "NUMBER" },
+          fiber: { type: "NUMBER" },
+          prepTime: { type: "STRING" },
+          ingredients: { type: "ARRAY", items: { type: "STRING" } },
+          steps: { type: "STRING" }
+        },
+        required: ["title", "mealSlot", "cal", "protein", "carbs", "fat", "fiber", "prepTime", "ingredients", "steps"]
+      };
+
+      try {
+        const recipe = await callGeminiStructured(systemInstruction, userText, responseSchema);
+        document.getElementById('aiCapLoading').classList.add('hidden');
+        document.getElementById('aiCustomCapBtn').disabled = false;
+
+        if (recipe && recipe.title && recipe.cal) {
+          if (recipe.cal > cap) recipe.cal = cap;
+          renderAICappedResult(recipe);
+        } else {
+          showToast("Could not generate recipe under cap. Please retry.");
+        }
+      } catch (err) {
+        document.getElementById('aiCapLoading').classList.add('hidden');
+        document.getElementById('aiCustomCapBtn').disabled = false;
+        showToast("AI recipe generation failed. Check connection.");
+      }
+    }
+
+    function mealFilterDesc(slot) {
+      if (slot === 'breakfast') return 'breakfast';
+      if (slot === 'lunch') return 'lunch';
+      if (slot === 'dinner') return 'dinner';
+      if (slot === 'snack') return 'snack';
+      return 'any meal or snack';
+    }
+
+    function renderAICappedResult(recipe) {
+      const container = document.getElementById('aiCappedResultContainer');
+      container.innerHTML = `
+        <div class="p-3 bg-white/10 backdrop-blur rounded-xl border border-white/20 text-white space-y-2 text-xs mt-2">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[9px] font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950 px-1.5 py-0.5 rounded">AI Generated</span>
+                <span class="text-[9px] text-purple-200">${recipe.prepTime}</span>
+              </div>
+              <h4 class="font-bold text-sm text-white mt-0.5">${escapeHtml(recipe.title)}</h4>
+            </div>
+            <div class="text-right">
+              <span class="text-base font-black text-emerald-300">${recipe.cal}</span>
+              <span class="text-[9px] text-purple-200 block -mt-1">kcal</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1 text-center bg-black/25 p-1.5 rounded-lg text-[10px]">
+            <div><span class="text-purple-300 block text-[8px]">PROT</span><strong>${Math.round(recipe.protein)}g</strong></div>
+            <div><span class="text-purple-300 block text-[8px]">CARB</span><strong>${Math.round(recipe.carbs)}g</strong></div>
+            <div><span class="text-purple-300 block text-[8px]">FAT</span><strong>${Math.round(recipe.fat)}g</strong></div>
+            <div><span class="text-purple-300 block text-[8px]">FIBER</span><strong>${Math.round(recipe.fiber || 0)}g</strong></div>
+          </div>
+
+          <p class="text-[11px] text-purple-100"><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
+          <p class="text-[11px] text-purple-100"><strong>Prep:</strong> ${escapeHtml(recipe.steps)}</p>
+
+          <div class="flex gap-1.5 pt-1">
+            <button onclick="logAICappedRecipe('${encodeURIComponent(JSON.stringify(recipe))}')" class="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg text-[11px] transition shadow-xs">
+              Log to Today's ${capitalize(recipe.mealSlot)}
+            </button>
+            <button onclick="saveAICappedToLibrary('${encodeURIComponent(JSON.stringify(recipe))}')" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold rounded-lg text-[11px] transition">
+              Save
+            </button>
+          </div>
+        </div>
+      `;
+      container.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function logAICappedRecipe(encoded) {
+      const rec = JSON.parse(decodeURIComponent(encoded));
+      const targetMeal = rec.mealSlot || 'dinner';
+      appState.days[appState.activeDate][targetMeal].push({
+        id: 'rec_cap_ai_' + Date.now(),
+        name: rec.title,
+        cal: rec.cal,
+        p: Math.round(rec.protein * 10) / 10,
+        c: Math.round(rec.carbs * 10) / 10,
+        f: Math.round(rec.fat * 10) / 10,
+        fib: Math.round((rec.fiber || 0) * 10) / 10
+      });
+
+      saveState();
+      refreshUI();
+      showToast(`Logged "${rec.title}" (${rec.cal} kcal) to ${capitalize(targetMeal)}!`);
+    }
+
+    function saveAICappedToLibrary(encoded) {
+      const rec = JSON.parse(decodeURIComponent(encoded));
+      appState.customRecipes.unshift({
+        id: 'rec_lib_' + Date.now(),
+        name: rec.title,
+        servings: 1,
+        meal: rec.mealSlot,
+        totalCal: rec.cal,
+        perServing: {
+          cal: rec.cal,
+          p: rec.protein,
+          c: rec.carbs,
+          f: rec.fat
+        },
+        ingredients: rec.ingredients.map(i => ({ name: i, cal: Math.round(rec.cal / rec.ingredients.length), p: 0, c: 0, f: 0 }))
+      });
+      saveState();
+      showToast(`Saved "${rec.title}" to custom recipes library!`);
+    }
+
+    function logCuratedMeal(recipeId) {
+      const allPool = [
+        ...CURATED_RECIPES,
+        ...(appState.customRecipes || []).map(cr => ({
+          id: cr.id,
+          title: cr.name,
+          meal: cr.meal || 'dinner',
+          cal: cr.perServing.cal,
+          protein: cr.perServing.p,
+          carbs: cr.perServing.c,
+          fat: cr.perServing.f,
+          fiber: 2
+        }))
+      ];
+      const rec = allPool.find(r => r.id === recipeId);
+      if (!rec) return;
+
+      appState.days[appState.activeDate][rec.meal].push({
+        id: 'cur_' + Date.now(),
+        name: rec.title,
+        cal: rec.cal,
+        p: rec.protein,
+        c: rec.carbs,
+        f: rec.fat,
+        fib: rec.fiber || 0
+      });
+
+      saveState();
+      refreshUI();
+      showToast(`Logged "${rec.title}" to ${capitalize(rec.meal)}!`);
+    }
+
+    function renderAnalyticsCharts() {
+      const dates = [];
+      const labels = [];
+      const isShotDay = [];
+      const dNow = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(dNow.getDate() - i);
+        const iso = d.toISOString().split('T')[0];
+        dates.push(iso);
+        
+        const hasShot = appState.days[iso] && appState.days[iso].protocol && (appState.days[iso].protocol.glpDose || appState.days[iso].protocol.b12Dose);
+        isShotDay.push(!!hasShot);
+        labels.push((hasShot ? '💉 ' : '') + d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }));
+      }
+
+      const caloriesData = [];
+      const burnData = [];
+      const weightData = [];
+
+      dates.forEach((dStr, idx) => {
+        const dObj = appState.days[dStr];
+        if (dObj) {
+          const cals = ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].reduce((sum, m) => 
+            sum + (dObj[m] || []).reduce((acc, it) => acc + (Number(it.cal) || 0), 0), 0
+          );
+          const burned = dObj.fitness.reduce((acc, it) => acc + (Number(it.cal) || 0), 0);
+          caloriesData.push(cals);
+          burnData.push(burned);
+          weightData.push(dObj.weight !== null ? dObj.weight : null);
+        } else {
+          caloriesData.push(0);
+          burnData.push(0);
+          weightData.push(null);
+        }
+      });
+
+      const ctxCal = document.getElementById('caloriesTrendChart').getContext('2d');
+      if (calorieChartInstance) calorieChartInstance.destroy();
+
+      calorieChartInstance = new Chart(ctxCal, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Food Eaten (kcal)',
+              data: caloriesData,
+              backgroundColor: 'rgba(16, 185, 129, 0.75)',
+              borderRadius: 6
+            },
+            {
+              label: 'Fitness Burn (kcal)',
+              data: burnData,
+              backgroundColor: 'rgba(59, 130, 246, 0.6)',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 1400,
+              grid: { color: 'rgba(226, 232, 240, 0.6)' },
+              ticks: { font: { size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 9 } }
+            }
+          }
+        }
+      });
+
+      const ctxWeight = document.getElementById('weightTrendChart').getContext('2d');
+      if (weightChartInstance) weightChartInstance.destroy();
+
+      const pointColors = isShotDay.map(shot => shot ? '#9333ea' : '#0d9488');
+      const pointSizes = isShotDay.map(shot => shot ? 7 : 4);
+
+      weightChartInstance = new Chart(ctxWeight, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Weight (lbs)',
+            data: weightData,
+            borderColor: '#0d9488',
+            backgroundColor: 'rgba(13, 148, 136, 0.1)',
+            fill: true,
+            tension: 0.3,
+            spanGaps: true,
+            pointRadius: pointSizes,
+            pointBackgroundColor: pointColors
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} lbs` } }
+          },
+          scales: {
+            y: {
+              grid: { color: 'rgba(226, 232, 240, 0.6)' },
+              ticks: { font: { size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 9 } }
+            }
+          }
+        }
+      });
+
+      const day = appState.days[appState.activeDate];
+      const calcMacro = (key) => ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].reduce((tot, m) => 
+        tot + (day[m] || []).reduce((sum, item) => sum + (Number(item[key]) || 0), 0), 0
+      );
+      const pTotal = calcMacro('p');
+      const cTotal = calcMacro('c');
+      const fTotal = calcMacro('f');
+
+      const ctxDonut = document.getElementById('macroDonutChart').getContext('2d');
+      if (macroDonutInstance) macroDonutInstance.destroy();
+
+      const hasMacros = (pTotal + cTotal + fTotal) > 0;
+      macroDonutInstance = new Chart(ctxDonut, {
+        type: 'doughnut',
+        data: {
+          labels: ['Protein (g)', 'Carbs (g)', 'Fat (g)'],
+          datasets: [{
+            data: hasMacros ? [pTotal, cTotal, fTotal] : [1, 1, 1],
+            backgroundColor: hasMacros 
+              ? ['#f43f5e', '#f59e0b', '#6366f1'] 
+              : ['#e2e8f0', '#e2e8f0', '#e2e8f0'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function exportUserDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `nutritrack_1250_glp1_backup_${getTodayDateString()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Data backup file exported!");
+    }
+
+    function openDataSnapshotModal() {
+      document.getElementById('dataSnapshotModal').classList.remove('hidden');
+      document.getElementById('restoreSnapshotInput').value = '';
+      lucide.createIcons();
+    }
+
+    function closeDataSnapshotModal() {
+      document.getElementById('dataSnapshotModal').classList.add('hidden');
+    }
+
+    function copyDataSnapshotToClipboard() {
+      const serialized = JSON.stringify(appState);
+      const tempArea = document.createElement('textarea');
+      tempArea.value = serialized;
+      tempArea.style.position = 'fixed';
+      tempArea.style.opacity = '0';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Snapshot copied to clipboard! ✓");
+      } catch (e) {
+        showToast("Select and copy text manually");
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    function applyPastedSnapshot() {
+      const raw = document.getElementById('restoreSnapshotInput').value.trim();
+      if (!raw) {
+        showToast("Please paste your snapshot text first");
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.days) {
+          appState = deepMergeState(appState, parsed);
+          saveState();
+          refreshUI();
+          renderProtocolTab();
+          closeDataSnapshotModal();
+          showToast(`Restored ${countDataEntries(appState)} items successfully! ✓`);
+        } else {
+          showToast("Invalid snapshot format");
+        }
+      } catch (err) {
+        showToast("Could not parse snapshot text");
+      }
+    }
+
+    function promptImportData() {
+      document.getElementById('jsonFileInput').click();
+    }
+
+    function handleImportFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && parsed.days) {
+            appState = parsed;
+            saveState();
+            refreshUI();
+            showToast("Backup restored successfully!");
+          } else {
+            showToast("Invalid backup JSON format");
+          }
+        } catch (err) {
+          showToast("Error reading file");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2500);
+    }
+
+    function capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function escapeHtml(string) {
+      const entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      };
+      return String(string).replace(/[&<>"']/g, s => entityMap[s]);
+    }
+
+    // --- GEMINI AI INTEGRATION ---
+    async function callGeminiStructured(systemInstruction, userPrompt, responseSchema) {
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: responseSchema
+        }
+      };
+
+      const maxRetries = 3;
+      let delay = 1000;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const resp = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const textContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textContent) {
+              return JSON.parse(textContent);
+            }
+          }
+        } catch (err) {}
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2;
+      }
+      throw new Error("Unable to complete AI analysis at this time.");
+    }
+
+    function openAIFoodLoggerModal() {
+      document.getElementById('aiFoodPromptInput').value = '';
+      document.getElementById('aiFoodParsedContainer').classList.add('hidden');
+      document.getElementById('aiConfirmLogBtn').classList.add('hidden');
+      document.getElementById('aiParseSubmitBtn').classList.remove('hidden');
+      document.getElementById('aiFoodLoading').classList.add('hidden');
+      currentAIParsedResult = null;
+      document.getElementById('aiFoodModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAIFoodModal() {
+      document.getElementById('aiFoodModal').classList.add('hidden');
+    }
+
+    function setAIPromptExample(txt) {
+      document.getElementById('aiFoodPromptInput').value = txt;
+    }
+
+    async function analyzeFoodWithAI() {
+      const prompt = document.getElementById('aiFoodPromptInput').value.trim();
+      if (!prompt) {
+        showToast("Please enter a description of what you ate");
+        return;
+      }
+
+      document.getElementById('aiFoodLoading').classList.remove('hidden');
+      document.getElementById('aiParseSubmitBtn').disabled = true;
+
+      const systemInstruction = `You are a clinical registered dietitian specializing in a 1,250 calorie daily deficit regimen with weekly GLP-1 and B12 therapy.
+Extract food items with realistic weights, portions, and accurate macros (calories, protein in grams, carbohydrates in grams, fat in grams, dietary fiber in grams).
+Classify which meal the user ate into one of: 'breakfast', 'lunch', 'dinner', 'snack', or 'drink'. Prioritize high protein accuracy and dietary fiber.`;
+
+      const responseSchema = {
+        type: "OBJECT",
+        properties: {
+          mealCategory: { 
+            type: "STRING", 
+            enum: ["breakfast", "lunch", "dinner", "snack", "drink"],
+            description: "Target meal slot" 
+          },
+          items: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                name: { type: "STRING", description: "Food name with portion" },
+                cal: { type: "INTEGER", description: "Calories in kcal" },
+                p: { type: "NUMBER", description: "Protein in grams" },
+                c: { type: "NUMBER", description: "Carbohydrates in grams" },
+                f: { type: "NUMBER", description: "Fat in grams" },
+                fib: { type: "NUMBER", description: "Dietary fiber in grams" }
+              },
+              required: ["name", "cal", "p", "c", "f", "fib"]
+            }
+          }
+        },
+        required: ["mealCategory", "items"]
+      };
+
+      try {
+        const result = await callGeminiStructured(systemInstruction, prompt, responseSchema);
+        document.getElementById('aiFoodLoading').classList.add('hidden');
+        document.getElementById('aiParseSubmitBtn').disabled = false;
+
+        if (result && result.items && result.items.length > 0) {
+          currentAIParsedResult = result;
+          renderAIParsedList(result);
+        } else {
+          showToast("Could not recognize food items. Please rephrase.");
+        }
+      } catch (err) {
+        document.getElementById('aiFoodLoading').classList.add('hidden');
+        document.getElementById('aiParseSubmitBtn').disabled = false;
+        showToast("AI parsing failed. Please check connection or retry.");
+      }
+    }
+
+    function renderAIParsedList(result) {
+      const container = document.getElementById('aiParsedItemsList');
+      const badge = document.getElementById('aiParsedMealBadge');
+      badge.innerText = capitalize(result.mealCategory);
+
+      let totalCal = 0;
+      container.innerHTML = result.items.map((it, idx) => {
+        totalCal += it.cal;
+        return `
+          <div class="p-2 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-slate-800 block">${escapeHtml(it.name)}</span>
+              <span class="text-[10px] text-slate-400 font-medium">${it.p}g P • ${it.c}g C • ${it.f}g F</span>
+            </div>
+            <span class="font-extrabold text-emerald-700">${it.cal} kcal</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('aiFoodParsedContainer').classList.remove('hidden');
+      document.getElementById('aiParseSubmitBtn').classList.add('hidden');
+      document.getElementById('aiConfirmLogBtn').classList.remove('hidden');
+      document.getElementById('aiConfirmLogBtn').innerText = `Log to ${capitalize(result.mealCategory)} (${totalCal} kcal)`;
+      lucide.createIcons();
+    }
+
+    function confirmAIFoodLog() {
+      if (!currentAIParsedResult || !currentAIParsedResult.items) return;
+      const targetMeal = currentAIParsedResult.mealCategory || 'breakfast';
+
+      currentAIParsedResult.items.forEach(item => {
+        appState.days[appState.activeDate][targetMeal].push({
+          id: 'ai_log_' + Date.now() + Math.random(),
+          name: item.name,
+          cal: Math.round(item.cal),
+          p: Math.round(item.p * 10) / 10,
+          c: Math.round(item.c * 10) / 10,
+          f: Math.round(item.f * 10) / 10,
+          fib: Math.round((item.fib || 0) * 10) / 10
+        });
+      });
+
+      saveState();
+      refreshUI();
+      closeAIFoodModal();
+      showToast(`Logged ${currentAIParsedResult.items.length} items to ${capitalize(targetMeal)}!`);
+    }
+
+    async function generateAIRecipeNutrition() {
+      const prompt = document.getElementById('aiRecipePromptInput').value.trim();
+      if (!prompt) {
+        showToast("Please enter a recipe description or ingredient list");
+        return;
+      }
+
+      document.getElementById('aiRecipeLoading').classList.remove('hidden');
+      document.getElementById('aiRecipeResultCard').classList.add('hidden');
+      document.getElementById('aiRecipeBtn').disabled = true;
+
+      const systemInstruction = `You are an expert culinary nutrition scientist. Analyze the user's recipe or ingredient description.
+Calculate the batch totals and single-serving nutritional values (Calories, Protein in grams, Carbs in grams, Fat in grams, Fiber in grams) based on standard USDA nutrient profiles.
+Generate clear step-by-step cooking directions and assign an appropriate meal slot (breakfast, lunch, or dinner) optimized for a 1,250 kcal/day diet with emphasis on protein density.`;
+
+      const responseSchema = {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING", description: "Clear descriptive recipe name" },
+          servings: { type: "INTEGER", description: "Number of full servings made" },
+          mealSlot: { type: "STRING", enum: ["breakfast", "lunch", "dinner", "snack"] },
+          perServing: {
+            type: "OBJECT",
+            properties: {
+              cal: { type: "INTEGER" },
+              p: { type: "NUMBER" },
+              c: { type: "NUMBER" },
+              f: { type: "NUMBER" },
+              fiber: { type: "NUMBER" }
+            },
+            required: ["cal", "p", "c", "f", "fiber"]
+          },
+          ingredientsList: {
+            type: "ARRAY",
+            items: { type: "STRING" },
+            description: "List of ingredients with specific portion quantities"
+          },
+          instructions: {
+            type: "STRING",
+            description: "Concise step-by-step cooking directions"
+          }
+        },
+        required: ["title", "servings", "mealSlot", "perServing", "ingredientsList", "instructions"]
+      };
+
+      try {
+        const recipeData = await callGeminiStructured(systemInstruction, prompt, responseSchema);
+        document.getElementById('aiRecipeLoading').classList.add('hidden');
+        document.getElementById('aiRecipeBtn').disabled = false;
+
+        if (recipeData && recipeData.title && recipeData.perServing) {
+          currentAIRecipeResult = recipeData;
+          renderAIRecipeResult(recipeData);
+        } else {
+          showToast("Unable to calculate recipe details. Try adding more quantities.");
+        }
+      } catch (err) {
+        document.getElementById('aiRecipeLoading').classList.add('hidden');
+        document.getElementById('aiRecipeBtn').disabled = false;
+        showToast("Recipe generation encountered an error. Please retry.");
+      }
+    }
+
+    function renderAIRecipeResult(recipe) {
+      document.getElementById('airResultTitle').innerText = recipe.title;
+      document.getElementById('airResultServings').innerText = `${recipe.servings} Servings • Best for ${capitalize(recipe.mealSlot)}`;
+      document.getElementById('airResultCal').innerText = `${recipe.perServing.cal} kcal`;
+      document.getElementById('airResultP').innerText = `${Math.round(recipe.perServing.p)}g`;
+      document.getElementById('airResultC').innerText = `${Math.round(recipe.perServing.c)}g`;
+      document.getElementById('airResultF').innerText = `${Math.round(recipe.perServing.f)}g`;
+      document.getElementById('airResultFib').innerText = `${Math.round(recipe.perServing.fiber || 0)}g`;
+
+      const ingListEl = document.getElementById('airResultIngredients');
+      ingListEl.innerHTML = recipe.ingredientsList.map(i => `<li>${escapeHtml(i)}</li>`).join('');
+
+      document.getElementById('airResultInstructions').innerText = recipe.instructions;
+      document.getElementById('aiRecipeResultCard').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function saveAIRecipeToLibrary() {
+      if (!currentAIRecipeResult) return;
+      const rec = currentAIRecipeResult;
+      const newRecipe = {
+        id: 'rec_ai_' + Date.now(),
+        name: rec.title,
+        servings: rec.servings,
+        meal: rec.mealSlot,
+        totalCal: rec.perServing.cal * rec.servings,
+        perServing: {
+          cal: rec.perServing.cal,
+          p: rec.perServing.p,
+          c: rec.perServing.c,
+          f: rec.perServing.f
+        },
+        ingredients: rec.ingredientsList.map(item => ({ name: item, cal: Math.round(rec.perServing.cal / rec.ingredientsList.length), p: 0, c: 0, f: 0 }))
+      };
+
+      appState.customRecipes.unshift(newRecipe);
+      saveState();
+      renderSavedRecipesList();
+      showToast(`Saved "${rec.title}" to recipe library!`);
+    }
+
+    function logAIRecipeServingNow() {
+      if (!currentAIRecipeResult) return;
+      const rec = currentAIRecipeResult;
+      const meal = rec.mealSlot || 'dinner';
+
+      appState.days[appState.activeDate][meal].push({
+        id: 'rec_serving_' + Date.now(),
+        name: `${rec.title} (1 serving)`,
+        cal: rec.perServing.cal,
+        p: rec.perServing.p,
+        c: rec.perServing.c,
+        f: rec.perServing.f
+      });
+
+      saveState();
+      refreshUI();
+      showToast(`Logged 1 serving (${rec.perServing.cal} kcal) to ${capitalize(meal)}!`);
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadState();
+      refreshUI();
+      if (document.getElementById('savedRecipesList')) {
+        renderSavedRecipesList();
+      }
+      autoFillFitnessEstimate();
+      lucide.createIcons();
+
+      if (window.fbModules) {
+        initCloudSync();
+      } else {
+        window.addEventListener('firebase-ready', () => {
+          initCloudSync();
+        }, { once: true });
+      }
+    });
+  </script>
+</body>
+</html>
