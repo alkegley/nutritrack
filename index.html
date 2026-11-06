@@ -1,3 +1,7 @@
+
+index.html
+
+100%
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,30 +30,17 @@
   <!-- Firebase SDK Imports for Optional Cloud Sync -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-      getAuth, 
-      signInAnonymously, 
-      signInWithCustomToken,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     window.fbModules = {
       initializeApp,
       getAuth,
       signInAnonymously,
       signInWithCustomToken,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged,
       getFirestore,
       doc,
       setDoc,
-      getDoc,
       onSnapshot
     };
     window.dispatchEvent(new Event('firebase-ready'));
@@ -97,6 +88,15 @@
     .safe-bottom {
       padding-bottom: calc(env(safe-area-inset-bottom, 1rem) + 4.5rem);
     }
+    .meal-drop-active {
+      border-color: #10b981 !important;
+      background-color: #ecfdf5 !important;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35) !important;
+    }
+    .meal-item-dragging {
+      opacity: 0.45;
+      transform: scale(0.98);
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col selection:bg-emerald-200">
@@ -116,12 +116,6 @@
       
       <!-- Date Selector, Snapshot Vault & Install Button -->
       <div class="flex items-center gap-1.5">
-        <!-- User Account Login Button -->
-        <button onclick="openAuthModal()" id="userAuthBtn" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-200 transition" title="Account / Login">
-          <i data-lucide="user" class="w-3 h-3 text-slate-600"></i>
-          <span id="userAuthLabel" class="hidden xs:inline">Sign In</span>
-        </button>
-
         <div id="cloudSyncIndicator" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-semibold transition-colors" title="Sync Status">
           <i data-lucide="shield-check" id="cloudSyncIcon" class="w-3 h-3 text-emerald-600"></i>
           <span id="cloudSyncText" class="hidden sm:inline">Saved Locally</span>
@@ -143,6 +137,12 @@
         <button onclick="openApiKeyModal()" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 text-[10px] font-bold border border-amber-200 transition" title="Configure Gemini AI Key">
           <i data-lucide="key" class="w-3 h-3 text-amber-600"></i>
           <span class="hidden sm:inline">AI Key</span>
+        </button>
+
+        <!-- User Account / Profile Login Button -->
+        <button onclick="openUserProfileModal()" id="userProfileHeaderBtn" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-teal-50 text-teal-700 hover:bg-teal-100 text-[10px] font-bold border border-teal-200 transition" title="Account Sign-In & Profile Sync">
+          <i data-lucide="user-check" class="w-3 h-3 text-teal-600"></i>
+          <span id="userProfileHeaderLabel" class="hidden sm:inline">Sign In</span>
         </button>
 
         <button onclick="openInstallModal()" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold border border-emerald-200/80 transition" title="Install to Phone">
@@ -447,8 +447,16 @@
 
       <!-- Meal Categories Sections: Breakfast, Lunch, Dinner, Snacks, Drinks -->
       <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Daily Meal Diary</span>
+          <span class="text-[10px] text-slate-400 flex items-center gap-1">
+            <i data-lucide="move" class="w-3 h-3 text-emerald-600"></i>
+            <span>Drag items between meals or use Move menu</span>
+          </span>
+        </div>
+
         <!-- Breakfast -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+        <div id="meal-card-breakfast" data-meal-drop="breakfast" ondragover="handleMealDragOver(event, 'breakfast')" ondragleave="handleMealDragLeave(event, 'breakfast')" ondrop="handleMealDrop(event, 'breakfast')" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs transition-all">
           <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">☕</div>
@@ -459,7 +467,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-sm text-slate-700" id="b-cal-sum">0 kcal</span>
-              <button onclick="openAddModalForMeal('breakfast')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+              <button onclick="openAddModalForMeal('breakfast')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50" title="Add to Breakfast">
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
             </div>
@@ -470,7 +478,7 @@
         </div>
 
         <!-- Lunch -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+        <div id="meal-card-lunch" data-meal-drop="lunch" ondragover="handleMealDragOver(event, 'lunch')" ondragleave="handleMealDragLeave(event, 'lunch')" ondrop="handleMealDrop(event, 'lunch')" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs transition-all">
           <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">🥗</div>
@@ -481,7 +489,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-sm text-slate-700" id="l-cal-sum">0 kcal</span>
-              <button onclick="openAddModalForMeal('lunch')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+              <button onclick="openAddModalForMeal('lunch')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50" title="Add to Lunch">
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
             </div>
@@ -492,7 +500,7 @@
         </div>
 
         <!-- Dinner -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+        <div id="meal-card-dinner" data-meal-drop="dinner" ondragover="handleMealDragOver(event, 'dinner')" ondragleave="handleMealDragLeave(event, 'dinner')" ondrop="handleMealDrop(event, 'dinner')" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs transition-all">
           <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">🍲</div>
@@ -503,7 +511,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-sm text-slate-700" id="d-cal-sum">0 kcal</span>
-              <button onclick="openAddModalForMeal('dinner')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+              <button onclick="openAddModalForMeal('dinner')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50" title="Add to Dinner">
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
             </div>
@@ -514,7 +522,7 @@
         </div>
 
         <!-- Snacks -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+        <div id="meal-card-snack" data-meal-drop="snack" ondragover="handleMealDragOver(event, 'snack')" ondragleave="handleMealDragLeave(event, 'snack')" ondrop="handleMealDrop(event, 'snack')" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs transition-all">
           <div class="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">🍎</div>
@@ -525,7 +533,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-sm text-slate-700" id="s-cal-sum">0 kcal</span>
-              <button onclick="openAddModalForMeal('snack')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+              <button onclick="openAddModalForMeal('snack')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50" title="Add to Snacks">
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
             </div>
@@ -536,7 +544,7 @@
         </div>
 
         <!-- Drinks & Beverages -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+        <div id="meal-card-drink" data-meal-drop="drink" ondragover="handleMealDragOver(event, 'drink')" ondragleave="handleMealDragLeave(event, 'drink')" ondrop="handleMealDrop(event, 'drink')" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs transition-all">
           <div class="p-3.5 bg-sky-50/70 border-b border-sky-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xs">🥤</div>
@@ -547,7 +555,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold text-sm text-slate-700" id="dr-cal-sum">0 kcal</span>
-              <button onclick="openAddModalForMeal('drink')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50">
+              <button onclick="openAddModalForMeal('drink')" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50" title="Add to Drinks">
                 <i data-lucide="plus" class="w-4 h-4"></i>
               </button>
             </div>
@@ -984,6 +992,98 @@
         </div>
       </div>
 
+      <!-- AI Exercise & Workout Calorie Assistant Card -->
+      <div class="bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/30 border border-blue-400/40 flex items-center justify-center text-blue-200 shrink-0">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">AI Exercise & Workout Assistant</h3>
+              <p class="text-[11px] text-blue-200">Describe any workout in plain English for realistic MET calorie burn</p>
+            </div>
+          </div>
+          <span id="aiWorkoutWeightBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-blue-500/20 border border-blue-400/30 text-blue-200 shrink-0">
+            Calibrated: 155 lbs
+          </span>
+        </div>
+
+        <div class="space-y-2.5 mt-3">
+          <textarea id="aiWorkoutPromptInput" rows="3" placeholder="e.g. 45 min Pure Barre sculpt class with 3 lb light weights and core work, followed by a 15 min brisk walk outside at 3.5 mph" class="w-full text-xs p-3 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+
+          <!-- Realistic Workout Preset Chips -->
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-300 block mb-1.5">Quick Workout Examples:</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="setAIWorkoutPromptExample('45 min Barre sculpt class with 3 lb dumbbells, high-rep isometric thigh and seat work, and 10 min mat core')" class="text-[10px] bg-white/10 hover:bg-white/20 text-blue-100 px-2.5 py-1 rounded-lg border border-white/15 transition">
+                🩰 45m Barre / Pilates Sculpt
+              </button>
+              <button type="button" onclick="setAIWorkoutPromptExample('40 mins dumbbell strength workout with squats, lunges, rows, and shoulder press + 15 mins treadmill walk at 3.5 mph 6% incline')" class="text-[10px] bg-white/10 hover:bg-white/20 text-blue-100 px-2.5 py-1 rounded-lg border border-white/15 transition">
+                🏋️ 40m Strength + 15m Incline Walk
+              </button>
+              <button type="button" onclick="setAIWorkoutPromptExample('30 mins interval running: 20 mins jogging at 5.5 mph mixed with 10 mins brisk walking at 3.5 mph')" class="text-[10px] bg-white/10 hover:bg-white/20 text-blue-100 px-2.5 py-1 rounded-lg border border-white/15 transition">
+                🏃 30m Interval Run / Walk
+              </button>
+              <button type="button" onclick="setAIWorkoutPromptExample('35 mins indoor spin cycling class with moderate-vigorous intervals + 10 mins full body mobility stretching')" class="text-[10px] bg-white/10 hover:bg-white/20 text-blue-100 px-2.5 py-1 rounded-lg border border-white/15 transition">
+                🚴 35m Spin + 10m Stretch
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 pt-1">
+            <span class="text-[10px] text-blue-200">Accounts for rest intervals, intensity, body weight & multi-part sessions</span>
+            <button type="button" id="aiWorkoutAnalyzeBtn" onclick="analyzeWorkoutWithAI()" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-emerald-400 hover:opacity-95 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition shrink-0">
+              <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+              <span>Analyze Workout</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Workout Loading Spinner -->
+        <div id="aiWorkoutLoading" class="hidden mt-3 p-3 bg-white/10 rounded-2xl text-center space-y-2">
+          <div class="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-xs font-medium text-blue-200">Calculating physiological MET expenditure & segment breakdown...</p>
+        </div>
+
+        <!-- AI Workout Result Breakdown Card -->
+        <div id="aiWorkoutResultCard" class="hidden mt-3 p-4 bg-white/10 backdrop-blur rounded-2xl border border-white/20 space-y-3">
+          <div class="flex items-start justify-between border-b border-white/10 pb-2.5">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">Physiological MET Estimate</span>
+              <h4 id="aiWorkoutSummaryTitle" class="font-bold text-sm text-white mt-1">Workout Analysis</h4>
+              <p id="aiWorkoutTotalMins" class="text-[11px] text-blue-200">0 mins total</p>
+            </div>
+            <div class="text-right">
+              <span id="aiWorkoutTotalCal" class="text-xl font-black text-emerald-300 block">+0 kcal</span>
+              <span id="aiWorkoutAvgMet" class="text-[10px] text-blue-200 font-mono">Avg MET: --</span>
+            </div>
+          </div>
+
+          <!-- Individual Workout Segments -->
+          <div class="space-y-1.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">Exercise Breakdown:</span>
+            <div id="aiWorkoutSegmentsList" class="space-y-1.5"></div>
+          </div>
+
+          <!-- GLP-1 & Muscle Preservation Coaching Note -->
+          <div class="p-2.5 bg-black/25 rounded-xl border border-white/10 text-[11px] text-slate-200 leading-relaxed flex items-start gap-2">
+            <span class="text-sm shrink-0">💪</span>
+            <p id="aiWorkoutClinicalTip"></p>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button type="button" onclick="confirmAIWorkoutLog()" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>Log Workout to Today</span>
+            </button>
+            <button type="button" onclick="transferAIWorkoutToManualForm()" class="px-3 py-2 bg-white/15 hover:bg-white/25 text-white font-semibold rounded-xl text-xs transition">
+              Edit in Form
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Exercise Logger Form -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
         <h3 class="text-sm font-bold text-slate-900 mb-1">Add Workout / Active Burn</h3>
@@ -1247,19 +1347,42 @@
           </select>
         </div>
 
-        <div>
-          <label class="text-xs font-semibold text-slate-700 block mb-1">Pick from Verified Common Foods</label>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-slate-800">Choose from Saved & Frequent Meal Database</label>
+            <span id="foodDbCountBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Sorted by Frequency</span>
+          </div>
+
+          <!-- Database Filter Tabs: Most Frequent, Saved Meals & Recipes, All Foods -->
+          <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+            <button type="button" id="foodDbTab-frequent" onclick="setFoodDbFilterTab('frequent')" class="py-1.5 px-2 rounded-lg bg-white text-emerald-700 shadow-2xs transition flex items-center justify-center gap-1">
+              <span>🔥 Frequent</span>
+            </button>
+            <button type="button" id="foodDbTab-saved" onclick="setFoodDbFilterTab('saved')" class="py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1">
+              <span>⭐ My Saved</span>
+            </button>
+            <button type="button" id="foodDbTab-all" onclick="setFoodDbFilterTab('all')" class="py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1">
+              <span>🥗 All Foods</span>
+            </button>
+          </div>
+
           <div class="relative">
-            <input type="text" id="foodSearchInput" oninput="filterCommonFoods(this.value)" placeholder="Search eggs, chicken, avocado, yogurt..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-100 border border-slate-200 rounded-xl outline-none" />
+            <input type="text" id="foodSearchInput" oninput="filterCommonFoods(this.value)" placeholder="Search your saved meals, frequent foods, eggs, chicken, yogurt..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-100 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5"></i>
           </div>
 
-          <div id="commonFoodsGrid" class="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto pr-1"></div>
+          <div id="commonFoodsGrid" class="grid grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
 
         <div class="pt-3 border-t border-slate-100 space-y-2">
-          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Or Enter Custom Item</h4>
-          <input type="text" id="custFoodName" placeholder="Food name (e.g., Greek Salad)" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Or Enter Custom Meal / Food</h4>
+            <label class="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 cursor-pointer select-none">
+              <input type="checkbox" id="saveToMealDbCheckbox" checked class="w-3.5 h-3.5 rounded accent-emerald-600" />
+              <span>Save to My Meal Database</span>
+            </label>
+          </div>
+          <input type="text" id="custFoodName" placeholder="Food or meal name (e.g., Turkey Egg White Wrap)" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
           
           <div class="grid grid-cols-4 gap-2">
             <div>
@@ -1287,8 +1410,11 @@
       </div>
 
       <div class="p-3 border-t border-slate-100 bg-slate-50 flex gap-2">
-        <button onclick="submitCustomFoodEntry()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">
+        <button onclick="submitCustomFoodEntry()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">
           Add Food Entry
+        </button>
+        <button type="button" onclick="saveCustomFoodToDatabaseOnly()" class="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold rounded-xl text-xs transition" title="Save item to your database without logging to today">
+          Save Only
         </button>
       </div>
     </div>
@@ -1424,59 +1550,94 @@
         </button>
       </div>
 
-  <!-- Modal: User Account Login & Registration Modal -->
-  <div id="authModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 animate-in fade-in">
+      <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+        <p>
+          Because your site is hosted privately on GitHub Pages, Google requires a personal API key to power natural-language AI food parsing and recipe creation.
+        </p>
+        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px]">
+          <span class="font-bold text-slate-800">How to get a free key (1 minute):</span>
+          <ol class="list-decimal list-inside space-y-0.5 text-slate-600">
+            <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-600 font-bold underline">Google AI Studio (Get Key)</a>.</li>
+            <li>Click <strong>Create API Key</strong> (it's 100% free).</li>
+            <li>Paste your key below and click Save.</li>
+          </ol>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Your Gemini API Key:</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-mono" />
+          <span class="text-[10px] text-slate-400 mt-1 block">Saved safely in your browser storage only.</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="saveUserApiKey()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
+          Save Key
+        </button>
+        <button onclick="closeApiKeyModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-xl text-xs transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: User Profile & Account Sign-In Modal -->
+  <div id="userProfileModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-3.5 animate-in fade-in">
       <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+          <div class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
             <i data-lucide="user-check" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="font-bold text-sm text-slate-900" id="authModalTitle">Sign In to Sync Data</h3>
-            <p class="text-[11px] text-slate-500">Access your food & shots on any phone or device</p>
+            <h3 class="font-bold text-sm text-slate-900">Account Sign-In & Data Profile</h3>
+            <p class="text-[11px] text-slate-500">Bind your logs to your personal profile & backup</p>
           </div>
         </div>
-        <button onclick="closeAuthModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+        <button onclick="closeUserProfileModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Logged-in state view -->
-      <div id="authLoggedInView" class="hidden space-y-3">
-        <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-xs text-emerald-900 space-y-1">
-          <span class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block">Currently Signed In:</span>
-          <p class="font-bold text-sm text-slate-800 break-all" id="authCurrentEmailDisplay">user@example.com</p>
-          <p class="text-[11px] text-emerald-700">All meals, shots, weigh-ins, and tasks automatically sync to your personal account.</p>
+      <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+        <p>
+          Sign in with your name and email to lock your nutrition, weight, and GLP-1/B12 logs to your dedicated profile key on this browser and export/import across devices.
+        </p>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Display Name:</label>
+          <input type="text" id="profileNameInput" placeholder="e.g. Amanda" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500" />
         </div>
-        <button onclick="handleUserSignOut()" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl text-xs border border-rose-200 transition">
-          Sign Out of Account
-        </button>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Email / Account ID:</label>
+          <input type="email" id="profileEmailInput" placeholder="e.g. amanda.l.kegley@gmail.com" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500" />
+        </div>
+
+        <div class="p-2.5 bg-teal-50/70 border border-teal-200 rounded-xl space-y-1.5 text-[11px] text-teal-900">
+          <div class="flex items-center justify-between">
+            <span class="font-bold">Cross-Device File Sync:</span>
+            <span id="profileSyncStatusBadge" class="text-[10px] font-mono bg-teal-100 px-1.5 py-0.5 rounded text-teal-800">Local + IDB Locked</span>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button type="button" onclick="exportUserDataJSON()" class="flex-1 py-1.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-200 rounded-lg font-bold text-[11px] transition">
+              ⬇ Download Backup (.json)
+            </button>
+            <button type="button" onclick="promptImportData()" class="flex-1 py-1.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-200 rounded-lg font-bold text-[11px] transition">
+              ⬆ Upload Backup (.json)
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- Auth Form View (Sign In / Register) -->
-      <form id="authFormView" onsubmit="event.preventDefault(); handleAuthSubmit();" class="space-y-3">
-        <div>
-          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Email Address</label>
-          <input type="email" id="authEmailInput" required placeholder="you@example.com" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-        <div>
-          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Password</label>
-          <input type="password" id="authPasswordInput" required minlength="6" placeholder="At least 6 characters" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
-        </div>
-
-        <div id="authErrorMessage" class="hidden p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[11px]"></div>
-
-        <button type="submit" id="authSubmitBtn" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
-          Sign In
+      <div class="flex gap-2 pt-1">
+        <button onclick="saveUserProfile()" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
+          Save & Sign In
         </button>
-
-        <div class="text-center pt-1">
-          <button type="button" onclick="toggleAuthMode()" id="authToggleModeBtn" class="text-[11px] font-semibold text-emerald-600 hover:underline">
-            Don't have an account? Sign Up
-          </button>
-        </div>
-      </form>
+        <button onclick="closeUserProfileModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-xl text-xs transition">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1660,7 +1821,9 @@
       activeDate: getTodayDateString(),
       lastUpdated: new Date().toISOString(),
       days: {},          // key: "YYYY-MM-DD" -> { breakfast:[], lunch:[], dinner:[], snack:[], drink:[], fitness:[], weight: null, waterOz: 0, electrolytes: false, tasks: [], howIFeel: '', protocol: null }
-      customRecipes: []
+      customRecipes: [],
+      savedMeals: [],    // User's saved custom meal/food database items
+      foodUsageStats: {} // Normalized food name -> { count, lastUsed, lastMeal, item }
     };
 
     let calorieChartInstance = null;
@@ -1674,11 +1837,11 @@
     let cloudAuth = null;
     let cloudUser = null;
     let cloudDocRef = null;
-    let cloudUnsubscribe = null;
     let isRemoteUpdate = false;
     let saveTimeout = null;
     let feelingSaveTimeout = null;
-    let isRegisterMode = false;
+
+    const LOCAL_CACHE_KEY = 'nutritrack_1250_persistent_cache_v3';
     const IDB_NAME = 'nutritrack_persistent_idb';
     const IDB_STORE = 'app_state_store';
 
@@ -1926,6 +2089,27 @@
         incoming.customRecipes.forEach(r => recMap.set(r.id, r));
         merged.customRecipes = Array.from(recMap.values());
       }
+      if (incoming.savedMeals && incoming.savedMeals.length > 0) {
+        const mealMap = new Map();
+        (base.savedMeals || []).forEach(m => mealMap.set((m.name || '').toLowerCase().trim(), m));
+        incoming.savedMeals.forEach(m => mealMap.set((m.name || '').toLowerCase().trim(), m));
+        merged.savedMeals = Array.from(mealMap.values());
+      }
+      if (incoming.foodUsageStats || base.foodUsageStats) {
+        merged.foodUsageStats = { ...(base.foodUsageStats || {}) };
+        for (const [k, v] of Object.entries(incoming.foodUsageStats || {})) {
+          if (!merged.foodUsageStats[k]) {
+            merged.foodUsageStats[k] = v;
+          } else {
+            merged.foodUsageStats[k] = {
+              count: Math.max(merged.foodUsageStats[k].count || 0, v.count || 0),
+              lastUsed: (v.lastUsed || 0) > (merged.foodUsageStats[k].lastUsed || 0) ? v.lastUsed : merged.foodUsageStats[k].lastUsed,
+              lastMeal: v.lastMeal || merged.foodUsageStats[k].lastMeal,
+              item: v.item || merged.foodUsageStats[k].item
+            };
+          }
+        }
+      }
       return merged;
     }
 
@@ -1954,200 +2138,71 @@
         cloudDb = getFirestore(app);
         cloudAuth = getAuth(app);
 
-        // Listen for authentication changes (Guest vs Logged In User)
-        cloudAuth.onAuthStateChanged(async (user) => {
-          cloudUser = user;
-          updateAuthUI(user);
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(cloudAuth, __initial_auth_token);
+          cloudUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(cloudAuth);
+          cloudUser = cred.user;
+        }
 
-          if (user) {
-            setupUserCloudListener(user.uid, appId);
+        if (!cloudUser) {
+          updateSyncStatusBadge('local', 'Saved Locally');
+          return;
+        }
+
+        const userId = cloudUser.uid;
+        cloudDocRef = doc(cloudDb, 'artifacts', appId, 'users', userId, 'userData', 'state');
+        updateSyncStatusBadge('synced', 'Cloud Synced');
+
+        onSnapshot(cloudDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const remoteData = docSnap.data();
+            if (remoteData && remoteData.appState) {
+              const remoteEntries = countDataEntries(remoteData.appState);
+              const localEntries = countDataEntries(appState);
+
+              isRemoteUpdate = true;
+              if (remoteEntries > 0) {
+                appState = deepMergeState(appState, remoteData.appState);
+              }
+              if (remoteData.updatedAt && (!appState.lastUpdated || new Date(remoteData.updatedAt) > new Date(appState.lastUpdated))) {
+                appState.lastUpdated = remoteData.updatedAt;
+              }
+              if (!appState.targetBudget) appState.targetBudget = 1250;
+              if (!appState.targetProtein) appState.targetProtein = 85;
+              if (!appState.customRecipes) appState.customRecipes = [];
+              if (!appState.days) appState.days = {};
+              if (!appState.activeDate) appState.activeDate = getTodayDateString();
+              ensureDayExists(appState.activeDate);
+
+              saveLocalCache();
+              refreshUI();
+              updateLastUpdatedDisplay();
+              updateDiagnosticsDisplay();
+              if (document.getElementById('savedRecipesList')) {
+                renderSavedRecipesList();
+              }
+              renderProtocolTab();
+              updateSyncStatusBadge('synced', 'Cloud Synced');
+              isRemoteUpdate = false;
+
+              if (localEntries > remoteEntries) {
+                pushStateToCloud();
+              }
+            }
           } else {
-            // Sign in anonymously as default guest if no user is signed in
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(cloudAuth, __initial_auth_token);
-            } else {
-              await signInAnonymously(cloudAuth);
+            if (countDataEntries(appState) > 0) {
+              pushStateToCloud();
             }
           }
+        }, (err) => {
+          console.debug("Cloud sync snapshot error:", err);
+          updateSyncStatusBadge('local', 'Saved Locally');
         });
       } catch (err) {
         console.debug("Cloud init failed:", err);
         updateSyncStatusBadge('local', 'Saved Locally');
-      }
-    }
-
-    function setupUserCloudListener(userId, appId) {
-      if (!cloudDb || !window.fbModules) return;
-      const { doc, onSnapshot } = window.fbModules;
-
-      if (cloudUnsubscribe) {
-        cloudUnsubscribe();
-      }
-
-      cloudDocRef = doc(cloudDb, 'artifacts', appId, 'users', userId, 'userData', 'state');
-      updateSyncStatusBadge('synced', 'Cloud Synced');
-
-      cloudUnsubscribe = onSnapshot(cloudDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const remoteData = docSnap.data();
-          if (remoteData && remoteData.appState) {
-            const remoteEntries = countDataEntries(remoteData.appState);
-            const localEntries = countDataEntries(appState);
-
-            isRemoteUpdate = true;
-            if (remoteEntries > 0) {
-              appState = deepMergeState(appState, remoteData.appState);
-            }
-            if (remoteData.updatedAt && (!appState.lastUpdated || new Date(remoteData.updatedAt) > new Date(appState.lastUpdated))) {
-              appState.lastUpdated = remoteData.updatedAt;
-            }
-            if (!appState.targetBudget) appState.targetBudget = 1250;
-            if (!appState.targetProtein) appState.targetProtein = 85;
-            if (!appState.customRecipes) appState.customRecipes = [];
-            if (!appState.days) appState.days = {};
-            if (!appState.activeDate) appState.activeDate = getTodayDateString();
-            ensureDayExists(appState.activeDate);
-
-            saveLocalCache();
-            refreshUI();
-            updateLastUpdatedDisplay();
-            updateDiagnosticsDisplay();
-            if (document.getElementById('savedRecipesList')) {
-              renderSavedRecipesList();
-            }
-            renderProtocolTab();
-            updateSyncStatusBadge('synced', 'Cloud Synced');
-            isRemoteUpdate = false;
-
-            if (localEntries > remoteEntries) {
-              pushStateToCloud();
-            }
-          }
-        } else {
-          if (countDataEntries(appState) > 0) {
-            pushStateToCloud();
-          }
-        }
-      }, (err) => {
-        console.debug("Cloud sync snapshot error:", err);
-        updateSyncStatusBadge('local', 'Saved Locally');
-      });
-    }
-
-    function updateAuthUI(user) {
-      const authLabel = document.getElementById('userAuthLabel');
-      const authBtn = document.getElementById('userAuthBtn');
-      const authLoggedInView = document.getElementById('authLoggedInView');
-      const authFormView = document.getElementById('authFormView');
-      const emailDisplay = document.getElementById('authCurrentEmailDisplay');
-      if (!authLabel || !authBtn) return;
-
-      if (user && user.email) {
-        authLabel.innerText = user.email.split('@')[0];
-        authBtn.className = "flex items-center gap-1 px-2 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-200 transition";
-        if (emailDisplay) emailDisplay.innerText = user.email;
-        if (authLoggedInView) authLoggedInView.classList.remove('hidden');
-        if (authFormView) authFormView.classList.add('hidden');
-      } else {
-        authLabel.innerText = "Sign In";
-        authBtn.className = "flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-200 transition";
-        if (authLoggedInView) authLoggedInView.classList.add('hidden');
-        if (authFormView) authFormView.classList.remove('hidden');
-      }
-      lucide.createIcons();
-    }
-
-    function openAuthModal() {
-      const errBox = document.getElementById('authErrorMessage');
-      if (errBox) errBox.classList.add('hidden');
-      document.getElementById('authModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.add('hidden');
-    }
-
-    function toggleAuthMode() {
-      isRegisterMode = !isRegisterMode;
-      const title = document.getElementById('authModalTitle');
-      const submitBtn = document.getElementById('authSubmitBtn');
-      const toggleBtn = document.getElementById('authToggleModeBtn');
-      const errBox = document.getElementById('authErrorMessage');
-      if (errBox) errBox.classList.add('hidden');
-
-      if (isRegisterMode) {
-        title.innerText = "Create New Account";
-        submitBtn.innerText = "Create Account & Sync Data";
-        toggleBtn.innerText = "Already have an account? Sign In";
-      } else {
-        title.innerText = "Sign In to Sync Data";
-        submitBtn.innerText = "Sign In";
-        toggleBtn.innerText = "Don't have an account? Sign Up";
-      }
-    }
-
-    async function handleAuthSubmit() {
-      const email = document.getElementById('authEmailInput').value.trim();
-      const password = document.getElementById('authPasswordInput').value;
-      const errBox = document.getElementById('authErrorMessage');
-      const submitBtn = document.getElementById('authSubmitBtn');
-
-      if (!email || !password || password.length < 6) {
-        if (errBox) {
-          errBox.innerText = "Please enter an email and password of at least 6 characters.";
-          errBox.classList.remove('hidden');
-        }
-        return;
-      }
-
-      if (!cloudAuth || !window.fbModules) {
-        if (errBox) {
-          errBox.innerText = "Authentication service is currently initializing. Please retry in a moment.";
-          errBox.classList.remove('hidden');
-        }
-        return;
-      }
-
-      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.fbModules;
-      submitBtn.disabled = true;
-      submitBtn.innerText = isRegisterMode ? "Creating account..." : "Signing in...";
-
-      try {
-        if (isRegisterMode) {
-          await createUserWithEmailAndPassword(cloudAuth, email, password);
-          showToast("Account created! Data synced to your account. ✓");
-        } else {
-          await signInWithEmailAndPassword(cloudAuth, email, password);
-          showToast("Signed in successfully! Loading your data... ✓");
-        }
-        closeAuthModal();
-      } catch (err) {
-        console.error("Auth error:", err);
-        let msg = "Authentication failed. Please check your credentials.";
-        if (err.code === 'auth/email-already-in-use') msg = "That email is already registered. Please sign in.";
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = "Incorrect email or password.";
-        if (err.code === 'auth/user-not-found') msg = "No account found with this email. Tap Sign Up to create one.";
-        if (errBox) {
-          errBox.innerText = msg;
-          errBox.classList.remove('hidden');
-        }
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = isRegisterMode ? "Create Account & Sync Data" : "Sign In";
-      }
-    }
-
-    async function handleUserSignOut() {
-      if (!cloudAuth || !window.fbModules) return;
-      const { signOut, signInAnonymously } = window.fbModules;
-      try {
-        await signOut(cloudAuth);
-        await signInAnonymously(cloudAuth);
-        showToast("Signed out. Operating in guest mode.");
-        closeAuthModal();
-      } catch (err) {
-        showToast("Error signing out.");
       }
     }
 
@@ -2215,7 +2270,10 @@
       if (!appState.targetProtein) appState.targetProtein = 85;
       if (!appState.targetFiber) appState.targetFiber = 25;
       if (!appState.customRecipes) appState.customRecipes = [];
+      if (!appState.savedMeals) appState.savedMeals = [];
+      if (!appState.foodUsageStats) appState.foodUsageStats = {};
       if (!appState.days) appState.days = {};
+      rebuildFoodUsageStatsFromHistory();
       if (!appState.lastUpdated) appState.lastUpdated = new Date().toISOString();
       if (!appState.activeDate) appState.activeDate = getTodayDateString();
       ensureDayExists(appState.activeDate);
@@ -2667,7 +2725,9 @@
       }
 
       const lastDate = dates[dates.length - 1];
-      const diffDays = Math.round((new Date(appState.activeDate) - new Date(lastDate)) / (1000 * 60 * 60 * 24));
+      const [ay, am, ad] = appState.activeDate.split('-').map(Number);
+      const [ly, lm, ld] = lastDate.split('-').map(Number);
+      const diffDays = Math.round((new Date(ay, am - 1, ad) - new Date(ly, lm - 1, ld)) / (1000 * 60 * 60 * 24));
       const cycleDay = (diffDays % 7) + 1;
 
       document.getElementById('cycleDayBadge').innerText = `Day ${cycleDay} of 7`;
@@ -2854,29 +2914,186 @@
       showToast("Injection entry removed for today");
     }
 
+    let draggedMealPayload = null;
+    let touchDragPayload = null;
+
     function renderMealSection(mealKey, items) {
       const listEl = document.getElementById(`meal-${mealKey}-list`);
       if (!items || items.length === 0) {
-        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2.5">No ${mealKey} logged yet.</p>`;
+        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2.5">No ${mealKey} logged yet. Drag items here or tap + to add.</p>`;
         return;
       }
 
+      const mealOptions = [
+        { key: 'breakfast', label: '☕ Breakfast' },
+        { key: 'lunch', label: '🥗 Lunch' },
+        { key: 'dinner', label: '🍲 Dinner' },
+        { key: 'snack', label: '🍎 Snack' },
+        { key: 'drink', label: '🥤 Drink' }
+      ];
+
       listEl.innerHTML = items.map((item, idx) => `
-        <div class="py-2 px-1 flex items-center justify-between text-xs">
-          <div class="flex-1 pr-2">
-            <span class="font-semibold text-slate-800 block truncate">${escapeHtml(item.name)}</span>
-            <span class="text-[10px] text-slate-400 font-medium">
-              ${item.p || 0}g P • ${item.c || 0}g C • ${item.f || 0}g F
+        <div draggable="true"
+             ondragstart="handleMealItemDragStart(event, '${mealKey}', ${idx})"
+             ondragend="handleMealItemDragEnd(event)"
+             ontouchstart="handleMealTouchStart(event, '${mealKey}', ${idx})"
+             ontouchmove="handleMealTouchMove(event)"
+             ontouchend="handleMealTouchEnd(event)"
+             class="py-2 px-1.5 flex items-center justify-between text-xs group hover:bg-slate-50/90 rounded-xl transition cursor-grab active:cursor-grabbing">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
+            <span class="text-slate-300 group-hover:text-emerald-600 transition shrink-0" title="Drag to move to another meal">
+              <i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>
             </span>
+            <div class="min-w-0 flex-1">
+              <span class="font-semibold text-slate-800 block truncate">${escapeHtml(item.name)}</span>
+              <span class="text-[10px] text-slate-400 font-medium">
+                ${item.p || 0}g P • ${item.c || 0}g C • ${item.f || 0}g F ${item.fib ? '• ' + item.fib + 'g Fib' : ''}
+              </span>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-slate-700">${item.cal} kcal</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <select aria-label="Move meal category" onchange="moveMealItemToCategory('${mealKey}', ${idx}, this.value)" class="text-[10px] font-semibold bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/80 rounded-lg px-1.5 py-0.5 outline-none cursor-pointer transition" title="Move item to another meal">
+              <option value="" selected disabled>⇄ Move</option>
+              ${mealOptions.filter(m => m.key !== mealKey).map(m => `<option value="${m.key}">Move to ${m.label}</option>`).join('')}
+            </select>
+            <span class="font-bold text-slate-700 whitespace-nowrap">${item.cal} kcal</span>
             <button onclick="removeMealItem('${mealKey}', ${idx})" class="text-slate-300 hover:text-rose-500 p-1 transition" title="Delete">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
         </div>
       `).join('');
+    }
+
+    function handleMealItemDragStart(event, fromMeal, itemIndex) {
+      draggedMealPayload = { fromMeal, itemIndex };
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        try {
+          event.dataTransfer.setData('text/plain', JSON.stringify(draggedMealPayload));
+        } catch (e) {}
+      }
+      if (event.currentTarget) {
+        event.currentTarget.classList.add('meal-item-dragging');
+      }
+    }
+
+    function handleMealItemDragEnd(event) {
+      if (event.currentTarget) {
+        event.currentTarget.classList.remove('meal-item-dragging');
+      }
+      clearAllMealDropHighlights();
+      draggedMealPayload = null;
+    }
+
+    function handleMealDragOver(event, targetMeal) {
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+      const card = document.getElementById(`meal-card-${targetMeal}`);
+      if (card && (!draggedMealPayload || draggedMealPayload.fromMeal !== targetMeal)) {
+        card.classList.add('meal-drop-active');
+      }
+    }
+
+    function handleMealDragLeave(event, targetMeal) {
+      const card = document.getElementById(`meal-card-${targetMeal}`);
+      if (card && (!event.relatedTarget || !card.contains(event.relatedTarget))) {
+        card.classList.remove('meal-drop-active');
+      }
+    }
+
+    function handleMealDrop(event, targetMeal) {
+      event.preventDefault();
+      clearAllMealDropHighlights();
+      let payload = draggedMealPayload;
+      if (!payload && event.dataTransfer) {
+        try {
+          payload = JSON.parse(event.dataTransfer.getData('text/plain'));
+        } catch (e) {}
+      }
+      if (!payload) return;
+      moveMealItemToCategory(payload.fromMeal, payload.itemIndex, targetMeal);
+      draggedMealPayload = null;
+    }
+
+    function handleMealTouchStart(event, fromMeal, itemIndex) {
+      if (event.target && (event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON' || event.target.closest('button') || event.target.closest('select'))) {
+        return;
+      }
+      const touch = event.touches && event.touches[0];
+      if (!touch) return;
+      touchDragPayload = {
+        fromMeal,
+        itemIndex,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        isDragging: false,
+        targetMeal: null,
+        el: event.currentTarget
+      };
+    }
+
+    function handleMealTouchMove(event) {
+      if (!touchDragPayload) return;
+      const touch = event.touches && event.touches[0];
+      if (!touch) return;
+      const dy = Math.abs(touch.clientY - touchDragPayload.startY);
+      const dx = Math.abs(touch.clientX - touchDragPayload.startX);
+      if (!touchDragPayload.isDragging && dy > 14 && dy > dx) {
+        touchDragPayload.isDragging = true;
+        if (touchDragPayload.el) touchDragPayload.el.classList.add('meal-item-dragging');
+      }
+      if (touchDragPayload.isDragging) {
+        event.preventDefault();
+        clearAllMealDropHighlights();
+        const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+        const dropCard = elemBelow ? elemBelow.closest('[data-meal-drop]') : null;
+        if (dropCard) {
+          const targetMeal = dropCard.getAttribute('data-meal-drop');
+          if (targetMeal && targetMeal !== touchDragPayload.fromMeal) {
+            dropCard.classList.add('meal-drop-active');
+            touchDragPayload.targetMeal = targetMeal;
+          } else {
+            touchDragPayload.targetMeal = null;
+          }
+        } else {
+          touchDragPayload.targetMeal = null;
+        }
+      }
+    }
+
+    function handleMealTouchEnd(event) {
+      if (!touchDragPayload) return;
+      if (touchDragPayload.el) touchDragPayload.el.classList.remove('meal-item-dragging');
+      clearAllMealDropHighlights();
+      if (touchDragPayload.isDragging && touchDragPayload.targetMeal && touchDragPayload.targetMeal !== touchDragPayload.fromMeal) {
+        moveMealItemToCategory(touchDragPayload.fromMeal, touchDragPayload.itemIndex, touchDragPayload.targetMeal);
+      }
+      touchDragPayload = null;
+    }
+
+    function clearAllMealDropHighlights() {
+      ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].forEach(m => {
+        const card = document.getElementById(`meal-card-${m}`);
+        if (card) card.classList.remove('meal-drop-active');
+      });
+    }
+
+    function moveMealItemToCategory(fromMeal, itemIndex, toMeal) {
+      if (!fromMeal || !toMeal || fromMeal === toMeal) return;
+      const day = appState.days[appState.activeDate];
+      if (!day || !day[fromMeal] || !day[fromMeal][itemIndex]) return;
+      if (!day[toMeal]) day[toMeal] = [];
+
+      const [movedItem] = day[fromMeal].splice(itemIndex, 1);
+      day[toMeal].push(movedItem);
+      recordFoodUsage(movedItem, toMeal, false);
+
+      saveState();
+      refreshUI();
+      showToast(`Moved "${movedItem.name}" from ${capitalize(fromMeal)} to ${capitalize(toMeal)} ✓`);
     }
 
     function renderFitnessDashList(items) {
@@ -2923,6 +3140,216 @@
       openQuickFoodModal();
     }
 
+    let activeFoodDbTab = 'frequent';
+
+    function normalizeFoodKey(name) {
+      return String(name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    function recordFoodUsage(item, mealSlot = 'breakfast', increment = true) {
+      if (!item || !item.name) return;
+      if (!appState.foodUsageStats) appState.foodUsageStats = {};
+      const key = normalizeFoodKey(item.name);
+      if (!key) return;
+      const existing = appState.foodUsageStats[key] || { count: 0, lastUsed: 0, lastMeal: mealSlot, item: null };
+      appState.foodUsageStats[key] = {
+        count: increment ? (existing.count || 0) + 1 : Math.max(1, existing.count || 1),
+        lastUsed: Date.now(),
+        lastMeal: mealSlot || existing.lastMeal || 'breakfast',
+        item: {
+          name: item.name,
+          portion: item.portion || '1 serving',
+          cal: Math.round(Number(item.cal) || 0),
+          p: Math.round((Number(item.p) || 0) * 10) / 10,
+          c: Math.round((Number(item.c) || 0) * 10) / 10,
+          f: Math.round((Number(item.f) || 0) * 10) / 10,
+          fib: Math.round((Number(item.fib) || 0) * 10) / 10
+        }
+      };
+    }
+
+    function rebuildFoodUsageStatsFromHistory() {
+      if (!appState.foodUsageStats) appState.foodUsageStats = {};
+      if (!appState.savedMeals) appState.savedMeals = [];
+      const scannedCounts = {};
+      const scannedItems = {};
+      const scannedMeal = {};
+
+      for (const dObj of Object.values(appState.days || {})) {
+        if (!dObj) continue;
+        ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].forEach(mKey => {
+          (dObj[mKey] || []).forEach(it => {
+            if (!it || !it.name) return;
+            const k = normalizeFoodKey(it.name);
+            scannedCounts[k] = (scannedCounts[k] || 0) + 1;
+            scannedMeal[k] = mKey;
+            scannedItems[k] = {
+              name: it.name,
+              portion: it.portion || 'Logged Meal',
+              cal: Number(it.cal) || 0,
+              p: Number(it.p) || 0,
+              c: Number(it.c) || 0,
+              f: Number(it.f) || 0,
+              fib: Number(it.fib) || 0
+            };
+          });
+        });
+      }
+
+      for (const [k, cnt] of Object.entries(scannedCounts)) {
+        const curr = appState.foodUsageStats[k];
+        if (!curr) {
+          appState.foodUsageStats[k] = {
+            count: cnt,
+            lastUsed: Date.now(),
+            lastMeal: scannedMeal[k] || 'breakfast',
+            item: scannedItems[k]
+          };
+        } else {
+          curr.count = Math.max(curr.count || 0, cnt);
+          if (!curr.item) curr.item = scannedItems[k];
+        }
+      }
+    }
+
+    function getUnifiedFoodAndMealDatabase() {
+      rebuildFoodUsageStatsFromHistory();
+      const map = new Map();
+      const stats = appState.foodUsageStats || {};
+      const selectedMeal = document.getElementById('modalMealSelector') ? document.getElementById('modalMealSelector').value : 'breakfast';
+
+      // 1. User's Saved Custom Meals (appState.savedMeals)
+      (appState.savedMeals || []).forEach(m => {
+        const k = normalizeFoodKey(m.name);
+        if (!k) return;
+        const st = stats[k];
+        map.set(k, {
+          name: m.name,
+          portion: m.portion || `Saved (${capitalize(m.meal || 'meal')})`,
+          cal: Number(m.cal) || 0,
+          p: Number(m.p) || 0,
+          c: Number(m.c) || 0,
+          f: Number(m.f) || 0,
+          fib: Number(m.fib) || 0,
+          sourceType: 'saved',
+          mealHint: m.meal || (st ? st.lastMeal : ''),
+          useCount: st ? st.count : (m.useCount || 1),
+          lastUsed: st ? st.lastUsed : (m.createdAt || 0)
+        });
+      });
+
+      // 2. User's Saved Custom Recipes (from Recipe Builder / AI Recipe Generator)
+      (appState.customRecipes || []).forEach(r => {
+        const k = normalizeFoodKey(r.name);
+        if (!k) return;
+        const st = stats[k];
+        const ps = r.perServing || { cal: 250, p: 20, c: 15, f: 8 };
+        map.set(k, {
+          name: r.name,
+          portion: `1 serving (${r.servings || 1}-serv recipe)`,
+          cal: Number(ps.cal) || 0,
+          p: Number(ps.p) || 0,
+          c: Number(ps.c) || 0,
+          f: Number(ps.f) || 0,
+          fib: Number(ps.fib || 2) || 0,
+          sourceType: 'recipe',
+          mealHint: r.meal || 'dinner',
+          useCount: st ? st.count : 1,
+          lastUsed: st ? st.lastUsed : 1
+        });
+      });
+
+      // 3. Previously Logged Historical Items (from foodUsageStats)
+      for (const [k, st] of Object.entries(stats)) {
+        if (!map.has(k) && st && st.item) {
+          map.set(k, {
+            ...st.item,
+            portion: st.item.portion || `Logged in ${capitalize(st.lastMeal || 'diary')}`,
+            sourceType: 'history',
+            mealHint: st.lastMeal || '',
+            useCount: st.count || 1,
+            lastUsed: st.lastUsed || 0
+          });
+        }
+      }
+
+      // 4. Curated Dietitian Meals (CURATED_RECIPES)
+      CURATED_RECIPES.forEach(cr => {
+        const k = normalizeFoodKey(cr.title);
+        if (!map.has(k)) {
+          const st = stats[k];
+          map.set(k, {
+            name: cr.title,
+            portion: `Meal Idea (${capitalize(cr.meal)})`,
+            cal: cr.cal,
+            p: cr.protein,
+            c: cr.carbs,
+            f: cr.fat,
+            fib: cr.fiber || 0,
+            sourceType: 'curated',
+            mealHint: cr.meal,
+            useCount: st ? st.count : 0,
+            lastUsed: st ? st.lastUsed : 0
+          });
+        }
+      });
+
+      // 5. Verified Common Foods (COMMON_FOODS)
+      COMMON_FOODS.forEach(cf => {
+        const k = normalizeFoodKey(cf.name);
+        if (!map.has(k)) {
+          const st = stats[k];
+          map.set(k, {
+            ...cf,
+            sourceType: 'common',
+            mealHint: st ? st.lastMeal : '',
+            useCount: st ? st.count : 0,
+            lastUsed: st ? st.lastUsed : 0
+          });
+        } else {
+          const existing = map.get(k);
+          if (cf.portion && (!existing.portion || existing.portion === 'Logged Meal')) {
+            existing.portion = cf.portion;
+          }
+        }
+      });
+
+      const allItems = Array.from(map.values());
+
+      // Sort by: (1) useCount desc, (2) saved/recipe/history priority, (3) matching selected meal slot, (4) protein density
+      allItems.sort((a, b) => {
+        if ((b.useCount || 0) !== (a.useCount || 0)) {
+          return (b.useCount || 0) - (a.useCount || 0);
+        }
+        const aIsUser = (a.sourceType === 'saved' || a.sourceType === 'recipe' || a.sourceType === 'history') ? 1 : 0;
+        const bIsUser = (b.sourceType === 'saved' || b.sourceType === 'recipe' || b.sourceType === 'history') ? 1 : 0;
+        if (bIsUser !== aIsUser) return bIsUser - aIsUser;
+
+        const aMatchesMeal = (a.mealHint === selectedMeal) ? 1 : 0;
+        const bMatchesMeal = (b.mealHint === selectedMeal) ? 1 : 0;
+        if (bMatchesMeal !== aMatchesMeal) return bMatchesMeal - aMatchesMeal;
+
+        return (b.p / (b.cal || 1)) - (a.p / (a.cal || 1));
+      });
+
+      return allItems;
+    }
+
+    function setFoodDbFilterTab(tabKey) {
+      activeFoodDbTab = tabKey;
+      ['frequent', 'saved', 'all'].forEach(t => {
+        const btn = document.getElementById(`foodDbTab-${t}`);
+        if (!btn) return;
+        if (t === tabKey) {
+          btn.className = "py-1.5 px-2 rounded-lg bg-white text-emerald-700 shadow-2xs transition flex items-center justify-center gap-1";
+        } else {
+          btn.className = "py-1.5 px-2 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1";
+        }
+      });
+      const q = document.getElementById('foodSearchInput') ? document.getElementById('foodSearchInput').value : '';
+      filterCommonFoods(q);
+    }
+
     function openQuickFoodModal() {
       document.getElementById('custFoodName').value = '';
       document.getElementById('custFoodCal').value = '';
@@ -2931,7 +3358,7 @@
       document.getElementById('custFoodFat').value = '';
       if (document.getElementById('custFoodFib')) document.getElementById('custFoodFib').value = '';
       document.getElementById('foodSearchInput').value = '';
-      renderCommonFoodsList(COMMON_FOODS);
+      setFoodDbFilterTab(activeFoodDbTab || 'frequent');
       document.getElementById('quickFoodModal').classList.remove('hidden');
       lucide.createIcons();
     }
@@ -2942,25 +3369,70 @@
 
     function renderCommonFoodsList(foods) {
       const container = document.getElementById('commonFoodsGrid');
-      container.innerHTML = foods.map((f, i) => `
-        <button type="button" onclick="selectQuickFoodItem('${encodeURIComponent(JSON.stringify(f))}')" class="text-left p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/70 hover:border-emerald-300 transition flex flex-col justify-between">
-          <div>
-            <div class="font-semibold text-xs text-slate-800 line-clamp-1">${f.name}</div>
-            <div class="text-[10px] text-slate-400">${f.portion}</div>
+      const countBadge = document.getElementById('foodDbCountBadge');
+      if (countBadge) {
+        countBadge.innerText = `${foods.length} item${foods.length === 1 ? '' : 's'}`;
+      }
+
+      if (!foods || foods.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-xs text-slate-500">
+            No matching meals found in this tab. Try "All Foods" or save a custom meal below!
           </div>
-          <div class="mt-1 flex items-center justify-between text-[11px]">
-            <span class="font-bold text-emerald-700">${f.cal} kcal</span>
-            <span class="text-[9px] text-rose-600 font-bold">${f.p}g P ${f.fib ? '• ' + f.fib + 'g fib' : ''}</span>
-          </div>
-        </button>
-      `).join('');
+        `;
+        return;
+      }
+
+      container.innerHTML = foods.map((f) => {
+        let badgeHtml = '';
+        if (f.useCount && f.useCount > 0) {
+          badgeHtml = `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">🔥 ${f.useCount}x</span>`;
+        } else if (f.sourceType === 'saved' || f.sourceType === 'recipe') {
+          badgeHtml = `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">⭐ Saved</span>`;
+        } else if (f.sourceType === 'curated') {
+          badgeHtml = `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">Meal Idea</span>`;
+        }
+        return `
+          <button type="button" onclick="selectQuickFoodItem('${encodeURIComponent(JSON.stringify(f))}')" class="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/70 hover:border-emerald-300 transition flex flex-col justify-between group">
+            <div>
+              <div class="flex items-start justify-between gap-1">
+                <div class="font-semibold text-xs text-slate-800 group-hover:text-emerald-900 line-clamp-1">${escapeHtml(f.name)}</div>
+                ${badgeHtml}
+              </div>
+              <div class="text-[10px] text-slate-400 truncate mt-0.5">${escapeHtml(f.portion || '1 serving')}</div>
+            </div>
+            <div class="mt-1.5 pt-1 border-t border-slate-200/50 flex items-center justify-between text-[11px]">
+              <span class="font-bold text-emerald-700">${f.cal} kcal</span>
+              <span class="text-[9px] text-rose-600 font-bold">${f.p}g P • ${f.c || 0}g C • ${f.f || 0}g F</span>
+            </div>
+          </button>
+        `;
+      }).join('');
     }
 
     function filterCommonFoods(query) {
-      const q = query.toLowerCase().trim();
-      const filtered = COMMON_FOODS.filter(item => 
-        item.name.toLowerCase().includes(q) || item.portion.toLowerCase().includes(q)
-      );
+      const q = (query || '').toLowerCase().trim();
+      const pool = getUnifiedFoodAndMealDatabase();
+
+      let tabFiltered = pool;
+      if (!q) {
+        if (activeFoodDbTab === 'frequent') {
+          const used = pool.filter(it => (it.useCount || 0) > 0 || it.sourceType === 'saved' || it.sourceType === 'recipe');
+          tabFiltered = used.length >= 6 ? used : pool.slice(0, 16);
+        } else if (activeFoodDbTab === 'saved') {
+          const savedOnly = pool.filter(it => it.sourceType === 'saved' || it.sourceType === 'recipe' || it.sourceType === 'history' || it.sourceType === 'curated');
+          tabFiltered = savedOnly.length > 0 ? savedOnly : pool;
+        }
+      }
+
+      const filtered = q
+        ? tabFiltered.filter(item =>
+            (item.name && item.name.toLowerCase().includes(q)) ||
+            (item.portion && item.portion.toLowerCase().includes(q)) ||
+            (item.mealHint && item.mealHint.toLowerCase().includes(q))
+          )
+        : tabFiltered;
+
       renderCommonFoodsList(filtered);
     }
 
@@ -2975,7 +3447,30 @@
       submitCustomFoodEntry();
     }
 
-    function submitCustomFoodEntry() {
+    function saveItemToSavedMealsDatabase(item, mealSlot) {
+      if (!appState.savedMeals) appState.savedMeals = [];
+      const key = normalizeFoodKey(item.name);
+      const existingIdx = appState.savedMeals.findIndex(m => normalizeFoodKey(m.name) === key);
+      const entry = {
+        id: existingIdx >= 0 ? appState.savedMeals[existingIdx].id : ('saved_meal_' + Date.now()),
+        name: item.name,
+        portion: item.portion || `Saved (${capitalize(mealSlot || 'meal')})`,
+        cal: Math.round(Number(item.cal) || 0),
+        p: Math.round((Number(item.p) || 0) * 10) / 10,
+        c: Math.round((Number(item.c) || 0) * 10) / 10,
+        f: Math.round((Number(item.f) || 0) * 10) / 10,
+        fib: Math.round((Number(item.fib) || 0) * 10) / 10,
+        meal: mealSlot || 'breakfast',
+        createdAt: Date.now()
+      };
+      if (existingIdx >= 0) {
+        appState.savedMeals[existingIdx] = entry;
+      } else {
+        appState.savedMeals.unshift(entry);
+      }
+    }
+
+    function saveCustomFoodToDatabaseOnly() {
       const name = document.getElementById('custFoodName').value.trim();
       const cal = Number(document.getElementById('custFoodCal').value);
       const p = Number(document.getElementById('custFoodProt').value) || 0;
@@ -2985,11 +3480,34 @@
       const meal = document.getElementById('modalMealSelector').value;
 
       if (!name || isNaN(cal) || cal <= 0) {
+        showToast("Please enter a valid meal/food name & calories to save");
+        return;
+      }
+
+      const newItem = { name, cal, p, c, f, fib, portion: `Saved (${capitalize(meal)})` };
+      saveItemToSavedMealsDatabase(newItem, meal);
+      recordFoodUsage(newItem, meal, false);
+      saveState();
+      setFoodDbFilterTab('saved');
+      showToast(`Saved "${name}" to your Meal Database ✓`);
+    }
+
+    function submitCustomFoodEntry() {
+      const name = document.getElementById('custFoodName').value.trim();
+      const cal = Number(document.getElementById('custFoodCal').value);
+      const p = Number(document.getElementById('custFoodProt').value) || 0;
+      const c = Number(document.getElementById('custFoodCarb').value) || 0;
+      const f = Number(document.getElementById('custFoodFat').value) || 0;
+      const fib = Number(document.getElementById('custFoodFib') ? document.getElementById('custFoodFib').value : 0) || 0;
+      const meal = document.getElementById('modalMealSelector').value;
+      const saveToDb = document.getElementById('saveToMealDbCheckbox') ? document.getElementById('saveToMealDbCheckbox').checked : true;
+
+      if (!name || isNaN(cal) || cal <= 0) {
         showToast("Please enter a valid food name & calories");
         return;
       }
 
-      appState.days[appState.activeDate][meal].push({
+      const loggedItem = {
         id: 'food_' + Date.now(),
         name,
         cal,
@@ -2997,7 +3515,13 @@
         c,
         f,
         fib
-      });
+      };
+
+      appState.days[appState.activeDate][meal].push(loggedItem);
+      recordFoodUsage(loggedItem, meal, true);
+      if (saveToDb) {
+        saveItemToSavedMealsDatabase(loggedItem, meal);
+      }
 
       saveState();
       refreshUI();
@@ -3117,7 +3641,289 @@
       }
 
       updateWeightDiffDisplay(wVal);
+      updateAIWorkoutWeightBadge();
       lucide.createIcons();
+    }
+
+    // --- REALISTIC & COMPREHENSIVE AI WORKOUT / EXERCISE ASSISTANT ---
+    let currentAIWorkoutResult = null;
+
+    // Comprehensive ACSM Compendium MET Database for realistic physiological burn
+    const COMPREHENSIVE_WORKOUT_METS = [
+      { keywords: ['pure barre', 'barre', 'isometric', 'ballet', 'sculpt class'], name: 'Barre & Isometric Sculpt', met: 4.3, intensity: 'Moderate-High', muscles: 'Glutes, Thighs, Core & Postural Stabilizers' },
+      { keywords: ['reformer pilates', 'reformer', 'lagree', 'solidcore', 'megaformer'], name: 'Reformer Pilates / Resistance Core', met: 4.5, intensity: 'Moderate-High', muscles: 'Deep Core, Glutes, Obliques & Full Body' },
+      { keywords: ['mat pilates', 'pilates'], name: 'Mat Pilates & Core Flow', met: 3.5, intensity: 'Moderate', muscles: 'Core, Pelvic Floor, Hips & Back' },
+      { keywords: ['hot yoga', 'bikram', 'power yoga', 'vinyasa'], name: 'Vinyasa / Power / Hot Yoga', met: 4.0, intensity: 'Moderate', muscles: 'Full Body Mobility, Core & Upper Body' },
+      { keywords: ['yin yoga', 'restorative yoga', 'hatha yoga', 'yoga'], name: 'Hatha / Restorative Yoga', met: 2.8, intensity: 'Light-Moderate', muscles: 'Flexibility, Balance & Parasympathetic Recovery' },
+      { keywords: ['stretch', 'stretching', 'mobility', 'foam roll'], name: 'Mobility & Full-Body Stretching', met: 2.3, intensity: 'Light', muscles: 'Joint Mobility & Fascia Recovery' },
+      { keywords: ['heavy weight', 'heavy lifting', 'barbell', 'deadlift', 'squat rack', 'powerlifting'], name: 'Vigorous Barbell / Compound Strength Training', met: 5.5, intensity: 'Vigorous', muscles: 'Major Compound Muscle Groups (Lean Mass Shield)' },
+      { keywords: ['dumbbell', 'weights', 'strength', 'lifting', 'upper body', 'lower body', 'leg day', 'arm day', 'resistance', 'kettlebell', 'machines', 'shoulder press', 'rows', 'curls', 'lunges'], name: 'Resistance & Dumbbell Strength Training', met: 4.2, intensity: 'Moderate', muscles: 'Skeletal Muscle Preservation (GLP-1 Priority)' },
+      { keywords: ['hiit', 'orangetheory', 'f45', 'crossfit', 'boot camp', 'bootcamp', 'circuit', 'tabata', 'burpees', 'metcon'], name: 'High-Intensity Interval / Circuit Training (HIIT)', met: 7.5, intensity: 'Vigorous', muscles: 'Cardiovascular & Full-Body Metabolic Conditioning' },
+      { keywords: ['incline walk', 'incline treadmill', '12-3-30', 'uphill walk', 'hiking', 'hike'], name: 'Incline Treadmill Walking / Hiking', met: 5.8, intensity: 'Moderate-Vigorous', muscles: 'Posterior Chain, Calves, Glutes & Zone 2 Cardio' },
+      { keywords: ['brisk walk', 'power walk', 'fast walk', '3.5 mph', '4 mph', '4.0 mph'], name: 'Brisk Walking (3.5–4.0 mph)', met: 4.3, intensity: 'Moderate', muscles: 'Lower Body & Zone 2 Fat Oxidation' },
+      { keywords: ['walk', 'walking', 'stroll', 'treadmill walk', 'dog walk', 'steps'], name: 'Steady Walking (3.0 mph)', met: 3.5, intensity: 'Light-Moderate', muscles: 'Low-Impact Daily NEAT & Cardiovascular Health' },
+      { keywords: ['sprint', 'running fast', '7 mph', '8 mph', 'track intervals'], name: 'Fast Running / Sprints', met: 10.5, intensity: 'Vigorous', muscles: 'High-Output Cardiorespiratory & Lower Body' },
+      { keywords: ['run', 'running', 'jog', 'jogging', '5 mph', '5.5 mph', '6 mph', 'treadmill run'], name: 'Running / Jogging (5–6 mph)', met: 8.3, intensity: 'Vigorous', muscles: 'Cardiorespiratory Endurance & Lower Body' },
+      { keywords: ['peloton', 'spin', 'spinning', 'indoor cycling', 'soulcycle', 'cycle class'], name: 'Indoor Spin / Cycling Class', met: 7.2, intensity: 'Vigorous', muscles: 'Quads, Hamstrings, Glutes & Aerobic Capacity' },
+      { keywords: ['bike', 'biking', 'cycling', 'stationary bike'], name: 'Moderate Stationary / Outdoor Cycling', met: 5.5, intensity: 'Moderate', muscles: 'Quads, Glutes & Low-Impact Cardio' },
+      { keywords: ['stairmaster', 'stair climber', 'stairs'], name: 'StairMaster / Step Mill Climb', met: 8.0, intensity: 'Vigorous', muscles: 'Glutes, Quads, Calves & High Cardio Output' },
+      { keywords: ['elliptical'], name: 'Elliptical Trainer', met: 5.0, intensity: 'Moderate', muscles: 'Low-Impact Full-Body Cardio' },
+      { keywords: ['row', 'rowing', 'erg', 'concept2'], name: 'Rowing Machine (Ergometer)', met: 6.5, intensity: 'Moderate-Vigorous', muscles: 'Back, Lats, Legs, Core & Cardio' },
+      { keywords: ['swim', 'swimming', 'laps', 'freestyle'], name: 'Lap Swimming', met: 6.8, intensity: 'Moderate-Vigorous', muscles: 'Full-Body Zero-Impact Endurance' },
+      { keywords: ['pickleball'], name: 'Pickleball Match / Drills', met: 4.8, intensity: 'Moderate', muscles: 'Agility, Core Rotation & Aerobic Conditioning' },
+      { keywords: ['tennis'], name: 'Tennis (Singles / Doubles)', met: 6.2, intensity: 'Moderate-Vigorous', muscles: 'Agility, Sprints & Upper Body Power' },
+      { keywords: ['zumba', 'dance', 'cardio dance'], name: 'Dance Fitness / Zumba', met: 5.5, intensity: 'Moderate', muscles: 'Full-Body Coordination & Aerobic Burn' },
+      { keywords: ['core', 'abs', 'plank', 'crunches', 'abdomen'], name: 'Focused Core & Abdominal Work', met: 3.3, intensity: 'Moderate', muscles: 'Rectus Abdominis, Transverse Core & Obliques' }
+    ];
+
+    function getLatestUserWeightLbs() {
+      const currDay = appState.days[appState.activeDate];
+      if (currDay && currDay.weight && currDay.weight > 40) return Number(currDay.weight);
+      const dates = Object.keys(appState.days || {}).sort().reverse();
+      for (const d of dates) {
+        const w = appState.days[d] && appState.days[d].weight;
+        if (w && w > 40) return Number(w);
+      }
+      return 155; // Realistic adult baseline fallback
+    }
+
+    function updateAIWorkoutWeightBadge() {
+      const badge = document.getElementById('aiWorkoutWeightBadge');
+      if (!badge) return;
+      const w = getLatestUserWeightLbs();
+      badge.innerText = `Calibrated: ${w} lbs`;
+    }
+
+    function setAIWorkoutPromptExample(txt) {
+      const input = document.getElementById('aiWorkoutPromptInput');
+      if (input) input.value = txt;
+    }
+
+    function parseWorkoutLocallyRealistic(promptText) {
+      const weightLbs = getLatestUserWeightLbs();
+      const weightKg = weightLbs / 2.20462;
+      const rawClauses = promptText
+        .split(/\b(?:followed by|then|plus|and then)\b|[+;,]|\band\b(?=[^,.;+]*?\d+\s*(?:min|mins|minute|minutes|hr|hour|m\b))/i)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      const clauses = rawClauses.length > 0 ? rawClauses : [promptText];
+      const segments = [];
+
+      clauses.forEach(clause => {
+        const lower = clause.toLowerCase();
+        // Extract duration in minutes
+        let durationMins = 30;
+        const hrMatch = lower.match(/(\d+(?:\.\d+)?)\s*(?:hr|hrs|hour|hours)/);
+        const minMatch = lower.match(/(\d+)\s*(?:min|mins|minute|minutes|m\b)/);
+        if (hrMatch && minMatch) {
+          durationMins = Math.round( parseFloat(hrMatch[1]) * 60 + parseInt(minMatch[1], 10) );
+        } else if (hrMatch) {
+          durationMins = Math.round(parseFloat(hrMatch[1]) * 60);
+        } else if (minMatch) {
+          durationMins = parseInt(minMatch[1], 10);
+        } else if (clauses.length === 1) {
+          const anyNum = lower.match(/\b(10|15|20|25|30|35|40|45|50|60|75|90)\b/);
+          if (anyNum) durationMins = parseInt(anyNum[1], 10);
+        }
+        durationMins = Math.max(5, Math.min(240, durationMins));
+
+        // Find best matching modality
+        let matchedProfile = null;
+        for (const prof of COMPREHENSIVE_WORKOUT_METS) {
+          if (prof.keywords.some(kw => lower.includes(kw))) {
+            matchedProfile = { ...prof };
+            break;
+          }
+        }
+        if (!matchedProfile) {
+          matchedProfile = {
+            name: capitalize(clause.replace(/\d+\s*(?:min|mins|minute|minutes|m\b)/gi, '').trim().slice(0, 38)) || 'General Mixed Workout',
+            met: 4.2,
+            intensity: 'Moderate',
+            muscles: 'Full-Body Conditioning'
+          };
+        }
+
+        // Adjust MET for explicit incline, pace, or intensity modifiers
+        let effectiveMet = matchedProfile.met;
+        const inclineMatch = lower.match(/(\d+(?:\.\d+)?)\s*%\s*incline/);
+        if (inclineMatch) {
+          const pct = parseFloat(inclineMatch[1]);
+          effectiveMet = Math.min(9.5, 3.8 + pct * 0.32);
+          matchedProfile.name = `Incline Walk (${pct}% Grade)`;
+          matchedProfile.intensity = pct >= 6 ? 'Moderate-Vigorous' : 'Moderate';
+        }
+        if (lower.includes('light') || lower.includes('easy') || lower.includes('gentle') || lower.includes('recovery')) {
+          effectiveMet = Math.max(2.2, effectiveMet * 0.82);
+          matchedProfile.intensity = 'Light-Moderate';
+        } else if (lower.includes('heavy') || lower.includes('intense') || lower.includes('hard') || lower.includes('vigorous')) {
+          effectiveMet = Math.min(11.0, effectiveMet * 1.15);
+          matchedProfile.intensity = 'Vigorous';
+        }
+
+        effectiveMet = Math.round(effectiveMet * 10) / 10;
+        // Standard ACSM physiological net/active burn formula: (MET * 3.5 * kg / 200) * mins
+        const burnedCal = Math.max(15, Math.round(((effectiveMet * 3.5 * weightKg) / 200) * durationMins));
+
+        segments.push({
+          name: matchedProfile.name,
+          duration: durationMins,
+          met: effectiveMet,
+          intensity: matchedProfile.intensity,
+          muscles: matchedProfile.muscles,
+          cal: burnedCal
+        });
+      });
+
+      const totalMinutes = segments.reduce((s, seg) => s + seg.duration, 0);
+      const totalCalories = segments.reduce((s, seg) => s + seg.cal, 0);
+      const weightedMet = totalMinutes > 0
+        ? Math.round((segments.reduce((s, seg) => s + seg.met * seg.duration, 0) / totalMinutes) * 10) / 10
+        : 4.0;
+
+      const hasResistance = segments.some(s => /strength|barre|pilates|reformer|dumbbell|barbell|core/i.test(s.name + ' ' + s.muscles));
+      const clinicalTip = hasResistance
+        ? `Calibrated for ${weightLbs} lbs: Resistance and sculpting work signals lean muscle retention on your 1,250 kcal GLP-1 protocol. Prioritize 25–30g protein within 90 minutes post-workout.`
+        : `Calibrated for ${weightLbs} lbs using realistic ACSM MET values (avoiding inflated smartwatch estimates). Add +8–16 oz water and electrolytes to offset sweat loss.`;
+
+      return {
+        summaryTitle: segments.length > 1 ? `${segments.length}-Part Combined Workout` : segments[0].name,
+        totalMinutes,
+        totalCalories,
+        averageMet: weightedMet,
+        segments,
+        clinicalTip
+      };
+    }
+
+    async function analyzeWorkoutWithAI() {
+      const prompt = document.getElementById('aiWorkoutPromptInput').value.trim();
+      if (!prompt) {
+        showToast("Please describe your workout first");
+        return;
+      }
+
+      const weightLbs = getLatestUserWeightLbs();
+      document.getElementById('aiWorkoutLoading').classList.remove('hidden');
+      document.getElementById('aiWorkoutResultCard').classList.add('hidden');
+      document.getElementById('aiWorkoutAnalyzeBtn').disabled = true;
+
+      const systemInstruction = `You are a certified clinical exercise physiologist (ACSM) advising a user on a 1,250 kcal/day deficit with weekly GLP-1 and B12 therapy.
+The user's current body weight is ${weightLbs} lbs (${(weightLbs / 2.20462).toFixed(1)} kg).
+Analyze their natural-language workout description. Break multi-part workouts into distinct segments.
+Use realistic, evidence-based ACSM Compendium MET values (accounting for rest between sets in strength training, realistic isometric burn in barre/pilates, and pace/grade in cardio—never inflate calories like fitness trackers do).
+Compute calories burned per segment using: Calories = (MET * 3.5 * weight_kg / 200) * duration_minutes.
+Include a short clinical coaching tip for muscle preservation and hydration on a GLP-1 regimen.`;
+
+      const responseSchema = {
+        type: "OBJECT",
+        properties: {
+          summaryTitle: { type: "STRING" },
+          totalMinutes: { type: "INTEGER" },
+          totalCalories: { type: "INTEGER" },
+          averageMet: { type: "NUMBER" },
+          segments: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                name: { type: "STRING" },
+                duration: { type: "INTEGER" },
+                met: { type: "NUMBER" },
+                intensity: { type: "STRING" },
+                muscles: { type: "STRING" },
+                cal: { type: "INTEGER" }
+              },
+              required: ["name", "duration", "met", "intensity", "muscles", "cal"]
+            }
+          },
+          clinicalTip: { type: "STRING" }
+        },
+        required: ["summaryTitle", "totalMinutes", "totalCalories", "averageMet", "segments", "clinicalTip"]
+      };
+
+      try {
+        let result = null;
+        if (getStoredApiKey()) {
+          result = await callGeminiStructured(systemInstruction, prompt, responseSchema);
+        } else {
+          result = parseWorkoutLocallyRealistic(prompt);
+          showToast("Calculated with ACSM physiological MET engine ✓");
+        }
+        document.getElementById('aiWorkoutLoading').classList.add('hidden');
+        document.getElementById('aiWorkoutAnalyzeBtn').disabled = false;
+
+        if (result && result.segments && result.segments.length > 0) {
+          currentAIWorkoutResult = result;
+          renderAIWorkoutResult(result);
+        } else {
+          const fallback = parseWorkoutLocallyRealistic(prompt);
+          currentAIWorkoutResult = fallback;
+          renderAIWorkoutResult(fallback);
+        }
+      } catch (err) {
+        const fallback = parseWorkoutLocallyRealistic(prompt);
+        document.getElementById('aiWorkoutLoading').classList.add('hidden');
+        document.getElementById('aiWorkoutAnalyzeBtn').disabled = false;
+        currentAIWorkoutResult = fallback;
+        renderAIWorkoutResult(fallback);
+        showToast("Calculated via local ACSM physiological MET engine ✓");
+      }
+    }
+
+    function renderAIWorkoutResult(res) {
+      document.getElementById('aiWorkoutSummaryTitle').innerText = res.summaryTitle || 'Workout Analysis';
+      document.getElementById('aiWorkoutTotalMins').innerText = `${res.totalMinutes} mins total duration • Calibrated for ${getLatestUserWeightLbs()} lbs`;
+      document.getElementById('aiWorkoutTotalCal').innerText = `+${res.totalCalories} kcal`;
+      document.getElementById('aiWorkoutAvgMet').innerText = `Avg MET: ${res.averageMet}`;
+      document.getElementById('aiWorkoutClinicalTip').innerText = res.clinicalTip || '';
+
+      const segEl = document.getElementById('aiWorkoutSegmentsList');
+      segEl.innerHTML = (res.segments || []).map(seg => `
+        <div class="p-2.5 rounded-xl bg-white/10 border border-white/15 flex items-center justify-between text-xs">
+          <div class="pr-2">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-white">${escapeHtml(seg.name)}</span>
+              <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-200">${escapeHtml(seg.intensity)}</span>
+            </div>
+            <span class="text-[10px] text-blue-200 block mt-0.5">${seg.duration} mins • MET ${seg.met} • ${escapeHtml(seg.muscles)}</span>
+          </div>
+          <span class="font-extrabold text-emerald-300 shrink-0">+${seg.cal} kcal</span>
+        </div>
+      `).join('');
+
+      document.getElementById('aiWorkoutResultCard').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function confirmAIWorkoutLog() {
+      if (!currentAIWorkoutResult || !currentAIWorkoutResult.segments) return;
+      ensureDayExists(appState.activeDate);
+
+      currentAIWorkoutResult.segments.forEach(seg => {
+        appState.days[appState.activeDate].fitness.push({
+          id: 'fit_ai_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          name: `${seg.name} (${seg.intensity})`,
+          duration: Math.round(Number(seg.duration) || 30),
+          cal: Math.round(Number(seg.cal) || 0)
+        });
+      });
+
+      saveState();
+      refreshUI();
+      renderFitnessTab();
+      document.getElementById('aiWorkoutResultCard').classList.add('hidden');
+      document.getElementById('aiWorkoutPromptInput').value = '';
+      showToast(`Logged +${currentAIWorkoutResult.totalCalories} kcal workout to Today's Fitness! ✓`);
+    }
+
+    function transferAIWorkoutToManualForm() {
+      if (!currentAIWorkoutResult) return;
+      document.getElementById('fitActivityType').value = 'Custom';
+      document.getElementById('fitDuration').value = currentAIWorkoutResult.totalMinutes || 30;
+      document.getElementById('fitCalories').value = currentAIWorkoutResult.totalCalories || 150;
+      showToast("Transferred to manual form below—adjust & click Add!");
     }
 
     function saveDailyWeight() {
@@ -3316,6 +4122,7 @@
       if (!rec) return;
 
       const targetMeal = rec.meal || 'dinner';
+      recordFoodUsage({ name: `${rec.name} (1 serving)`, cal: rec.perServing.cal, p: rec.perServing.p, c: rec.perServing.c, f: rec.perServing.f }, targetMeal, true);
       appState.days[appState.activeDate][targetMeal].push({
         id: 'rec_log_' + Date.now(),
         name: `${rec.name} (1 serving)`,
@@ -3510,7 +4317,13 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       };
 
       try {
-        const recipe = await callGeminiStructured(systemInstruction, userText, responseSchema);
+        let recipe = null;
+        if (getStoredApiKey()) {
+          recipe = await callGeminiStructured(systemInstruction, userText, responseSchema);
+        } else {
+          recipe = buildOfflineCappedMeal(customPrompt, mealSlot, cap);
+          showToast("Generated with local dietitian library (Set AI Key for live Gemini AI)");
+        }
         document.getElementById('aiCapLoading').classList.add('hidden');
         document.getElementById('aiCustomCapBtn').disabled = false;
 
@@ -3521,9 +4334,11 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
           showToast("Could not generate recipe under cap. Please retry.");
         }
       } catch (err) {
+        const fallback = buildOfflineCappedMeal(customPrompt, mealSlot, cap);
         document.getElementById('aiCapLoading').classList.add('hidden');
         document.getElementById('aiCustomCapBtn').disabled = false;
-        showToast("AI recipe generation failed. Check connection.");
+        renderAICappedResult(fallback);
+        showToast("Generated via local dietitian library. Tap 'AI Key' to enable cloud AI.");
       }
     }
 
@@ -3632,6 +4447,7 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       const rec = allPool.find(r => r.id === recipeId);
       if (!rec) return;
 
+      recordFoodUsage({ name: rec.title, cal: rec.cal, p: rec.protein, c: rec.carbs, f: rec.fat, fib: rec.fiber || 0 }, rec.meal, true);
       appState.days[appState.activeDate][rec.meal].push({
         id: 'cur_' + Date.now(),
         name: rec.title,
@@ -3651,11 +4467,14 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       const dates = [];
       const labels = [];
       const isShotDay = [];
-      const dNow = new Date();
+      const parts = (appState.activeDate || getTodayDateString()).split('-').map(Number);
+      const dNow = new Date(parts[0], parts[1] - 1, parts[2]);
       for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(dNow.getDate() - i);
-        const iso = d.toISOString().split('T')[0];
+        const d = new Date(dNow.getFullYear(), dNow.getMonth(), dNow.getDate() - i);
+        const yr = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, '0');
+        const da = String(d.getDate()).padStart(2, '0');
+        const iso = `${yr}-${mo}-${da}`;
         dates.push(iso);
         
         const hasShot = appState.days[iso] && appState.days[iso].protocol && (appState.days[iso].protocol.glpDose || appState.days[iso].protocol.b12Dose);
@@ -3953,6 +4772,8 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       } catch (e) {}
       closeApiKeyModal();
       checkApiKeyBanner();
+      updateUserProfileBadge();
+      updateAIWorkoutWeightBadge();
     }
 
     function checkApiKeyBanner() {
@@ -4196,6 +5017,7 @@ Classify which meal the user ate into one of: 'breakfast', 'lunch', 'dinner', 's
       const targetMeal = currentAIParsedResult.mealCategory || 'breakfast';
 
       currentAIParsedResult.items.forEach(item => {
+        recordFoodUsage(item, targetMeal, true);
         appState.days[appState.activeDate][targetMeal].push({
           id: 'ai_log_' + Date.now() + Math.random(),
           name: item.name,
@@ -4259,7 +5081,13 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       };
 
       try {
-        const recipeData = await callGeminiStructured(systemInstruction, prompt, responseSchema);
+        let recipeData = null;
+        if (getStoredApiKey()) {
+          recipeData = await callGeminiStructured(systemInstruction, prompt, responseSchema);
+        } else {
+          recipeData = buildOfflineRecipeFromPrompt(prompt);
+          showToast("Calculated via local nutrition dictionary (Set AI Key for full Gemini AI)");
+        }
         document.getElementById('aiRecipeLoading').classList.add('hidden');
         document.getElementById('aiRecipeBtn').disabled = false;
 
@@ -4270,9 +5098,12 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
           showToast("Unable to calculate recipe details. Try adding more quantities.");
         }
       } catch (err) {
+        const fallback = buildOfflineRecipeFromPrompt(prompt);
         document.getElementById('aiRecipeLoading').classList.add('hidden');
         document.getElementById('aiRecipeBtn').disabled = false;
-        showToast("Recipe generation encountered an error. Please retry.");
+        currentAIRecipeResult = fallback;
+        renderAIRecipeResult(fallback);
+        showToast("Calculated via local nutrition dictionary. Tap 'AI Key' for cloud AI.");
       }
     }
 
@@ -4336,6 +5167,109 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       showToast(`Logged 1 serving (${rec.perServing.cal} kcal) to ${capitalize(meal)}!`);
     }
 
+    // --- USER PROFILE & ACCOUNT SIGN-IN ---
+    function openUserProfileModal() {
+      const p = appState.userProfile || {};
+      const nameEl = document.getElementById('profileNameInput');
+      const emailEl = document.getElementById('profileEmailInput');
+      if (nameEl) nameEl.value = p.name || '';
+      if (emailEl) emailEl.value = p.email || '';
+      document.getElementById('userProfileModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeUserProfileModal() {
+      document.getElementById('userProfileModal').classList.add('hidden');
+    }
+
+    function saveUserProfile() {
+      const name = (document.getElementById('profileNameInput').value || '').trim();
+      const email = (document.getElementById('profileEmailInput').value || '').trim().toLowerCase();
+      if (!name && !email) {
+        showToast("Please enter a display name or email");
+        return;
+      }
+      appState.userProfile = { name, email, updatedAt: new Date().toISOString() };
+      try {
+        if (email && window.localStorage) {
+          const profKey = 'nutritrack_profile_' + email.replace(/[^a-z0-9]/g, '_');
+          const existingRaw = window.localStorage.getItem(profKey);
+          if (existingRaw && existingRaw.startsWith('{')) {
+            const existingProfState = JSON.parse(existingRaw);
+            appState = deepMergeState(existingProfState, appState);
+          }
+          window.localStorage.setItem(profKey, JSON.stringify(appState));
+        }
+      } catch (e) {}
+      saveState();
+      updateUserProfileBadge();
+      closeUserProfileModal();
+      refreshUI();
+      showToast(`Signed in as ${name || email} ✓`);
+    }
+
+    function updateUserProfileBadge() {
+      const lbl = document.getElementById('userProfileHeaderLabel');
+      const p = appState.userProfile;
+      if (lbl && p && (p.name || p.email)) {
+        lbl.innerText = p.name ? p.name : p.email.split('@')[0];
+      }
+    }
+
+    // --- OFFLINE RECIPE & CAPPED MEAL SYNTHESIS FALLBACKS ---
+    function buildOfflineCappedMeal(customPrompt, mealSlot, cap) {
+      const slot = (mealSlot && mealSlot !== 'all') ? mealSlot : 'dinner';
+      const parsed = parseFoodLocallyOffline((customPrompt || '') + ' ' + slot);
+      const sumCal = parsed.items.reduce((s, i) => s + i.cal, 0);
+      const scale = sumCal > cap ? (cap * 0.9) / sumCal : 1;
+      const cal = Math.min(cap, Math.max(120, Math.round(sumCal * scale)));
+      const prot = Math.max(22, Math.round(parsed.items.reduce((s, i) => s + i.p, 0) * scale));
+      const carbs = Math.round(parsed.items.reduce((s, i) => s + i.c, 0) * scale);
+      const fat = Math.round(parsed.items.reduce((s, i) => s + i.f, 0) * scale);
+      const fiber = Math.max(3, Math.round(parsed.items.reduce((s, i) => s + (i.fib || 0), 0) * scale));
+      const title = customPrompt
+        ? `High-Protein ${capitalize(customPrompt.slice(0, 36))}`
+        : `Lean GLP-1 ${capitalize(slot)} Bowl`;
+      return {
+        title,
+        mealSlot: slot,
+        cal,
+        protein: prot,
+        carbs,
+        fat,
+        fiber,
+        prepTime: "10 mins",
+        ingredients: parsed.items.map(i => `${i.name} (${i.cal} kcal)`),
+        steps: "Prepare lean protein and high-fiber produce over medium heat with light seasoning; portion to fit your calorie cap."
+      };
+    }
+
+    function buildOfflineRecipeFromPrompt(promptText) {
+      const servesMatch = promptText.match(/serves\s+(\d+)/i) || promptText.match(/(\d+)\s+servings/i);
+      const servings = servesMatch ? Math.max(1, Number(servesMatch[1])) : 2;
+      const parsed = parseFoodLocallyOffline(promptText);
+      const totalCal = parsed.items.reduce((s, i) => s + i.cal, 0) * (servings > 1 && parsed.items.length === 1 ? servings : 1);
+      const totalP = parsed.items.reduce((s, i) => s + i.p, 0) * (servings > 1 && parsed.items.length === 1 ? servings : 1);
+      const totalC = parsed.items.reduce((s, i) => s + i.c, 0) * (servings > 1 && parsed.items.length === 1 ? servings : 1);
+      const totalF = parsed.items.reduce((s, i) => s + i.f, 0) * (servings > 1 && parsed.items.length === 1 ? servings : 1);
+      const totalFib = parsed.items.reduce((s, i) => s + (i.fib || 0), 0) * (servings > 1 && parsed.items.length === 1 ? servings : 1);
+      const cleanTitle = promptText.split(/with|,/i)[0].trim().slice(0, 45) || "Custom High-Protein Recipe";
+      return {
+        title: capitalize(cleanTitle),
+        servings,
+        mealSlot: parsed.mealCategory || "dinner",
+        perServing: {
+          cal: Math.max(140, Math.round(totalCal / servings)),
+          p: Math.max(18, Math.round(totalP / servings)),
+          c: Math.round(totalC / servings),
+          f: Math.round(totalF / servings),
+          fiber: Math.max(2, Math.round(totalFib / servings))
+        },
+        ingredientsList: parsed.items.map(i => `${i.name} (${i.cal} kcal)`),
+        instructions: "Combine prepped ingredients in a skillet or bowl, cook lean proteins thoroughly, and divide evenly into " + servings + " servings."
+      };
+    }
+
     // --- INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', async () => {
       await loadState();
@@ -4358,3 +5292,4 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
   </script>
 </body>
 </html>
+Displaying index.html.
