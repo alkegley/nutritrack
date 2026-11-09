@@ -1,7 +1,3 @@
-
-index.html
-
-100%
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,11 +135,6 @@ index.html
           <span class="hidden sm:inline">AI Key</span>
         </button>
 
-        <!-- User Account / Profile Login Button -->
-        <button onclick="openUserProfileModal()" id="userProfileHeaderBtn" class="flex items-center gap-1 px-2 py-1 rounded-xl bg-teal-50 text-teal-700 hover:bg-teal-100 text-[10px] font-bold border border-teal-200 transition" title="Account Sign-In & Profile Sync">
-          <i data-lucide="user-check" class="w-3 h-3 text-teal-600"></i>
-          <span id="userProfileHeaderLabel" class="hidden sm:inline">Sign In</span>
-        </button>
 
         <button onclick="openInstallModal()" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold border border-emerald-200/80 transition" title="Install to Phone">
           <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
@@ -234,6 +225,34 @@ index.html
           </div>
           <span class="text-xs font-semibold text-slate-700 leading-tight">Log Fitness</span>
         </button>
+      </div>
+
+      <!-- Today's Scheduled Plan Card (One-Time & Recurring Weekly Shots, Workouts & Meals) -->
+      <div id="todayScheduledPlanCard" class="bg-white rounded-2xl p-4 border border-teal-200/90 shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+              <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="text-xs font-bold text-slate-900">Scheduled Plan for <span id="dashPlanDayLabel">Today</span></h3>
+                <span id="dashPlanCountBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800">0 planned</span>
+              </div>
+              <p class="text-[10px] text-slate-500">One-time & recurring weekly shots, workouts & meals</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="applyAllPlannedTodayBtn" onclick="applyAllPlannedItemsForActiveDate()" class="hidden px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold transition shadow-2xs">
+              ✓ Apply All
+            </button>
+            <button type="button" onclick="switchTab('planner')" class="px-2.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-[11px] font-bold transition flex items-center gap-1">
+              <span>Plan Week</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+        <div id="dashScheduledItemsList" class="space-y-1.5"></div>
       </div>
 
       <!-- Live Budget Meal Ideas Teaser Card -->
@@ -1207,39 +1226,352 @@ index.html
       </div>
     </section>
 
+    <!-- ================= TAB 6: WEEKLY SHOT, EXERCISE & MEAL PLANNER ================= -->
+    <section id="tab-planner" class="space-y-4 hidden">
+      <!-- Planner Hero Banner & 7-Day Interactive Strip -->
+      <div class="bg-gradient-to-br from-teal-950 via-slate-900 to-purple-950 text-white rounded-3xl p-5 shadow-lg space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+              <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white">Weekly & Recurring Planner</h2>
+              <p class="text-[11px] text-teal-200">Schedule GLP-1 & B12 shots, workouts & meals (One-Time or Weekly)</p>
+            </div>
+          </div>
+          <button type="button" onclick="applyAllPlannedItemsForActiveDate()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-xs shrink-0">
+            Apply Today's Plan
+          </button>
+        </div>
+
+        <!-- 7-Day Interactive Overview Strip -->
+        <div>
+          <div class="flex items-center justify-between text-[10px] text-slate-300 mb-1.5">
+            <span>Tap a day to filter weekly schedule:</span>
+            <button type="button" onclick="setPlannerFilterDay('all')" id="plannerShowAllDaysBtn" class="text-[10px] font-bold text-teal-300 underline">Show All Days</button>
+          </div>
+          <div id="plannerWeekStrip" class="grid grid-cols-7 gap-1 text-center"></div>
+        </div>
+      </div>
+
+      <!-- PLANNER SECTION 1: WEEKLY / ONE-TIME SHOT SCHEDULER -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+              <i data-lucide="syringe" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">1. Plan Shot Times (GLP-1 & B12)</h3>
+              <p class="text-[11px] text-slate-500">Set recurring weekly shot day/time or a one-time injection date</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Auto-Site Rotation</span>
+        </div>
+
+        <form onsubmit="event.preventDefault(); savePlannedShot();" class="space-y-2.5 pt-1">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Frequency</label>
+              <select id="planShotRecurrence" onchange="togglePlannerDateMode('shot')" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="weekly" selected>🔁 Recurring Weekly</option>
+                <option value="once">📅 One-Time Date</option>
+              </select>
+            </div>
+            <div id="planShotStartDateWrap">
+              <label class="text-[10px] font-bold text-purple-700 block mb-1">Start Date</label>
+              <input type="date" id="planShotStartDate" onchange="onRecurringStartDateChanged('shot', this.value)" class="w-full text-xs px-2.5 py-2 bg-purple-50/50 border border-purple-200 rounded-xl outline-none font-semibold text-slate-800" />
+            </div>
+            <div id="planShotDayOfWeekWrap">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Day of Week</label>
+              <select id="planShotDayOfWeek" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="1">Every Monday</option>
+                <option value="2">Every Tuesday</option>
+                <option value="3">Every Wednesday</option>
+                <option value="4">Every Thursday</option>
+                <option value="5" selected>Every Friday</option>
+                <option value="6">Every Saturday</option>
+                <option value="0">Every Sunday</option>
+              </select>
+            </div>
+            <div id="planShotDateWrap" class="hidden col-span-1 sm:col-span-2">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">One-Time Shot Date</label>
+              <input type="date" id="planShotSpecificDate" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Scheduled Time</label>
+              <input type="time" id="planShotTime" value="08:00" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">GLP-1 Microdose</label>
+              <input type="text" id="planShotGlpDose" placeholder="e.g. 0.10 mg (5 units)" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Vitamin B12 Dose</label>
+              <input type="text" id="planShotB12Dose" placeholder="e.g. 1,000 mcg (1 mL)" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Site Strategy</label>
+              <select id="planShotSite" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                <option value="Auto-Rotate" selected>🔄 Auto-Rotate Weekly</option>
+                <option value="Abdomen (Left)">Abdomen (Left)</option>
+                <option value="Abdomen (Right)">Abdomen (Right)</option>
+                <option value="Thigh (Left)">Thigh (Left)</option>
+                <option value="Thigh (Right)">Thigh (Right)</option>
+                <option value="Deltoid / Arm">Deltoid / Arm</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Shot Schedule</span>
+          </button>
+        </form>
+
+        <div id="plannedShotsList" class="space-y-1.5 pt-2 border-t border-slate-100"></div>
+      </div>
+
+      <!-- PLANNER SECTION 2: PLANNED EXERCISES & WORKOUTS -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+              <i data-lucide="activity" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">2. Plan Exercises & Workouts</h3>
+              <p class="text-[11px] text-slate-500">Schedule recurring weekly training or one-time sessions</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Muscle Defense</span>
+        </div>
+
+        <form onsubmit="event.preventDefault(); savePlannedExercise();" class="space-y-2.5 pt-1">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Frequency</label>
+              <select id="planExRecurrence" onchange="togglePlannerDateMode('exercise')" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="weekly" selected>🔁 Recurring Weekly</option>
+                <option value="once">📅 One-Time Date</option>
+              </select>
+            </div>
+            <div id="planExStartDateWrap">
+              <label class="text-[10px] font-bold text-blue-700 block mb-1">Start Date</label>
+              <input type="date" id="planExStartDate" onchange="onRecurringStartDateChanged('exercise', this.value)" class="w-full text-xs px-2.5 py-2 bg-blue-50/50 border border-blue-200 rounded-xl outline-none font-semibold text-slate-800" />
+            </div>
+            <div id="planExDayOfWeekWrap">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Schedule Day(s)</label>
+              <select id="planExDayOfWeek" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="1">Every Monday</option>
+                <option value="2">Every Tuesday</option>
+                <option value="3">Every Wednesday</option>
+                <option value="4">Every Thursday</option>
+                <option value="5">Every Friday</option>
+                <option value="6">Every Saturday</option>
+                <option value="0">Every Sunday</option>
+                <option value="mwf">Mon / Wed / Fri</option>
+                <option value="tth">Tue / Thu</option>
+                <option value="daily">Every Day</option>
+              </select>
+            </div>
+            <div id="planExDateWrap" class="hidden col-span-1 sm:col-span-2">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">One-Time Workout Date</label>
+              <input type="date" id="planExSpecificDate" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Workout Time</label>
+              <input type="time" id="planExTime" value="17:30" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-1">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Workout Type / Name</label>
+              <input type="text" id="planExName" placeholder="e.g. Barre Sculpt / Strength" list="planExercisePresets" oninput="autoEstimatePlannedExerciseCal()" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              <datalist id="planExercisePresets">
+                <option value="Barre & Isometric Sculpt"></option>
+                <option value="Dumbbell Strength Training"></option>
+                <option value="Reformer / Mat Pilates"></option>
+                <option value="Incline Treadmill Walk"></option>
+                <option value="Brisk Outdoor Walk"></option>
+                <option value="Indoor Spin / Cycling"></option>
+                <option value="HIIT Circuit Workout"></option>
+                <option value="Vinyasa / Hot Yoga"></option>
+              </datalist>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Duration (mins)</label>
+              <input type="number" id="planExDuration" value="45" min="5" oninput="autoEstimatePlannedExerciseCal()" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Est. Burn (kcal)</label>
+              <input type="number" id="planExCal" value="210" min="10" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-emerald-600" />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Planned Exercise</span>
+          </button>
+        </form>
+
+        <div id="plannedExercisesList" class="space-y-1.5 pt-2 border-t border-slate-100"></div>
+      </div>
+
+      <!-- PLANNER SECTION 3: PLANNED MEALS & FOOD SCHEDULER -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <i data-lucide="utensils" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">3. Plan Food & Weekly Meals</h3>
+              <p class="text-[11px] text-slate-500">Pre-plan your 1,250 kcal meals for specific dates or recurring days</p>
+            </div>
+          </div>
+          <button type="button" onclick="applyDefault4MealTemplate()" class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition" title="Load a balanced 4-small-meal (~1,210 kcal, 114g Protein) recurring template">
+            ⚡ Load 4-Meal Template
+          </button>
+        </div>
+
+        <form onsubmit="event.preventDefault(); savePlannedMeal();" class="space-y-2.5 pt-1">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Frequency</label>
+              <select id="planMealRecurrence" onchange="togglePlannerDateMode('meal')" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="weekly" selected>🔁 Recurring Weekly</option>
+                <option value="once">📅 One-Time Date</option>
+              </select>
+            </div>
+            <div id="planMealStartDateWrap">
+              <label class="text-[10px] font-bold text-emerald-700 block mb-1">Start Date</label>
+              <input type="date" id="planMealStartDate" onchange="onRecurringStartDateChanged('meal', this.value)" class="w-full text-xs px-2.5 py-2 bg-emerald-50/50 border border-emerald-200 rounded-xl outline-none font-semibold text-slate-800" />
+            </div>
+            <div id="planMealDayOfWeekWrap">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Schedule Day(s)</label>
+              <select id="planMealDayOfWeek" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="daily" selected>Every Day</option>
+                <option value="weekdays">Weekdays (Mon–Fri)</option>
+                <option value="1">Every Monday</option>
+                <option value="2">Every Tuesday</option>
+                <option value="3">Every Wednesday</option>
+                <option value="4">Every Thursday</option>
+                <option value="5">Every Friday</option>
+                <option value="6">Every Saturday</option>
+                <option value="0">Every Sunday</option>
+              </select>
+            </div>
+            <div id="planMealDateWrap" class="hidden col-span-1 sm:col-span-2">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">One-Time Meal Date</label>
+              <input type="date" id="planMealSpecificDate" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Meal Slot</label>
+              <select id="planMealSlot" onchange="syncPlanMealDefaultTime()" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="breakfast">☕ Breakfast</option>
+                <option value="lunch">🥗 Lunch</option>
+                <option value="snack">🍎 Afternoon Snack</option>
+                <option value="dinner">🍲 Dinner</option>
+                <option value="drink">🥤 Drink / Shake</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-2">
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Quick-Fill from Your Saved / Frequent Foods</label>
+              <select id="planMealQuickSelect" onchange="onSelectPlannedFoodPreset(this.value)" class="w-full text-xs px-2.5 py-2 bg-emerald-50/60 border border-emerald-200 rounded-xl outline-none font-medium text-slate-700">
+                <option value="">-- Choose from your Saved & Frequent Database --</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Planned Time</label>
+              <input type="time" id="planMealTime" value="08:00" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold text-slate-600 block mb-1">Planned Food / Meal Name</label>
+            <input type="text" id="planMealName" placeholder="e.g. Fluffy Spinach & Feta Egg White Scramble" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+          </div>
+
+          <div class="grid grid-cols-5 gap-1.5">
+            <div>
+              <span class="text-[9px] text-slate-500 font-bold block">Calories</span>
+              <input type="number" id="planMealCal" placeholder="kcal" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-emerald-600" />
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-500 font-bold block">Prot (g)</span>
+              <input type="number" id="planMealProt" placeholder="0" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-500 font-bold block">Carb (g)</span>
+              <input type="number" id="planMealCarb" placeholder="0" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-500 font-bold block">Fat (g)</span>
+              <input type="number" id="planMealFat" placeholder="0" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-500 font-bold block">Fiber (g)</span>
+              <input type="number" id="planMealFib" placeholder="0" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Planned Meal to Schedule</span>
+          </button>
+        </form>
+
+        <div id="plannedMealsList" class="space-y-2 pt-2 border-t border-slate-100"></div>
+      </div>
+    </section>
+
   </main>
 
   <!-- ================= BOTTOM NAVIGATION BAR ================= -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-2 py-1 shadow-lg">
-    <div class="max-w-xl lg:max-w-2xl mx-auto grid grid-cols-6 text-center">
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-1 py-1 shadow-lg">
+    <div class="max-w-xl lg:max-w-2xl mx-auto grid grid-cols-7 text-center">
       <button onclick="switchTab('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center py-1.5 text-emerald-600 font-semibold">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Today</span>
+        <i data-lucide="layout-dashboard" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">Today</span>
+      </button>
+
+      <button onclick="switchTab('planner')" id="nav-btn-planner" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <i data-lucide="calendar-clock" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">Planner</span>
       </button>
 
       <button onclick="switchTab('recipes')" id="nav-btn-recipes" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
-        <i data-lucide="utensils" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Ideas</span>
+        <i data-lucide="utensils" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">Ideas</span>
       </button>
 
       <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
-        <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Builder</span>
+        <i data-lucide="calculator" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">Builder</span>
       </button>
 
       <button onclick="switchTab('protocol')" id="nav-btn-protocol" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
-        <i data-lucide="syringe" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">GLP & B12</span>
+        <i data-lucide="syringe" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">GLP & B12</span>
       </button>
 
       <button onclick="switchTab('fitness')" id="nav-btn-fitness" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
-        <i data-lucide="activity" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Fitness</span>
+        <i data-lucide="activity" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">Fitness</span>
       </button>
 
       <button onclick="switchTab('analytics')" id="nav-btn-analytics" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
-        <i data-lucide="line-chart" class="w-5 h-5 mb-0.5"></i>
-        <span class="text-[10px]">Trends</span>
+        <i data-lucide="line-chart" class="w-4 h-4 mb-0.5"></i>
+        <span class="text-[9px]">Trends</span>
       </button>
     </div>
   </nav>
@@ -1565,7 +1897,7 @@ index.html
 
         <div>
           <label class="text-[11px] font-semibold text-slate-700 block mb-1">Your Gemini API Key:</label>
-          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-mono" />
+          <input type="password" id="geminiApiKeyInput" placeholder="Paste your Gemini API key here..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-mono" />
           <span class="text-[10px] text-slate-400 mt-1 block">Saved safely in your browser storage only.</span>
         </div>
       </div>
@@ -1581,65 +1913,6 @@ index.html
     </div>
   </div>
 
-  <!-- Modal: User Profile & Account Sign-In Modal -->
-  <div id="userProfileModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-3.5 animate-in fade-in">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
-            <i data-lucide="user-check" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="font-bold text-sm text-slate-900">Account Sign-In & Data Profile</h3>
-            <p class="text-[11px] text-slate-500">Bind your logs to your personal profile & backup</p>
-          </div>
-        </div>
-        <button onclick="closeUserProfileModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-        <p>
-          Sign in with your name and email to lock your nutrition, weight, and GLP-1/B12 logs to your dedicated profile key on this browser and export/import across devices.
-        </p>
-
-        <div>
-          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Display Name:</label>
-          <input type="text" id="profileNameInput" placeholder="e.g. Amanda" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500" />
-        </div>
-
-        <div>
-          <label class="text-[11px] font-semibold text-slate-700 block mb-1">Email / Account ID:</label>
-          <input type="email" id="profileEmailInput" placeholder="e.g. amanda.l.kegley@gmail.com" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500" />
-        </div>
-
-        <div class="p-2.5 bg-teal-50/70 border border-teal-200 rounded-xl space-y-1.5 text-[11px] text-teal-900">
-          <div class="flex items-center justify-between">
-            <span class="font-bold">Cross-Device File Sync:</span>
-            <span id="profileSyncStatusBadge" class="text-[10px] font-mono bg-teal-100 px-1.5 py-0.5 rounded text-teal-800">Local + IDB Locked</span>
-          </div>
-          <div class="flex gap-2 pt-1">
-            <button type="button" onclick="exportUserDataJSON()" class="flex-1 py-1.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-200 rounded-lg font-bold text-[11px] transition">
-              ⬇ Download Backup (.json)
-            </button>
-            <button type="button" onclick="promptImportData()" class="flex-1 py-1.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-200 rounded-lg font-bold text-[11px] transition">
-              ⬆ Upload Backup (.json)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex gap-2 pt-1">
-        <button onclick="saveUserProfile()" class="flex-1 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
-          Save & Sign In
-        </button>
-        <button onclick="closeUserProfileModal()" class="px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-xl text-xs transition">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- Modal 3: Toast Notification Box -->
   <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
@@ -1823,7 +2096,13 @@ index.html
       days: {},          // key: "YYYY-MM-DD" -> { breakfast:[], lunch:[], dinner:[], snack:[], drink:[], fitness:[], weight: null, waterOz: 0, electrolytes: false, tasks: [], howIFeel: '', protocol: null }
       customRecipes: [],
       savedMeals: [],    // User's saved custom meal/food database items
-      foodUsageStats: {} // Normalized food name -> { count, lastUsed, lastMeal, item }
+      foodUsageStats: {}, // Normalized food name -> { count, lastUsed, lastMeal, item }
+      weeklyPlanner: {
+        shots: [],
+        exercises: [],
+        meals: [],
+        completedOccurrences: {} // key: "planId_YYYY-MM-DD" -> true
+      }
     };
 
     let calorieChartInstance = null;
@@ -2021,7 +2300,10 @@ index.html
 
     function countDataEntries(st) {
       if (!st || !st.days) return 0;
-      let count = (st.customRecipes || []).length;
+      let count = (st.customRecipes || []).length + (st.savedMeals || []).length;
+      if (st.weeklyPlanner) {
+        count += (st.weeklyPlanner.shots || []).length + (st.weeklyPlanner.exercises || []).length + (st.weeklyPlanner.meals || []).length;
+      }
       for (const d of Object.values(st.days)) {
         if (!d) continue;
         count += (d.breakfast || []).length;
@@ -2109,6 +2391,22 @@ index.html
             };
           }
         }
+      }
+      if (incoming.weeklyPlanner || base.weeklyPlanner) {
+        const bp = base.weeklyPlanner || { shots: [], exercises: [], meals: [], completedOccurrences: {} };
+        const ip = incoming.weeklyPlanner || { shots: [], exercises: [], meals: [], completedOccurrences: {} };
+        const mergeById = (arr1, arr2) => {
+          const m = new Map();
+          (arr1 || []).forEach(x => x && x.id && m.set(x.id, x));
+          (arr2 || []).forEach(x => x && x.id && m.set(x.id, x));
+          return Array.from(m.values());
+        };
+        merged.weeklyPlanner = {
+          shots: mergeById(bp.shots, ip.shots),
+          exercises: mergeById(bp.exercises, ip.exercises),
+          meals: mergeById(bp.meals, ip.meals),
+          completedOccurrences: { ...(bp.completedOccurrences || {}), ...(ip.completedOccurrences || {}) }
+        };
       }
       return merged;
     }
@@ -2272,6 +2570,13 @@ index.html
       if (!appState.customRecipes) appState.customRecipes = [];
       if (!appState.savedMeals) appState.savedMeals = [];
       if (!appState.foodUsageStats) appState.foodUsageStats = {};
+      if (!appState.weeklyPlanner) {
+        appState.weeklyPlanner = { shots: [], exercises: [], meals: [], completedOccurrences: {} };
+      }
+      if (!appState.weeklyPlanner.shots) appState.weeklyPlanner.shots = [];
+      if (!appState.weeklyPlanner.exercises) appState.weeklyPlanner.exercises = [];
+      if (!appState.weeklyPlanner.meals) appState.weeklyPlanner.meals = [];
+      if (!appState.weeklyPlanner.completedOccurrences) appState.weeklyPlanner.completedOccurrences = {};
       if (!appState.days) appState.days = {};
       rebuildFoodUsageStatsFromHistory();
       if (!appState.lastUpdated) appState.lastUpdated = new Date().toISOString();
@@ -2398,7 +2703,7 @@ index.html
     }
 
     function switchTab(tabId) {
-      const tabs = ['dashboard', 'protocol', 'calculator', 'recipes', 'fitness', 'analytics'];
+      const tabs = ['dashboard', 'planner', 'protocol', 'calculator', 'recipes', 'fitness', 'analytics'];
       tabs.forEach(t => {
         const sec = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`nav-btn-${t}`);
@@ -2429,6 +2734,8 @@ index.html
           addRecipeIngredientRow();
           addRecipeIngredientRow();
         }
+      } else if (tabId === 'planner') {
+        renderPlannerTab();
       }
     }
 
@@ -2574,6 +2881,7 @@ index.html
       renderMealSection('snack', day.snack);
       renderMealSection('drink', day.drink);
       renderFitnessDashList(day.fitness);
+      renderDashboardScheduledPlan();
 
       lucide.createIcons();
     }
@@ -4772,7 +5080,6 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       } catch (e) {}
       closeApiKeyModal();
       checkApiKeyBanner();
-      updateUserProfileBadge();
       updateAIWorkoutWeightBadge();
     }
 
@@ -5167,55 +5474,6 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       showToast(`Logged 1 serving (${rec.perServing.cal} kcal) to ${capitalize(meal)}!`);
     }
 
-    // --- USER PROFILE & ACCOUNT SIGN-IN ---
-    function openUserProfileModal() {
-      const p = appState.userProfile || {};
-      const nameEl = document.getElementById('profileNameInput');
-      const emailEl = document.getElementById('profileEmailInput');
-      if (nameEl) nameEl.value = p.name || '';
-      if (emailEl) emailEl.value = p.email || '';
-      document.getElementById('userProfileModal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeUserProfileModal() {
-      document.getElementById('userProfileModal').classList.add('hidden');
-    }
-
-    function saveUserProfile() {
-      const name = (document.getElementById('profileNameInput').value || '').trim();
-      const email = (document.getElementById('profileEmailInput').value || '').trim().toLowerCase();
-      if (!name && !email) {
-        showToast("Please enter a display name or email");
-        return;
-      }
-      appState.userProfile = { name, email, updatedAt: new Date().toISOString() };
-      try {
-        if (email && window.localStorage) {
-          const profKey = 'nutritrack_profile_' + email.replace(/[^a-z0-9]/g, '_');
-          const existingRaw = window.localStorage.getItem(profKey);
-          if (existingRaw && existingRaw.startsWith('{')) {
-            const existingProfState = JSON.parse(existingRaw);
-            appState = deepMergeState(existingProfState, appState);
-          }
-          window.localStorage.setItem(profKey, JSON.stringify(appState));
-        }
-      } catch (e) {}
-      saveState();
-      updateUserProfileBadge();
-      closeUserProfileModal();
-      refreshUI();
-      showToast(`Signed in as ${name || email} ✓`);
-    }
-
-    function updateUserProfileBadge() {
-      const lbl = document.getElementById('userProfileHeaderLabel');
-      const p = appState.userProfile;
-      if (lbl && p && (p.name || p.email)) {
-        lbl.innerText = p.name ? p.name : p.email.split('@')[0];
-      }
-    }
-
     // --- OFFLINE RECIPE & CAPPED MEAL SYNTHESIS FALLBACKS ---
     function buildOfflineCappedMeal(customPrompt, mealSlot, cap) {
       const slot = (mealSlot && mealSlot !== 'all') ? mealSlot : 'dinner';
@@ -5270,6 +5528,688 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       };
     }
 
+    // --- WEEKLY SHOT, EXERCISE & MEAL PLANNER ENGINE ---
+    let activePlannerFilterDay = 'all'; // 'all' or '0'..'6'
+    const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const ROTATION_SITES = ['Abdomen (Left)', 'Abdomen (Right)', 'Thigh (Left)', 'Thigh (Right)', 'Deltoid / Arm'];
+
+    function parseLocalDateParts(dateStr) {
+      const parts = (dateStr || getTodayDateString()).split('-').map(Number);
+      return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+    }
+
+    function getDayOfWeekFromDateStr(dateStr) {
+      return parseLocalDateParts(dateStr).getDay(); // 0 (Sun) .. 6 (Sat)
+    }
+
+    function formatTime12h(time24) {
+      if (!time24) return '08:00 AM';
+      const [hStr, mStr] = time24.split(':');
+      let h = parseInt(hStr, 10);
+      if (isNaN(h)) return time24;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${mStr || '00'} ${ampm}`;
+    }
+
+    function getRotatedSiteForDate(baseSite, dateStr, startDateStr) {
+      if (baseSite && baseSite !== 'Auto-Rotate') return baseSite;
+      const d = parseLocalDateParts(dateStr);
+      if (startDateStr) {
+        const s = parseLocalDateParts(startDateStr);
+        const weeksSinceStart = Math.max(0, Math.floor((d.getTime() - s.getTime()) / (7 * 24 * 3600 * 1000)));
+        return ROTATION_SITES[weeksSinceStart % ROTATION_SITES.length];
+      }
+      const weekIndex = Math.floor(d.getTime() / (7 * 24 * 3600 * 1000));
+      return ROTATION_SITES[Math.abs(weekIndex) % ROTATION_SITES.length];
+    }
+
+    function doesPlanItemMatchDate(planItem, dateStr) {
+      if (!planItem) return false;
+      if (planItem.recurrence === 'once') {
+        return planItem.specificDate === dateStr;
+      }
+      // Enforce recurring startDate so items only trigger on or after their scheduled start date
+      if (planItem.startDate && dateStr < planItem.startDate) {
+        return false;
+      }
+      const dow = String(getDayOfWeekFromDateStr(dateStr));
+      const rule = String(planItem.dayOfWeek);
+      if (rule === 'daily') return true;
+      if (rule === 'weekdays') return ['1', '2', '3', '4', '5'].includes(dow);
+      if (rule === 'mwf') return ['1', '3', '5'].includes(dow);
+      if (rule === 'tth') return ['2', '4'].includes(dow);
+      return rule === dow;
+    }
+
+    function doesPlanItemMatchDayOfWeek(planItem, dowNum) {
+      if (!planItem) return false;
+      const dow = String(dowNum);
+      if (planItem.recurrence === 'once') {
+        return planItem.specificDate && String(getDayOfWeekFromDateStr(planItem.specificDate)) === dow;
+      }
+      const rule = String(planItem.dayOfWeek);
+      if (rule === 'daily') return true;
+      if (rule === 'weekdays') return ['1', '2', '3', '4', '5'].includes(dow);
+      if (rule === 'mwf') return ['1', '3', '5'].includes(dow);
+      if (rule === 'tth') return ['2', '4'].includes(dow);
+      return rule === dow;
+    }
+
+    function formatPlanScheduleBadge(planItem) {
+      const timeLbl = formatTime12h(planItem.time || '08:00');
+      if (planItem.recurrence === 'once') {
+        return `📅 One-Time (${planItem.specificDate || 'Date'}) • ${timeLbl}`;
+      }
+      const startSuffix = planItem.startDate ? ` • Starts ${planItem.startDate}` : '';
+      const rule = String(planItem.dayOfWeek);
+      if (rule === 'daily') return `🔁 Every Day • ${timeLbl}${startSuffix}`;
+      if (rule === 'weekdays') return `🔁 Weekdays (Mon–Fri) • ${timeLbl}${startSuffix}`;
+      if (rule === 'mwf') return `🔁 Mon / Wed / Fri • ${timeLbl}${startSuffix}`;
+      if (rule === 'tth') return `🔁 Tue / Thu • ${timeLbl}${startSuffix}`;
+      const idx = parseInt(rule, 10);
+      return `🔁 Every ${DAY_NAMES_FULL[idx] || 'Week'} • ${timeLbl}${startSuffix}`;
+    }
+
+    function ensurePlannerDefaultDates() {
+      const defaultDate = appState.activeDate || getTodayDateString();
+      ['planShotStartDate', 'planExStartDate', 'planMealStartDate', 'planShotSpecificDate', 'planExSpecificDate', 'planMealSpecificDate'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.value) el.value = defaultDate;
+      });
+    }
+
+    function onRecurringStartDateChanged(section, dateVal) {
+      if (!dateVal) return;
+      const dow = String(getDayOfWeekFromDateStr(dateVal));
+      if (section === 'shot') {
+        const sel = document.getElementById('planShotDayOfWeek');
+        if (sel) sel.value = dow;
+      } else if (section === 'exercise') {
+        const sel = document.getElementById('planExDayOfWeek');
+        if (sel && ['0', '1', '2', '3', '4', '5', '6'].includes(sel.value)) {
+          sel.value = dow;
+        }
+      } else if (section === 'meal') {
+        const sel = document.getElementById('planMealDayOfWeek');
+        if (sel && ['0', '1', '2', '3', '4', '5', '6'].includes(sel.value)) {
+          sel.value = dow;
+        }
+      }
+    }
+
+    function togglePlannerDateMode(section) {
+      ensurePlannerDefaultDates();
+      if (section === 'shot') {
+        const mode = document.getElementById('planShotRecurrence').value;
+        document.getElementById('planShotStartDateWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planShotDayOfWeekWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planShotDateWrap').classList.toggle('hidden', mode !== 'once');
+      } else if (section === 'exercise') {
+        const mode = document.getElementById('planExRecurrence').value;
+        document.getElementById('planExStartDateWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planExDayOfWeekWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planExDateWrap').classList.toggle('hidden', mode !== 'once');
+      } else if (section === 'meal') {
+        const mode = document.getElementById('planMealRecurrence').value;
+        document.getElementById('planMealStartDateWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planMealDayOfWeekWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planMealDateWrap').classList.toggle('hidden', mode !== 'once');
+      }
+    }
+
+    function syncPlanMealDefaultTime() {
+      const slot = document.getElementById('planMealSlot').value;
+      const timeEl = document.getElementById('planMealTime');
+      if (!timeEl) return;
+      const defaults = { breakfast: '08:00', lunch: '12:30', snack: '15:30', dinner: '18:30', drink: '10:00' };
+      if (defaults[slot]) timeEl.value = defaults[slot];
+    }
+
+    function autoEstimatePlannedExerciseCal() {
+      const name = (document.getElementById('planExName').value || '').trim();
+      const mins = Number(document.getElementById('planExDuration').value) || 30;
+      const parsed = parseWorkoutLocallyRealistic(`${mins} mins ${name || 'Strength Training'}`);
+      if (parsed && parsed.totalCalories) {
+        document.getElementById('planExCal').value = parsed.totalCalories;
+      }
+    }
+
+    function populatePlannerFoodPresetDropdown() {
+      const sel = document.getElementById('planMealQuickSelect');
+      if (!sel) return;
+      const pool = getUnifiedFoodAndMealDatabase();
+      sel.innerHTML = `<option value="">-- Choose from your Saved, Frequent & Curated Foods (${pool.length}) --</option>` +
+        pool.slice(0, 40).map(item => {
+          const tag = item.useCount > 0 ? `🔥 ${item.useCount}x • ` : (item.sourceType === 'saved' || item.sourceType === 'recipe' ? '⭐ Saved • ' : '');
+          return `<option value="${encodeURIComponent(JSON.stringify(item))}">${tag}${escapeHtml(item.name)} (${item.cal} kcal, ${item.p}g P)</option>`;
+        }).join('');
+    }
+
+    function onSelectPlannedFoodPreset(encoded) {
+      if (!encoded) return;
+      try {
+        const food = JSON.parse(decodeURIComponent(encoded));
+        document.getElementById('planMealName').value = food.name || '';
+        document.getElementById('planMealCal').value = food.cal || 0;
+        document.getElementById('planMealProt').value = food.p || 0;
+        document.getElementById('planMealCarb').value = food.c || 0;
+        document.getElementById('planMealFat').value = food.f || 0;
+        document.getElementById('planMealFib').value = food.fib || 0;
+        if (food.mealHint && ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].includes(food.mealHint)) {
+          document.getElementById('planMealSlot').value = food.mealHint;
+          syncPlanMealDefaultTime();
+        }
+      } catch (e) {}
+    }
+
+    function savePlannedShot() {
+      const recurrence = document.getElementById('planShotRecurrence').value;
+      const startDate = document.getElementById('planShotStartDate').value || appState.activeDate;
+      const dayOfWeek = document.getElementById('planShotDayOfWeek').value;
+      const specificDate = document.getElementById('planShotSpecificDate').value || appState.activeDate;
+      const time = document.getElementById('planShotTime').value || '08:00';
+      const glpDose = document.getElementById('planShotGlpDose').value.trim();
+      const b12Dose = document.getElementById('planShotB12Dose').value.trim();
+      const site = document.getElementById('planShotSite').value || 'Auto-Rotate';
+
+      if (!glpDose && !b12Dose) {
+        showToast("Please enter a planned GLP-1 or Vitamin B12 dose");
+        return;
+      }
+
+      appState.weeklyPlanner.shots.push({
+        id: 'pshot_' + Date.now(),
+        recurrence,
+        startDate: recurrence === 'weekly' ? startDate : null,
+        dayOfWeek,
+        specificDate: recurrence === 'once' ? specificDate : null,
+        time,
+        glpDose,
+        b12Dose,
+        site
+      });
+
+      document.getElementById('planShotGlpDose').value = '';
+      document.getElementById('planShotB12Dose').value = '';
+      saveState();
+      renderPlannerTab();
+      refreshUI();
+      showToast(`Shot schedule saved (${recurrence === 'once' ? specificDate : 'Starts ' + startDate})! ✓`);
+    }
+
+    function savePlannedExercise() {
+      const recurrence = document.getElementById('planExRecurrence').value;
+      const startDate = document.getElementById('planExStartDate').value || appState.activeDate;
+      const dayOfWeek = document.getElementById('planExDayOfWeek').value;
+      const specificDate = document.getElementById('planExSpecificDate').value || appState.activeDate;
+      const time = document.getElementById('planExTime').value || '17:30';
+      const name = document.getElementById('planExName').value.trim() || 'Strength & Conditioning';
+      const duration = Number(document.getElementById('planExDuration').value) || 45;
+      const cal = Number(document.getElementById('planExCal').value) || 180;
+
+      appState.weeklyPlanner.exercises.push({
+        id: 'pex_' + Date.now(),
+        recurrence,
+        startDate: recurrence === 'weekly' ? startDate : null,
+        dayOfWeek,
+        specificDate: recurrence === 'once' ? specificDate : null,
+        time,
+        name,
+        duration,
+        cal
+      });
+
+      document.getElementById('planExName').value = '';
+      saveState();
+      renderPlannerTab();
+      refreshUI();
+      showToast(`Scheduled "${name}" (${recurrence === 'once' ? specificDate : 'Starts ' + startDate}) ✓`);
+    }
+
+    function savePlannedMeal() {
+      const recurrence = document.getElementById('planMealRecurrence').value;
+      const startDate = document.getElementById('planMealStartDate').value || appState.activeDate;
+      const dayOfWeek = document.getElementById('planMealDayOfWeek').value;
+      const specificDate = document.getElementById('planMealSpecificDate').value || appState.activeDate;
+      const mealSlot = document.getElementById('planMealSlot').value || 'breakfast';
+      const time = document.getElementById('planMealTime').value || '08:00';
+      const name = document.getElementById('planMealName').value.trim();
+      const cal = Number(document.getElementById('planMealCal').value) || 0;
+      const p = Number(document.getElementById('planMealProt').value) || 0;
+      const c = Number(document.getElementById('planMealCarb').value) || 0;
+      const f = Number(document.getElementById('planMealFat').value) || 0;
+      const fib = Number(document.getElementById('planMealFib').value) || 0;
+
+      if (!name || cal <= 0) {
+        showToast("Please enter a meal name and calories");
+        return;
+      }
+
+      const newPlanMeal = {
+        id: 'pmeal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+        recurrence,
+        startDate: recurrence === 'weekly' ? startDate : null,
+        dayOfWeek,
+        specificDate: recurrence === 'once' ? specificDate : null,
+        mealSlot,
+        time,
+        name,
+        cal,
+        p,
+        c,
+        f,
+        fib
+      };
+
+      appState.weeklyPlanner.meals.push(newPlanMeal);
+      saveItemToSavedMealsDatabase(newPlanMeal, mealSlot);
+
+      document.getElementById('planMealName').value = '';
+      document.getElementById('planMealCal').value = '';
+      document.getElementById('planMealProt').value = '';
+      document.getElementById('planMealCarb').value = '';
+      document.getElementById('planMealFat').value = '';
+      document.getElementById('planMealFib').value = '';
+      if (document.getElementById('planMealQuickSelect')) document.getElementById('planMealQuickSelect').value = '';
+
+      saveState();
+      renderPlannerTab();
+      refreshUI();
+      showToast(`Planned "${name}" (${recurrence === 'once' ? specificDate : 'Starts ' + startDate}) ✓`);
+    }
+
+    function applyDefault4MealTemplate() {
+      const recurrence = document.getElementById('planMealRecurrence').value || 'weekly';
+      const startDate = document.getElementById('planMealStartDate').value || appState.activeDate;
+      const dayOfWeek = document.getElementById('planMealDayOfWeek').value || 'daily';
+      const specificDate = document.getElementById('planMealSpecificDate').value || appState.activeDate;
+
+      const templateMeals = [
+        { mealSlot: 'breakfast', time: '08:00', name: 'Fluffy Spinach & Feta Egg White Scramble', cal: 210, p: 24, c: 6, f: 8, fib: 2 },
+        { mealSlot: 'lunch', time: '12:30', name: 'Grilled Chicken & Rainbow Chopped Salad', cal: 320, p: 38, c: 12, f: 9, fib: 4 },
+        { mealSlot: 'snack', time: '15:30', name: 'Creamy High-Protein Berry Parfait', cal: 240, p: 26, c: 28, f: 2, fib: 4 },
+        { mealSlot: 'dinner', time: '18:30', name: 'Seared Lemon Herb Salmon with Zucchini', cal: 370, p: 34, c: 7, f: 18, fib: 2 }
+      ];
+
+      templateMeals.forEach((tm, idx) => {
+        appState.weeklyPlanner.meals.push({
+          id: 'pmeal_tpl_' + Date.now() + '_' + idx,
+          recurrence,
+          startDate: recurrence === 'weekly' ? startDate : null,
+          dayOfWeek,
+          specificDate: recurrence === 'once' ? specificDate : null,
+          ...tm
+        });
+      });
+
+      saveState();
+      renderPlannerTab();
+      refreshUI();
+      showToast("Loaded 4-Small-Meal GLP-1 Template (1,140 kcal • 122g Protein) ✓");
+    }
+
+    function removePlannedItem(category, id) {
+      if (!appState.weeklyPlanner || !appState.weeklyPlanner[category]) return;
+      appState.weeklyPlanner[category] = appState.weeklyPlanner[category].filter(x => x.id !== id);
+      saveState();
+      renderPlannerTab();
+      refreshUI();
+      showToast("Removed scheduled item");
+    }
+
+    function setPlannerFilterDay(dayVal) {
+      activePlannerFilterDay = String(dayVal);
+      renderPlannerTab();
+    }
+
+    function renderPlannerTab() {
+      ensurePlannerDefaultDates();
+      populatePlannerFoodPresetDropdown();
+
+      // Render 7-Day Interactive Strip
+      const stripEl = document.getElementById('plannerWeekStrip');
+      if (stripEl) {
+        const activeDow = String(getDayOfWeekFromDateStr(appState.activeDate));
+        stripEl.innerHTML = [0, 1, 2, 3, 4, 5, 6].map(dNum => {
+          const dStr = String(dNum);
+          const isSelected = activePlannerFilterDay === dStr;
+          const isTodayDow = activeDow === dStr;
+          const hasShots = (appState.weeklyPlanner.shots || []).some(s => doesPlanItemMatchDayOfWeek(s, dNum));
+          const hasEx = (appState.weeklyPlanner.exercises || []).some(e => doesPlanItemMatchDayOfWeek(e, dNum));
+          const mealCount = (appState.weeklyPlanner.meals || []).filter(m => doesPlanItemMatchDayOfWeek(m, dNum)).length;
+
+          return `
+            <button type="button" onclick="setPlannerFilterDay('${dStr}')" class="p-1.5 rounded-xl border transition flex flex-col items-center justify-between ${isSelected ? 'bg-teal-500 text-white border-teal-300 shadow-sm font-bold' : (isTodayDow ? 'bg-white/15 text-white border-teal-400/50' : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10')}">
+              <span class="text-[10px]">${DAY_NAMES_SHORT[dNum]}</span>
+              <div class="flex items-center gap-0.5 my-0.5 text-[9px] min-h-[14px]">
+                ${hasShots ? '<span title="Shot Scheduled">💉</span>' : ''}
+                ${hasEx ? '<span title="Workout Scheduled">🏃</span>' : ''}
+                ${mealCount > 0 ? `<span title="${mealCount} Meals">🥗</span>` : ''}
+              </div>
+              <span class="text-[8px] opacity-80">${mealCount > 0 ? mealCount + 'm' : '—'}</span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      const filterFn = (item) => activePlannerFilterDay === 'all' ? true : doesPlanItemMatchDayOfWeek(item, activePlannerFilterDay);
+
+      // 1. Render Planned Shots
+      const shotsEl = document.getElementById('plannedShotsList');
+      const shots = (appState.weeklyPlanner.shots || []).filter(filterFn);
+      if (shotsEl) {
+        if (shots.length === 0) {
+          shotsEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No shot schedules set for this view. Add your weekly GLP-1 & B12 time above.</p>`;
+        } else {
+          shotsEl.innerHTML = shots.map(s => {
+            const nextSite = getRotatedSiteForDate(s.site, appState.activeDate, s.startDate);
+            return `
+              <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-xs">
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-purple-950">${escapeHtml(formatPlanScheduleBadge(s))}</span>
+                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-200/70 text-purple-900">${escapeHtml(nextSite)}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-700 mt-0.5">
+                    ${s.glpDose ? `<strong>GLP-1:</strong> ${escapeHtml(s.glpDose)}` : ''}
+                    ${s.b12Dose ? ` • <strong>B12:</strong> ${escapeHtml(s.b12Dose)}` : ''}
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="applySinglePlannedItem('shot', '${s.id}')" class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] font-bold transition" title="Log to active date">
+                    Log Today
+                  </button>
+                  <button type="button" onclick="removePlannedItem('shots', '${s.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Render Planned Exercises
+      const exEl = document.getElementById('plannedExercisesList');
+      const exercises = (appState.weeklyPlanner.exercises || []).filter(filterFn);
+      if (exEl) {
+        if (exercises.length === 0) {
+          exEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No planned workouts for this view. Schedule your weekly routines above.</p>`;
+        } else {
+          exEl.innerHTML = exercises.map(e => `
+            <div class="p-2.5 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-blue-950 block">${escapeHtml(e.name)} (${e.duration} mins)</span>
+                <span class="text-[10px] text-slate-500">${escapeHtml(formatPlanScheduleBadge(e))}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-emerald-600">+${e.cal} kcal</span>
+                <button type="button" onclick="applySinglePlannedItem('exercise', '${e.id}')" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition">
+                  Log Today
+                </button>
+                <button type="button" onclick="removePlannedItem('exercises', '${e.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 3. Render Planned Meals
+      const mealsEl = document.getElementById('plannedMealsList');
+      const meals = (appState.weeklyPlanner.meals || []).filter(filterFn);
+      if (mealsEl) {
+        if (meals.length === 0) {
+          mealsEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No planned meals for this view. Add meals above or click "⚡ Load 4-Meal Template".</p>`;
+        } else {
+          const totalPlannedCal = meals.reduce((s, m) => s + (Number(m.cal) || 0), 0);
+          const totalPlannedProt = meals.reduce((s, m) => s + (Number(m.p) || 0), 0);
+          mealsEl.innerHTML = `
+            <div class="flex items-center justify-between px-2.5 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200/70 text-[11px]">
+              <span class="font-bold text-emerald-900">Planned Meals Summary (${meals.length} items)</span>
+              <span class="font-bold text-emerald-700">${totalPlannedCal} kcal • ${Math.round(totalPlannedProt)}g Protein</span>
+            </div>
+          ` + meals.map(m => `
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+              <div class="pr-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">${escapeHtml(m.mealSlot)}</span>
+                  <span class="font-bold text-slate-800">${escapeHtml(m.name)}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 block mt-0.5">
+                  ${escapeHtml(formatPlanScheduleBadge(m))} • ${m.p || 0}g P • ${m.c || 0}g C • ${m.f || 0}g F
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="font-bold text-emerald-700">${m.cal} kcal</span>
+                <button type="button" onclick="applySinglePlannedItem('meal', '${m.id}')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition">
+                  Log
+                </button>
+                <button type="button" onclick="removePlannedItem('meals', '${m.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      lucide.createIcons();
+    }
+
+    function isPlanOccurrenceCompleted(planId, dateStr) {
+      return !!(appState.weeklyPlanner && appState.weeklyPlanner.completedOccurrences && appState.weeklyPlanner.completedOccurrences[`${planId}_${dateStr}`]);
+    }
+
+    function markPlanOccurrenceCompleted(planId, dateStr) {
+      if (!appState.weeklyPlanner.completedOccurrences) appState.weeklyPlanner.completedOccurrences = {};
+      appState.weeklyPlanner.completedOccurrences[`${planId}_${dateStr}`] = true;
+    }
+
+    function applySinglePlannedItem(type, planId) {
+      const dateStr = appState.activeDate;
+      ensureDayExists(dateStr);
+      const day = appState.days[dateStr];
+
+      if (type === 'shot') {
+        const s = (appState.weeklyPlanner.shots || []).find(x => x.id === planId);
+        if (!s) return;
+        const rotatedSite = getRotatedSiteForDate(s.site, dateStr, s.startDate);
+        day.protocol = {
+          glpDose: s.glpDose || (day.protocol ? day.protocol.glpDose : ''),
+          b12Dose: s.b12Dose || (day.protocol ? day.protocol.b12Dose : ''),
+          site: rotatedSite,
+          appetiteScore: day.protocol ? day.protocol.appetiteScore : '8',
+          motility: day.protocol ? day.protocol.motility : 'Regular',
+          energy: day.protocol ? day.protocol.energy : 'High / Refreshed',
+          notes: `Scheduled (${formatTime12h(s.time)})`
+        };
+        markPlanOccurrenceCompleted(s.id, dateStr);
+        saveState();
+        refreshUI();
+        renderProtocolTab();
+        showToast(`Logged scheduled shot (${rotatedSite}) for ${dateStr}! 💉`);
+      } else if (type === 'exercise') {
+        const e = (appState.weeklyPlanner.exercises || []).find(x => x.id === planId);
+        if (!e) return;
+        day.fitness.push({
+          id: 'fit_plan_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+          name: `${e.name} (${formatTime12h(e.time)})`,
+          duration: e.duration || 45,
+          cal: e.cal || 180
+        });
+        markPlanOccurrenceCompleted(e.id, dateStr);
+        saveState();
+        refreshUI();
+        showToast(`Logged scheduled workout: ${e.name} (+${e.cal} kcal) ✓`);
+      } else if (type === 'meal') {
+        const m = (appState.weeklyPlanner.meals || []).find(x => x.id === planId);
+        if (!m) return;
+        const slot = m.mealSlot || 'breakfast';
+        const loggedItem = {
+          id: 'food_plan_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+          name: m.name,
+          cal: m.cal,
+          p: m.p || 0,
+          c: m.c || 0,
+          f: m.f || 0,
+          fib: m.fib || 0
+        };
+        day[slot].push(loggedItem);
+        recordFoodUsage(loggedItem, slot, true);
+        markPlanOccurrenceCompleted(m.id, dateStr);
+        saveState();
+        refreshUI();
+        showToast(`Logged planned ${capitalize(slot)}: ${m.name} (${m.cal} kcal) ✓`);
+      }
+    }
+
+    function applyAllPlannedItemsForActiveDate() {
+      const dateStr = appState.activeDate;
+      ensureDayExists(dateStr);
+      let appliedCount = 0;
+
+      (appState.weeklyPlanner.shots || []).forEach(s => {
+        if (doesPlanItemMatchDate(s, dateStr) && !isPlanOccurrenceCompleted(s.id, dateStr)) {
+          applySinglePlannedItem('shot', s.id);
+          appliedCount++;
+        }
+      });
+
+      (appState.weeklyPlanner.exercises || []).forEach(e => {
+        if (doesPlanItemMatchDate(e, dateStr) && !isPlanOccurrenceCompleted(e.id, dateStr)) {
+          applySinglePlannedItem('exercise', e.id);
+          appliedCount++;
+        }
+      });
+
+      (appState.weeklyPlanner.meals || []).forEach(m => {
+        if (doesPlanItemMatchDate(m, dateStr) && !isPlanOccurrenceCompleted(m.id, dateStr)) {
+          applySinglePlannedItem('meal', m.id);
+          appliedCount++;
+        }
+      });
+
+      if (appliedCount === 0) {
+        showToast("All scheduled items for this date are already logged or none scheduled!");
+      } else {
+        showToast(`Applied ${appliedCount} scheduled item${appliedCount === 1 ? '' : 's'} to ${dateStr}! ✓`);
+      }
+    }
+
+    function renderDashboardScheduledPlan() {
+      const container = document.getElementById('dashScheduledItemsList');
+      const countBadge = document.getElementById('dashPlanCountBadge');
+      const dayLabel = document.getElementById('dashPlanDayLabel');
+      const applyAllBtn = document.getElementById('applyAllPlannedTodayBtn');
+      if (!container || !appState.weeklyPlanner) return;
+
+      const dateStr = appState.activeDate;
+      const dow = getDayOfWeekFromDateStr(dateStr);
+      if (dayLabel) {
+        dayLabel.innerText = `${DAY_NAMES_FULL[dow]} (${dateStr})`;
+      }
+
+      const matchingShots = (appState.weeklyPlanner.shots || []).filter(s => doesPlanItemMatchDate(s, dateStr));
+      const matchingEx = (appState.weeklyPlanner.exercises || []).filter(e => doesPlanItemMatchDate(e, dateStr));
+      const matchingMeals = (appState.weeklyPlanner.meals || []).filter(m => doesPlanItemMatchDate(m, dateStr));
+
+      const totalCount = matchingShots.length + matchingEx.length + matchingMeals.length;
+      if (countBadge) {
+        countBadge.innerText = `${totalCount} scheduled`;
+      }
+
+      if (totalCount === 0) {
+        if (applyAllBtn) applyAllBtn.classList.add('hidden');
+        container.innerHTML = `
+          <div class="text-[11px] text-slate-400 py-1.5 flex items-center justify-between">
+            <span>No recurring or one-time items scheduled for ${DAY_NAMES_FULL[dow]} yet.</span>
+            <button type="button" onclick="switchTab('planner')" class="text-teal-600 font-bold underline">Set up schedule</button>
+          </div>
+        `;
+        return;
+      }
+
+      const unappliedCount =
+        matchingShots.filter(s => !isPlanOccurrenceCompleted(s.id, dateStr)).length +
+        matchingEx.filter(e => !isPlanOccurrenceCompleted(e.id, dateStr)).length +
+        matchingMeals.filter(m => !isPlanOccurrenceCompleted(m.id, dateStr)).length;
+
+      if (applyAllBtn) {
+        if (unappliedCount > 0) {
+          applyAllBtn.classList.remove('hidden');
+          applyAllBtn.innerText = `✓ Log All (${unappliedCount})`;
+        } else {
+          applyAllBtn.classList.add('hidden');
+        }
+      }
+
+      const rows = [];
+
+      matchingShots.forEach(s => {
+        const done = isPlanOccurrenceCompleted(s.id, dateStr);
+        const site = getRotatedSiteForDate(s.site, dateStr, s.startDate);
+        rows.push(`
+          <div class="p-2 rounded-xl border flex items-center justify-between text-xs ${done ? 'bg-emerald-50/50 border-emerald-200/70 opacity-75' : 'bg-purple-50/70 border-purple-200/80'}">
+            <div class="flex items-center gap-2 pr-2">
+              <span class="text-sm">💉</span>
+              <div>
+                <span class="font-bold text-purple-950 block">${formatTime12h(s.time)} • ${escapeHtml(s.glpDose || '')} ${s.b12Dose ? '+ B12 ' + escapeHtml(s.b12Dose) : ''}</span>
+                <span class="text-[10px] text-purple-700">Site: ${escapeHtml(site)} (${s.recurrence === 'once' ? 'One-Time' : 'Weekly' + (s.startDate ? ' from ' + s.startDate : '')})</span>
+              </div>
+            </div>
+            ${done
+              ? `<span class="text-[10px] font-bold text-emerald-700 px-2 py-0.5 bg-emerald-100 rounded-lg">Logged ✓</span>`
+              : `<button type="button" onclick="applySinglePlannedItem('shot', '${s.id}')" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] font-bold transition shrink-0">Log Shot</button>`
+            }
+          </div>
+        `);
+      });
+
+      matchingEx.forEach(e => {
+        const done = isPlanOccurrenceCompleted(e.id, dateStr);
+        rows.push(`
+          <div class="p-2 rounded-xl border flex items-center justify-between text-xs ${done ? 'bg-emerald-50/50 border-emerald-200/70 opacity-75' : 'bg-blue-50/70 border-blue-200/80'}">
+            <div class="flex items-center gap-2 pr-2">
+              <span class="text-sm">🏃</span>
+              <div>
+                <span class="font-bold text-blue-950 block">${formatTime12h(e.time)} • ${escapeHtml(e.name)} (${e.duration}m)</span>
+                <span class="text-[10px] text-blue-700">+${e.cal} kcal burn (${e.recurrence === 'once' ? 'One-Time' : 'Weekly'})</span>
+              </div>
+            </div>
+            ${done
+              ? `<span class="text-[10px] font-bold text-emerald-700 px-2 py-0.5 bg-emerald-100 rounded-lg">Logged ✓</span>`
+              : `<button type="button" onclick="applySinglePlannedItem('exercise', '${e.id}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition shrink-0">Log +${e.cal}</button>`
+            }
+          </div>
+        `);
+      });
+
+      matchingMeals.forEach(m => {
+        const done = isPlanOccurrenceCompleted(m.id, dateStr);
+        rows.push(`
+          <div class="p-2 rounded-xl border flex items-center justify-between text-xs ${done ? 'bg-emerald-50/50 border-emerald-200/70 opacity-75' : 'bg-slate-50 border-slate-200/80'}">
+            <div class="flex items-center gap-2 pr-2 min-w-0">
+              <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 shrink-0">${escapeHtml(m.mealSlot)}</span>
+              <div class="truncate">
+                <span class="font-bold text-slate-800 block truncate">${escapeHtml(m.name)}</span>
+                <span class="text-[10px] text-slate-500">${formatTime12h(m.time)} • ${m.cal} kcal • ${m.p || 0}g P</span>
+              </div>
+            </div>
+            ${done
+              ? `<span class="text-[10px] font-bold text-emerald-700 px-2 py-0.5 bg-emerald-100 rounded-lg shrink-0">Logged ✓</span>`
+              : `<button type="button" onclick="applySinglePlannedItem('meal', '${m.id}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition shrink-0">Log ${m.cal}</button>`
+            }
+          </div>
+        `);
+      });
+
+      container.innerHTML = rows.join('');
+    }
+
     // --- INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', async () => {
       await loadState();
@@ -5292,4 +6232,3 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
   </script>
 </body>
 </html>
-Displaying index.html.
