@@ -23,25 +23,6 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <!-- Firebase SDK Imports for Optional Cloud Sync -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    window.fbModules = {
-      initializeApp,
-      getAuth,
-      signInAnonymously,
-      signInWithCustomToken,
-      getFirestore,
-      doc,
-      setDoc,
-      onSnapshot
-    };
-    window.dispatchEvent(new Event('firebase-ready'));
-  </script>
-  
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -164,23 +145,32 @@
       <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
         
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-start justify-between gap-2 mb-4">
           <div>
-            <span class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Remaining Calorie Allowance</span>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-xs font-medium text-emerald-400 uppercase tracking-wider">Remaining Calorie Allowance</span>
+              <span id="activeGoalSourceBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-400/20">Custom Goal</span>
+            </div>
             <div class="text-4xl font-extrabold tracking-tight mt-0.5" id="remainingCaloriesDisplay">1,250</div>
           </div>
-          <button onclick="openTargetModal()" class="text-xs bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/10 flex items-center gap-1 transition">
-            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-            <span id="targetBadge">1,250 Goal</span>
-          </button>
+          <div class="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 shrink-0">
+            <button type="button" onclick="openTargetModal('calculator')" class="text-[11px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 px-2.5 py-1.5 rounded-xl border border-emerald-400/30 flex items-center gap-1 font-semibold transition" title="Calculate how many calories you should eat daily">
+              <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+              <span>Calculate Goal</span>
+            </button>
+            <button type="button" onclick="openTargetModal('manual')" class="text-[11px] bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-xl border border-white/15 flex items-center gap-1 font-semibold transition" title="Enter your daily calorie goal manually">
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+              <span id="targetBadge">1,250 Goal</span>
+            </button>
+          </div>
         </div>
 
         <!-- Formula breakdown bar -->
         <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-center">
-          <div class="bg-white/5 rounded-xl py-2 px-1">
-            <span class="text-[10px] text-slate-400 block">Base Goal</span>
+          <button type="button" onclick="openTargetModal('manual')" class="bg-white/5 hover:bg-white/10 rounded-xl py-2 px-1 transition text-center group" title="Tap to calculate or manually edit your daily calorie target">
+            <span class="text-[10px] text-slate-400 group-hover:text-emerald-300 block">Base Goal ✎</span>
             <span class="text-sm font-semibold text-slate-200" id="baseGoalDisplay">1250</span>
-          </div>
+          </button>
           <div class="bg-white/5 rounded-xl py-2 px-1">
             <span class="text-[10px] text-amber-300 block">Food Intake</span>
             <span class="text-sm font-semibold text-amber-400" id="foodConsumedDisplay">0</span>
@@ -239,7 +229,7 @@
                 <h3 class="text-xs font-bold text-slate-900">Scheduled Plan for <span id="dashPlanDayLabel">Today</span></h3>
                 <span id="dashPlanCountBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800">0 planned</span>
               </div>
-              <p class="text-[10px] text-slate-500">One-time & recurring weekly shots, workouts & meals</p>
+              <p class="text-[10px] text-slate-500">Daily, weekly & one-time shots, workouts & meals</p>
             </div>
           </div>
           <div class="flex items-center gap-1.5">
@@ -275,7 +265,9 @@
         </button>
       </div>
 
-      <!-- GLP-1 & B12 Daily Protocol Card with Half-Life Cycle Indicator -->
+
+
+      <!-- GLP-1 & B12 Daily Protocol Card -->
       <div id="glpProtocolCard" class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white rounded-2xl p-4 border border-purple-800/60 shadow-xs space-y-2.5">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -296,7 +288,6 @@
           </button>
         </div>
 
-        <!-- Pharmacokinetic Cycle Phase Banner -->
         <div id="cyclePhaseCard" class="bg-purple-900/40 border border-purple-700/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
           <div class="flex items-center gap-2">
             <span class="text-sm">🧬</span>
@@ -352,7 +343,7 @@
         <div class="pt-2 border-t border-slate-100">
           <div class="flex justify-between text-[11px] text-slate-500 mb-1">
             <span class="font-medium flex items-center gap-1">
-              <span>🌾 Motility Fiber Floor (25g target)</span>
+              <span>🌾 Daily Fiber Goal (<span id="fiberGoalTargetNum">25</span>g target)</span>
             </span>
             <span id="fiberProgressText" class="font-bold text-emerald-600">0 / 25g</span>
           </div>
@@ -460,7 +451,7 @@
 
         <!-- Custom Feeling Input & Note -->
         <div class="relative">
-          <textarea id="dailyFeelingInput" rows="2" oninput="debounceSaveFeeling()" placeholder="e.g. B12 gives great energy today. Zero stomach upset, feeling light and satisfied." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          <textarea id="dailyFeelingInput" rows="2" oninput="debounceSaveFeeling()" placeholder="e.g. Feeling energized today, great digestion, satisfied after meals." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
       </div>
 
@@ -481,7 +472,7 @@
               <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">☕</div>
               <div>
                 <span class="font-bold text-sm text-slate-800">Breakfast</span>
-                <span class="text-[11px] text-slate-400 block font-normal">Target ~300-350 kcal</span>
+                <span id="breakfastTargetHint" class="text-[11px] text-slate-400 block font-normal">Target ~300-350 kcal</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -503,7 +494,7 @@
               <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">🥗</div>
               <div>
                 <span class="font-bold text-sm text-slate-800">Lunch</span>
-                <span class="text-[11px] text-slate-400 block font-normal">Target ~400-450 kcal</span>
+                <span id="lunchTargetHint" class="text-[11px] text-slate-400 block font-normal">Target ~400-450 kcal</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -525,7 +516,7 @@
               <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">🍲</div>
               <div>
                 <span class="font-bold text-sm text-slate-800">Dinner</span>
-                <span class="text-[11px] text-slate-400 block font-normal">Target ~400-450 kcal</span>
+                <span id="dinnerTargetHint" class="text-[11px] text-slate-400 block font-normal">Target ~400-450 kcal</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -547,7 +538,7 @@
               <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs">🍎</div>
               <div>
                 <span class="font-bold text-sm text-slate-800">Snacks</span>
-                <span class="text-[11px] text-slate-400 block font-normal">Flex budget ~100 kcal</span>
+                <span id="snackTargetHint" class="text-[11px] text-slate-400 block font-normal">Flex budget ~100 kcal</span>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -611,8 +602,7 @@
 
     <!-- ================= TAB: GLP-1 & B12 PROTOCOL ================= -->
     <section id="tab-protocol" class="space-y-4 hidden">
-      <!-- Protocol Header Banner -->
-      <div class="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
+      <div class="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 shadow-lg">
         <div class="flex items-center gap-2.5 mb-2">
           <div class="w-9 h-9 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-200">
             <i data-lucide="syringe" class="w-5 h-5"></i>
@@ -627,16 +617,12 @@
         </p>
       </div>
 
-      <!-- Weekly Injections Logger Form -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-bold text-slate-900">Log Injection for Today (<span id="protocolActiveDateLabel"></span>)</h3>
-          <span id="activeShotRecordedBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-            ✓ Shot Recorded Today
-          </span>
+          <span id="activeShotRecordedBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">✓ Shot Recorded Today</span>
         </div>
 
-        <!-- Recorded Summary Banner when shot exists -->
         <div id="shotRecordedSummaryBanner" class="hidden p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-1 text-xs">
           <div class="flex items-center justify-between">
             <span class="font-bold text-purple-900" id="summaryBannerDoses">GLP-1 & B12 Recorded</span>
@@ -680,7 +666,6 @@
             </div>
           </div>
 
-          <!-- Bowel Motility & GI Health Check -->
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[11px] font-semibold text-slate-600 block mb-1">Bowel Motility</label>
@@ -710,14 +695,11 @@
             <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5">
               <i data-lucide="check" class="w-4 h-4"></i> Save Weekly Injection
             </button>
-            <button type="button" onclick="clearProtocolToday()" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition">
-              Clear
-            </button>
+            <button type="button" onclick="clearProtocolToday()" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition">Clear</button>
           </div>
         </form>
       </div>
 
-      <!-- Clinical Safeguards Checklist -->
       <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-4 space-y-2 text-xs text-purple-900">
         <h4 class="font-bold flex items-center gap-1.5">
           <i data-lucide="shield-alert" class="w-4 h-4 text-purple-600"></i>
@@ -733,7 +715,6 @@
         </ul>
       </div>
 
-      <!-- Historical Injection Log Table -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
         <h3 class="text-sm font-bold text-slate-900">Injection History</h3>
         <div id="protocolHistoryList" class="space-y-2"></div>
@@ -893,7 +874,7 @@
             </div>
             <div>
               <h2 class="text-base font-bold text-slate-900">Recommended Meals Under Calorie Cap</h2>
-              <p class="text-xs text-slate-500">Filtered by max calories & optimized for 1,250 daily limit</p>
+              <p class="text-xs text-slate-500">Filtered by max calories & optimized for your <span id="recipesCapGoalNum">1,250</span> kcal daily goal</p>
             </div>
           </div>
         </div>
@@ -985,13 +966,19 @@
     <section id="tab-fitness" class="space-y-4 hidden">
       <!-- Weight Tracker Widget -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between gap-2 mb-3">
           <div>
             <h2 class="text-sm font-bold text-slate-900">Daily Weigh-In</h2>
-            <p class="text-xs text-slate-500">Track weight to correlate with your 1,250 deficit</p>
+            <p class="text-xs text-slate-500">Track weight & calibrate your <span id="fitnessCapGoalNum">1,250</span> kcal daily goal</p>
           </div>
-          <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
-            <i data-lucide="scale" class="w-4 h-4"></i>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="openTargetModal('calculator')" class="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold flex items-center gap-1 transition" title="Calculate daily calorie needs from your weight">
+              <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+              <span>Calorie Calculator</span>
+            </button>
+            <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+              <i data-lucide="scale" class="w-4 h-4"></i>
+            </div>
           </div>
         </div>
 
@@ -1161,7 +1148,7 @@
         <!-- Calorie History Chart -->
         <div class="mt-4">
           <h3 class="text-xs font-bold text-slate-600 mb-2 flex items-center justify-between">
-            <span>Calorie Intake vs 1,250 Cap</span>
+            <span>Calorie Intake vs <span id="trendsCapGoalNum">1,250</span> Cap</span>
             <span class="text-[10px] text-emerald-600 font-normal">Green line: Target</span>
           </h3>
           <div class="w-full h-48">
@@ -1226,7 +1213,7 @@
       </div>
     </section>
 
-    <!-- ================= TAB 6: WEEKLY SHOT, EXERCISE & MEAL PLANNER ================= -->
+        <!-- ================= TAB 6: WEEKLY SHOT, EXERCISE & MEAL PLANNER ================= -->
     <section id="tab-planner" class="space-y-4 hidden">
       <!-- Planner Hero Banner & 7-Day Interactive Strip -->
       <div class="bg-gradient-to-br from-teal-950 via-slate-900 to-purple-950 text-white rounded-3xl p-5 shadow-lg space-y-3.5">
@@ -1236,8 +1223,8 @@
               <i data-lucide="calendar-clock" class="w-5 h-5"></i>
             </div>
             <div>
-              <h2 class="text-base font-bold text-white">Weekly & Recurring Planner</h2>
-              <p class="text-[11px] text-teal-200">Schedule GLP-1 & B12 shots, workouts & meals (One-Time or Weekly)</p>
+              <h2 class="text-base font-bold text-white">Daily, Weekly & One-Time Planner</h2>
+              <p class="text-[11px] text-teal-200">Schedule GLP-1 & B12 shots, workouts & meals with a Start Date</p>
             </div>
           </div>
           <button type="button" onclick="applyAllPlannedItemsForActiveDate()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-xs shrink-0">
@@ -1255,19 +1242,19 @@
         </div>
       </div>
 
-      <!-- PLANNER SECTION 1: WEEKLY / ONE-TIME SHOT SCHEDULER -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+      <!-- PLANNER SECTION 1: PLANNED GLP-1 & B12 SHOTS -->
+      <div class="bg-white rounded-2xl p-4 border border-purple-200/80 shadow-xs space-y-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
               <i data-lucide="syringe" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-slate-900">1. Plan Shot Times (GLP-1 & B12)</h3>
-              <p class="text-[11px] text-slate-500">Set recurring weekly shot day/time or a one-time injection date</p>
+              <h3 class="text-sm font-bold text-slate-900">1. Plan GLP-1 & B12 Injections</h3>
+              <p class="text-[11px] text-slate-500">Schedule recurring daily, recurring weekly, or one-time doses with a Start Date</p>
             </div>
           </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Auto-Site Rotation</span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">Auto-Rotates Site</span>
         </div>
 
         <form onsubmit="event.preventDefault(); savePlannedShot();" class="space-y-2.5 pt-1">
@@ -1276,6 +1263,7 @@
               <label class="text-[10px] font-bold text-slate-600 block mb-1">Frequency</label>
               <select id="planShotRecurrence" onchange="togglePlannerDateMode('shot')" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
                 <option value="weekly" selected>🔁 Recurring Weekly</option>
+                <option value="daily">☀️ Daily (Every Day)</option>
                 <option value="once">📅 One-Time Date</option>
               </select>
             </div>
@@ -1284,15 +1272,16 @@
               <input type="date" id="planShotStartDate" onchange="onRecurringStartDateChanged('shot', this.value)" class="w-full text-xs px-2.5 py-2 bg-purple-50/50 border border-purple-200 rounded-xl outline-none font-semibold text-slate-800" />
             </div>
             <div id="planShotDayOfWeekWrap">
-              <label class="text-[10px] font-bold text-slate-600 block mb-1">Day of Week</label>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Schedule Day(s)</label>
               <select id="planShotDayOfWeek" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="5">Every Friday</option>
+                <option value="6">Every Saturday</option>
+                <option value="0">Every Sunday</option>
                 <option value="1">Every Monday</option>
                 <option value="2">Every Tuesday</option>
                 <option value="3">Every Wednesday</option>
                 <option value="4">Every Thursday</option>
-                <option value="5" selected>Every Friday</option>
-                <option value="6">Every Saturday</option>
-                <option value="0">Every Sunday</option>
+                <option value="daily">Every Day (Daily)</option>
               </select>
             </div>
             <div id="planShotDateWrap" class="hidden col-span-1 sm:col-span-2">
@@ -1300,24 +1289,24 @@
               <input type="date" id="planShotSpecificDate" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
             </div>
             <div>
-              <label class="text-[10px] font-bold text-slate-600 block mb-1">Scheduled Time</label>
-              <input type="time" id="planShotTime" value="08:00" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Planned Time</label>
+              <input type="time" id="planShotTime" value="08:30" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold" />
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[10px] font-bold text-slate-600 block mb-1">GLP-1 Microdose</label>
-              <input type="text" id="planShotGlpDose" placeholder="e.g. 0.10 mg (5 units)" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">GLP-1 Dose</label>
+              <input type="text" id="planShotGlpDose" placeholder="e.g. 0.10 mg (5u)" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
             </div>
             <div>
               <label class="text-[10px] font-bold text-slate-600 block mb-1">Vitamin B12 Dose</label>
-              <input type="text" id="planShotB12Dose" placeholder="e.g. 1,000 mcg (1 mL)" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+              <input type="text" id="planShotB12Dose" placeholder="e.g. 1,000 mcg" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
             </div>
             <div>
-              <label class="text-[10px] font-bold text-slate-600 block mb-1">Site Strategy</label>
-              <select id="planShotSite" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                <option value="Auto-Rotate" selected>🔄 Auto-Rotate Weekly</option>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Injection Site</label>
+              <select id="planShotSite" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium">
+                <option value="Auto-Rotate" selected>🔄 Auto-Rotate Site</option>
                 <option value="Abdomen (Left)">Abdomen (Left)</option>
                 <option value="Abdomen (Right)">Abdomen (Right)</option>
                 <option value="Thigh (Left)">Thigh (Left)</option>
@@ -1329,7 +1318,7 @@
 
           <button type="submit" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>Add Shot Schedule</span>
+            <span>Add Planned Injection</span>
           </button>
         </form>
 
@@ -1345,7 +1334,7 @@
             </div>
             <div>
               <h3 class="text-sm font-bold text-slate-900">2. Plan Exercises & Workouts</h3>
-              <p class="text-[11px] text-slate-500">Schedule recurring weekly training or one-time sessions</p>
+              <p class="text-[11px] text-slate-500">Schedule daily, recurring weekly, or one-time sessions with a Start Date</p>
             </div>
           </div>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Muscle Defense</span>
@@ -1356,6 +1345,7 @@
             <div>
               <label class="text-[10px] font-bold text-slate-600 block mb-1">Frequency</label>
               <select id="planExRecurrence" onchange="togglePlannerDateMode('exercise')" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
+                <option value="daily">☀️ Daily (Every Day)</option>
                 <option value="weekly" selected>🔁 Recurring Weekly</option>
                 <option value="once">📅 One-Time Date</option>
               </select>
@@ -1367,7 +1357,8 @@
             <div id="planExDayOfWeekWrap">
               <label class="text-[10px] font-bold text-slate-600 block mb-1">Schedule Day(s)</label>
               <select id="planExDayOfWeek" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
-                <option value="1">Every Monday</option>
+                <option value="daily">Every Day (Daily)</option>
+                <option value="1" selected>Every Monday</option>
                 <option value="2">Every Tuesday</option>
                 <option value="3">Every Wednesday</option>
                 <option value="4">Every Thursday</option>
@@ -1376,7 +1367,7 @@
                 <option value="0">Every Sunday</option>
                 <option value="mwf">Mon / Wed / Fri</option>
                 <option value="tth">Tue / Thu</option>
-                <option value="daily">Every Day</option>
+                <option value="weekdays">Weekdays (Mon–Fri)</option>
               </select>
             </div>
             <div id="planExDateWrap" class="hidden col-span-1 sm:col-span-2">
@@ -1431,11 +1422,11 @@
               <i data-lucide="utensils" class="w-4 h-4"></i>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-slate-900">3. Plan Food & Weekly Meals</h3>
-              <p class="text-[11px] text-slate-500">Pre-plan your 1,250 kcal meals for specific dates or recurring days</p>
+              <h3 class="text-sm font-bold text-slate-900">3. Plan Food & Daily/Weekly Meals</h3>
+              <p class="text-[11px] text-slate-500">Pre-plan your <span id="plannerCapGoalNum">1,250</span> kcal meals daily, weekly, or for specific dates</p>
             </div>
           </div>
-          <button type="button" onclick="applyDefault4MealTemplate()" class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition" title="Load a balanced 4-small-meal (~1,210 kcal, 114g Protein) recurring template">
+          <button type="button" onclick="applyDefault4MealTemplate()" class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition" title="Load a balanced 4-small-meal (~1,140 kcal, 122g Protein) recurring template">
             ⚡ Load 4-Meal Template
           </button>
         </div>
@@ -1445,7 +1436,8 @@
             <div>
               <label class="text-[10px] font-bold text-slate-600 block mb-1">Frequency</label>
               <select id="planMealRecurrence" onchange="togglePlannerDateMode('meal')" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
-                <option value="weekly" selected>🔁 Recurring Weekly</option>
+                <option value="daily" selected>☀️ Daily (Every Day)</option>
+                <option value="weekly">🔁 Recurring Weekly</option>
                 <option value="once">📅 One-Time Date</option>
               </select>
             </div>
@@ -1453,10 +1445,10 @@
               <label class="text-[10px] font-bold text-emerald-700 block mb-1">Start Date</label>
               <input type="date" id="planMealStartDate" onchange="onRecurringStartDateChanged('meal', this.value)" class="w-full text-xs px-2.5 py-2 bg-emerald-50/50 border border-emerald-200 rounded-xl outline-none font-semibold text-slate-800" />
             </div>
-            <div id="planMealDayOfWeekWrap">
+            <div id="planMealDayOfWeekWrap" class="hidden">
               <label class="text-[10px] font-bold text-slate-600 block mb-1">Schedule Day(s)</label>
               <select id="planMealDayOfWeek" class="w-full text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold">
-                <option value="daily" selected>Every Day</option>
+                <option value="daily" selected>Every Day (Daily)</option>
                 <option value="weekdays">Weekdays (Mon–Fri)</option>
                 <option value="1">Every Monday</option>
                 <option value="2">Every Tuesday</option>
@@ -1536,42 +1528,42 @@
 
   </main>
 
-  <!-- ================= BOTTOM NAVIGATION BAR ================= -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-1 py-1 shadow-lg">
+    <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-1.5 py-1 shadow-lg">
     <div class="max-w-xl lg:max-w-2xl mx-auto grid grid-cols-7 text-center">
       <button onclick="switchTab('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center py-1.5 text-emerald-600 font-semibold">
         <i data-lucide="layout-dashboard" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">Today</span>
+        <span class="text-[9px] sm:text-[10px]">Today</span>
       </button>
 
       <button onclick="switchTab('planner')" id="nav-btn-planner" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="calendar-clock" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">Planner</span>
+        <span class="text-[9px] sm:text-[10px]">Planner</span>
       </button>
 
       <button onclick="switchTab('recipes')" id="nav-btn-recipes" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="utensils" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">Ideas</span>
+        <span class="text-[9px] sm:text-[10px]">Ideas</span>
       </button>
 
       <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="calculator" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">Builder</span>
+        <span class="text-[9px] sm:text-[10px]">Builder</span>
       </button>
 
       <button onclick="switchTab('protocol')" id="nav-btn-protocol" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="syringe" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">GLP & B12</span>
+        <span class="text-[9px] sm:text-[10px]">GLP & B12</span>
       </button>
 
       <button onclick="switchTab('fitness')" id="nav-btn-fitness" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="activity" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">Fitness</span>
+        <span class="text-[9px] sm:text-[10px]">Fitness</span>
       </button>
 
       <button onclick="switchTab('analytics')" id="nav-btn-analytics" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="line-chart" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px]">Trends</span>
+        <span class="text-[9px] sm:text-[10px]">Trends</span>
       </button>
     </div>
   </nav>
@@ -1614,7 +1606,7 @@
         </div>
 
         <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">GLP-1 High-Protein Staples:</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">High-Protein Meal Examples:</span>
           <div class="flex flex-wrap gap-1.5">
             <button type="button" onclick="setAIPromptExample('4 egg whites and 1 whole egg scrambled with spinach for breakfast')" class="text-[10px] bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 px-2.5 py-1 rounded-lg border border-slate-200 transition">
               🍳 High-protein egg scramble
@@ -1752,22 +1744,210 @@
     </div>
   </div>
 
-  <!-- Modal 2: Target Calorie Settings -->
-  <div id="targetModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-4">
-      <h3 class="text-base font-bold text-slate-900">Set Calorie & Protein Targets</h3>
-      <p class="text-xs text-slate-500">Optimized for 1,250 kcal/day and GLP-1 muscle preservation.</p>
-      <div>
-        <label class="text-xs font-semibold text-slate-600 block mb-1">Target Calories (kcal)</label>
-        <input type="number" id="customTargetInput" value="1250" class="w-full text-lg font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-emerald-600" />
+  <!-- Modal 2: Daily Calorie Calculator & Manual Target Settings -->
+  <div id="targetModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+            <i data-lucide="calculator" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Daily Calorie & Macro Goal</h3>
+            <p class="text-[11px] text-slate-500">Calculate your optimal daily intake or enter an amount manually</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeTargetModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
       </div>
-      <div>
-        <label class="text-xs font-semibold text-slate-600 block mb-1">Protein Target Floor (g)</label>
-        <input type="number" id="customProtTargetInput" value="85" class="w-full text-lg font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-rose-600" />
+
+      <!-- Mode Switcher: Calculate vs Manual Entry -->
+      <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl">
+        <button type="button" id="targetTabBtnCalc" onclick="switchTargetModalMode('calculator')" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-emerald-700 shadow-2xs">
+          <span>🧮 Calculate Daily Goal</span>
+        </button>
+        <button type="button" id="targetTabBtnManual" onclick="switchTargetModalMode('manual')" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
+          <span>✏️ Enter Manually</span>
+        </button>
       </div>
-      <div class="flex gap-2">
-        <button onclick="saveDailyTargetSettings()" class="flex-1 bg-emerald-600 text-white font-semibold py-2 rounded-xl text-xs">Save</button>
-        <button onclick="closeTargetModal()" class="px-4 py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-xs">Cancel</button>
+
+      <!-- PANEL 1: DAILY CALORIE CALCULATOR (Mifflin-St Jeor BMR & TDEE) -->
+      <div id="targetCalcPanel" class="space-y-3.5">
+        <div class="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl text-[11px] text-emerald-900 flex items-center justify-between gap-2">
+          <span>Uses the clinical <strong>Mifflin-St Jeor</strong> equation to estimate Resting BMR, Maintenance TDEE, and goal intake.</span>
+          <button type="button" onclick="syncCalculatorWeightFromLog()" class="shrink-0 px-2 py-1 rounded-lg bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[10px] transition">
+            ↻ Sync Weight
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Biological Sex</label>
+            <select id="calcSexSelect" onchange="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-slate-700">
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Age (years)</label>
+            <input type="number" id="calcAgeInput" value="38" min="18" max="100" oninput="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-800" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Height (ft)</label>
+            <input type="number" id="calcHeightFtInput" value="5" min="3" max="7" oninput="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-800" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Height (in)</label>
+            <input type="number" id="calcHeightInInput" value="5" min="0" max="11" oninput="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-800" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">Weight (lbs)</label>
+            <input type="number" id="calcWeightLbsInput" value="170" min="60" max="600" step="0.1" oninput="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-emerald-700" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-600 block mb-1">Baseline Activity Level</label>
+          <select id="calcActivitySelect" onchange="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-medium text-slate-700">
+            <option value="1.2">Sedentary — Desk job, little or no formal exercise (1.2x)</option>
+            <option value="1.375" selected>Lightly Active — Light workouts / walking 1–3 days/week (1.375x)</option>
+            <option value="1.55">Moderately Active — Moderate exercise 3–5 days/week (1.55x)</option>
+            <option value="1.725">Very Active — Hard workouts or sports 6–7 days/week (1.725x)</option>
+            <option value="1.9">Extra Active — Intense daily training or physical job (1.9x)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-600 block mb-1">Goal & Weekly Pace</label>
+          <select id="calcGoalPaceSelect" onchange="recalculateDailyCalorieGoal()" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-emerald-800">
+            <option value="-1000">Lose ~2.0 lbs/week (-1,000 kcal/day aggressive deficit)</option>
+            <option value="-750">Lose ~1.5 lbs/week (-750 kcal/day steady-plus deficit)</option>
+            <option value="-500" selected>Lose ~1.0 lb/week (-500 kcal/day recommended deficit)</option>
+            <option value="-250">Lose ~0.5 lb/week (-250 kcal/day gentle deficit)</option>
+            <option value="0">Maintain Current Weight (0 kcal/day — Maintenance TDEE)</option>
+            <option value="250">Gain ~0.5 lb/week (+250 kcal/day lean muscle surplus)</option>
+            <option value="500">Gain ~1.0 lb/week (+500 kcal/day muscle building surplus)</option>
+          </select>
+        </div>
+
+        <label class="flex items-center gap-2 text-[11px] text-slate-600 cursor-pointer select-none pt-0.5">
+          <input type="checkbox" id="calcSafetyFloorCheck" checked onchange="recalculateDailyCalorieGoal()" class="rounded text-emerald-600 focus:ring-emerald-500" />
+          <span>Keep standard minimum safety floor (1,200 kcal female / 1,500 kcal male)</span>
+        </label>
+
+        <!-- Live Calculation Results Breakdown -->
+        <div id="calcResultCard" class="p-3.5 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl space-y-3 shadow-md">
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-white/10 rounded-xl p-2">
+              <span class="text-[10px] text-slate-300 block">Resting BMR</span>
+              <span id="calcBmrDisplay" class="text-sm font-bold text-white">1,420 kcal</span>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2">
+              <span class="text-[10px] text-amber-300 block">Maintenance</span>
+              <span id="calcTdeeDisplay" class="text-sm font-bold text-amber-300">1,953 kcal</span>
+            </div>
+            <div class="bg-emerald-500/25 border border-emerald-400/40 rounded-xl p-2">
+              <span class="text-[10px] text-emerald-300 font-semibold block">Daily Target</span>
+              <span id="calcRecommendedCalDisplay" class="text-base font-extrabold text-emerald-300">1,450 kcal</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-200 px-1">
+            <span id="calcRecommendedMacrosDisplay">Suggested: <strong>110g Protein</strong> • <strong>25g Fiber</strong></span>
+            <span id="calcWeeklyChangeBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-emerald-300 font-semibold">-1.0 lb/wk</span>
+          </div>
+          <p id="calcFloorNoticeText" class="text-[10px] text-amber-300/90 hidden px-1"></p>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" onclick="applyCalculatedCalorieTarget(true)" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow-sm">
+              ✓ Apply Calculated Goal
+            </button>
+            <button type="button" onclick="applyCalculatedCalorieTarget(false)" class="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-xs transition border border-white/15">
+              Customize Manually →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL 2: MANUAL CALORIE & MACRO ENTRY -->
+      <div id="targetManualPanel" class="space-y-4 hidden">
+        <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2.5">
+          <div>
+            <label class="text-xs font-bold text-slate-700 block mb-1">Enter Daily Calorie Goal (kcal/day)</label>
+            <div class="relative">
+              <input type="number" id="customTargetInput" value="1250" min="500" max="6000" step="10" oninput="updateManualTargetPreview()" class="w-full text-2xl font-extrabold px-3.5 py-2.5 bg-white border-2 border-emerald-500/70 rounded-xl outline-none text-emerald-700 focus:ring-2 focus:ring-emerald-500" />
+              <span class="absolute right-3.5 top-3.5 text-xs font-bold text-slate-400">kcal / day</span>
+            </div>
+          </div>
+
+          <!-- Quick 1-Tap Presets -->
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Quick Calorie Presets</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="setManualCaloriePreset(1200)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">1,200</button>
+              <button type="button" onclick="setManualCaloriePreset(1250)" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition">1,250</button>
+              <button type="button" onclick="setManualCaloriePreset(1400)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">1,400</button>
+              <button type="button" onclick="setManualCaloriePreset(1500)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">1,500</button>
+              <button type="button" onclick="setManualCaloriePreset(1650)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">1,650</button>
+              <button type="button" onclick="setManualCaloriePreset(1800)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">1,800</button>
+              <button type="button" onclick="setManualCaloriePreset(2000)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">2,000</button>
+              <button type="button" onclick="setManualCaloriePreset(2200)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-[11px] font-bold transition">2,200</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-slate-600">Protein Floor (g)</label>
+              <button type="button" onclick="autoScaleManualMacros()" class="text-[10px] font-bold text-emerald-600 hover:underline">Auto-Scale</button>
+            </div>
+            <input type="number" id="customProtTargetInput" value="85" min="30" max="350" oninput="updateManualTargetPreview()" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-rose-600" />
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-600 block mb-1">Daily Fiber Goal (g)</label>
+            <input type="number" id="customFiberTargetInput" value="25" min="10" max="80" oninput="updateManualTargetPreview()" class="w-full text-base font-bold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-emerald-600" />
+          </div>
+        </div>
+
+        <!-- Live Meal Slot Allocation Preview -->
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-bold text-slate-700">Suggested Meal Slot Pacing</span>
+            <span id="manualPreviewTotalBadge" class="font-bold text-emerald-700">1,250 kcal/day</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5 text-center text-[10px]">
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200/60">
+              <span class="text-slate-400 block">Breakfast</span>
+              <strong id="manualPreviewBreakfast" class="text-slate-800">~315 kcal</strong>
+            </div>
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200/60">
+              <span class="text-slate-400 block">Lunch</span>
+              <strong id="manualPreviewLunch" class="text-slate-800">~415 kcal</strong>
+            </div>
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200/60">
+              <span class="text-slate-400 block">Dinner</span>
+              <strong id="manualPreviewDinner" class="text-slate-800">~420 kcal</strong>
+            </div>
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200/60">
+              <span class="text-slate-400 block">Snacks</span>
+              <strong id="manualPreviewSnack" class="text-slate-800">~100 kcal</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" onclick="saveDailyTargetSettings()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-sm">
+            Save Manual Calorie Goal
+          </button>
+          <button type="button" onclick="closeTargetModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition">
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -2091,6 +2271,17 @@
       targetBudget: 1250,
       targetProtein: 85, // Muscle floor target
       targetFiber: 25,   // Motility target
+      goalMode: 'manual', // 'manual' or 'calculated'
+      calorieProfile: {
+        sex: 'female',
+        age: 38,
+        heightFt: 5,
+        heightIn: 5,
+        weightLbs: 170,
+        activity: 1.375,
+        goalPace: -500,
+        enforceSafetyFloor: true
+      },
       activeDate: getTodayDateString(),
       lastUpdated: new Date().toISOString(),
       days: {},          // key: "YYYY-MM-DD" -> { breakfast:[], lunch:[], dinner:[], snack:[], drink:[], fitness:[], weight: null, waterOz: 0, electrolytes: false, tasks: [], howIFeel: '', protocol: null }
@@ -2325,7 +2516,7 @@
     const DEFAULT_DAILY_TASKS = [
       { id: 't_water', text: 'Hydration Floor (64 oz reached)', completed: false, isDefault: true },
       { id: 't_protein', text: 'Hit ≥85g Protein Muscle Shield', completed: false, isDefault: true },
-      { id: 't_fiber', text: 'Reach 25g Motility Fiber Floor', completed: false, isDefault: true },
+      { id: 't_fiber', text: 'Reach 25g Daily Fiber Goal', completed: false, isDefault: true },
       { id: 't_electrolytes', text: 'Electrolytes / Minerals Taken', completed: false, isDefault: true },
       { id: 't_weigh', text: 'Morning Weigh-In Logged', completed: false, isDefault: true },
       { id: 't_exercise', text: '30+ min Resistance or Movement', completed: false, isDefault: true },
@@ -2481,8 +2672,7 @@
               if (document.getElementById('savedRecipesList')) {
                 renderSavedRecipesList();
               }
-              renderProtocolTab();
-              updateSyncStatusBadge('synced', 'Cloud Synced');
+                            updateSyncStatusBadge('synced', 'Cloud Synced');
               isRemoteUpdate = false;
 
               if (localEntries > remoteEntries) {
@@ -2567,6 +2757,19 @@
       if (!appState.targetBudget) appState.targetBudget = 1250;
       if (!appState.targetProtein) appState.targetProtein = 85;
       if (!appState.targetFiber) appState.targetFiber = 25;
+      if (!appState.goalMode) appState.goalMode = 'manual';
+      if (!appState.calorieProfile) {
+        appState.calorieProfile = {
+          sex: 'female',
+          age: 38,
+          heightFt: 5,
+          heightIn: 5,
+          weightLbs: 170,
+          activity: 1.375,
+          goalPace: -500,
+          enforceSafetyFloor: true
+        };
+      }
       if (!appState.customRecipes) appState.customRecipes = [];
       if (!appState.savedMeals) appState.savedMeals = [];
       if (!appState.foodUsageStats) appState.foodUsageStats = {};
@@ -2761,9 +2964,39 @@
 
     function refreshUI() {
       document.getElementById('activeDateInput').value = appState.activeDate;
-      document.getElementById('targetBadge').innerText = `${appState.targetBudget} Goal`;
-      document.getElementById('baseGoalDisplay').innerText = appState.targetBudget;
-      document.getElementById('headerSubtitle').innerText = `Target: ${appState.targetBudget.toLocaleString()} kcal/day`;
+      const formattedGoal = Number(appState.targetBudget || 1250).toLocaleString();
+      document.getElementById('targetBadge').innerText = `${formattedGoal} Goal`;
+      document.getElementById('baseGoalDisplay').innerText = formattedGoal;
+      document.getElementById('headerSubtitle').innerText = `Target: ${formattedGoal} kcal/day`;
+
+      const sourceBadge = document.getElementById('activeGoalSourceBadge');
+      if (sourceBadge) {
+        if (appState.goalMode === 'calculated') {
+          const pace = Number(appState.calorieProfile?.goalPace || 0);
+          const paceTag = pace === 0 ? 'Maintenance' : (pace < 0 ? `${pace} kcal/d` : `+${pace} kcal/d`);
+          sourceBadge.innerText = `Calculated (${paceTag})`;
+        } else {
+          sourceBadge.innerText = `Manual Goal`;
+        }
+      }
+
+      // Update dynamic meal slot pacing hints & section labels
+      const tb = Number(appState.targetBudget) || 1250;
+      const bHint = document.getElementById('breakfastTargetHint');
+      const lHint = document.getElementById('lunchTargetHint');
+      const dHint = document.getElementById('dinnerTargetHint');
+      const sHint = document.getElementById('snackTargetHint');
+      if (bHint) bHint.innerText = tb === 1250 ? 'Target ~300-350 kcal' : `Target ~${Math.round((tb * 0.25) / 10) * 10} kcal`;
+      if (lHint) lHint.innerText = tb === 1250 ? 'Target ~400-450 kcal' : `Target ~${Math.round((tb * 0.33) / 10) * 10} kcal`;
+      if (dHint) dHint.innerText = tb === 1250 ? 'Target ~400-450 kcal' : `Target ~${Math.round((tb * 0.34) / 10) * 10} kcal`;
+      if (sHint) sHint.innerText = tb === 1250 ? 'Flex budget ~100 kcal' : `Flex budget ~${Math.round((tb * 0.08) / 10) * 10} kcal`;
+
+      ['recipesCapGoalNum', 'fitnessCapGoalNum', 'trendsCapGoalNum', 'plannerCapGoalNum'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = formattedGoal;
+      });
+      const fibNumEl = document.getElementById('fiberGoalTargetNum');
+      if (fibNumEl) fibNumEl.innerText = appState.targetFiber || 25;
 
       const day = appState.days[appState.activeDate];
       const calcMeal = (items) => (items || []).reduce((acc, i) => ({
@@ -3005,56 +3238,6 @@
       showToast(day.electrolytes ? "Electrolytes & mineral guard logged!" : "Electrolyte log cleared");
     }
 
-    function updateGLPCycleBanner() {
-      const day = appState.days[appState.activeDate];
-      const hasShotToday = day.protocol && (day.protocol.glpDose || day.protocol.b12Dose);
-
-      if (hasShotToday) {
-        document.getElementById('glpStatusBadge').className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950";
-        document.getElementById('glpStatusBadge').innerText = "Shot Logged Today 💉";
-        document.getElementById('glpSummaryLine').innerText = `${day.protocol.glpDose ? 'GLP-1: ' + day.protocol.glpDose : ''} ${day.protocol.b12Dose ? '• B12: ' + day.protocol.b12Dose : ''} (${day.protocol.site || ''})`;
-      } else {
-        document.getElementById('glpStatusBadge').className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-purple-500/30 text-purple-200";
-        document.getElementById('glpStatusBadge').innerText = "No Shot Today";
-        const lastShot = findLastInjectionDate();
-        if (lastShot) {
-          document.getElementById('glpSummaryLine').innerText = `Last injection: ${lastShot.date} (${lastShot.site})`;
-        } else {
-          document.getElementById('glpSummaryLine').innerText = `Tap to log weekly GLP-1 microdose & B12 injection`;
-        }
-      }
-
-      const dates = Object.keys(appState.days).filter(d => d <= appState.activeDate && appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)).sort();
-      if (dates.length === 0) {
-        document.getElementById('cyclePhaseTitle').innerText = "Cycle: No Recorded Injections";
-        document.getElementById('cyclePhaseTip').innerText = "Log your weekly dose in the GLP & B12 tab to activate pharmacokinetic prediction.";
-        document.getElementById('cycleDayBadge').innerText = "Day --";
-        return;
-      }
-
-      const lastDate = dates[dates.length - 1];
-      const [ay, am, ad] = appState.activeDate.split('-').map(Number);
-      const [ly, lm, ld] = lastDate.split('-').map(Number);
-      const diffDays = Math.round((new Date(ay, am - 1, ad) - new Date(ly, lm - 1, ld)) / (1000 * 60 * 60 * 24));
-      const cycleDay = (diffDays % 7) + 1;
-
-      document.getElementById('cycleDayBadge').innerText = `Day ${cycleDay} of 7`;
-
-      if (cycleDay === 1) {
-        document.getElementById('cyclePhaseTitle').innerText = "Day 1: Injection Day (Onset Phase)";
-        document.getElementById('cyclePhaseTip').innerText = "Medication absorbing. Hydrate well & take with high protein to prevent early nausea.";
-      } else if (cycleDay >= 2 && cycleDay <= 3) {
-        document.getElementById('cyclePhaseTitle').innerText = `Day ${cycleDay}: Peak Satiety & Appetite Suppression 🎯`;
-        document.getElementById('cyclePhaseTip').innerText = "Serum peak. Food volume may feel heavy; prioritize small, protein-dense meals.";
-      } else if (cycleDay >= 4 && cycleDay <= 5) {
-        document.getElementById('cyclePhaseTitle').innerText = `Day ${cycleDay}: Stable Therapeutic Window`;
-        document.getElementById('cyclePhaseTip').innerText = "Steady metabolism & satiety. Great window for resistance strength training.";
-      } else {
-        document.getElementById('cyclePhaseTitle').innerText = `Day ${cycleDay}: Trough / Expected Appetite Rebound ⚠️`;
-        document.getElementById('cyclePhaseTip').innerText = "Medication tapering. Mild food noise is normal—rely on fiber and volume vegetables.";
-      }
-    }
-
     function adjustWater(amount) {
       const day = appState.days[appState.activeDate];
       day.waterOz = Math.max(0, (day.waterOz || 0) + amount);
@@ -3106,10 +3289,65 @@
       });
     }
 
+    function updateGLPCycleBanner() {
+      const statusBadge = document.getElementById('glpStatusBadge');
+      const summaryLine = document.getElementById('glpSummaryLine');
+      const phaseTitle = document.getElementById('cyclePhaseTitle');
+      const phaseTip = document.getElementById('cyclePhaseTip');
+      const dayBadge = document.getElementById('cycleDayBadge');
+      if (!statusBadge || !summaryLine) return;
+
+      const day = appState.days[appState.activeDate];
+      const hasShotToday = day && day.protocol && (day.protocol.glpDose || day.protocol.b12Dose);
+
+      if (hasShotToday) {
+        statusBadge.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-emerald-400 text-emerald-950";
+        statusBadge.innerText = "Shot Logged Today 💉";
+        summaryLine.innerText = `${day.protocol.glpDose ? 'GLP-1: ' + day.protocol.glpDose : ''} ${day.protocol.b12Dose ? '• B12: ' + day.protocol.b12Dose : ''} (${day.protocol.site || ''})`;
+      } else {
+        statusBadge.className = "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-purple-500/30 text-purple-200";
+        statusBadge.innerText = "No Shot Today";
+        const lastShot = findLastInjectionDate();
+        summaryLine.innerText = lastShot
+          ? `Last injection: ${lastShot.date} (${lastShot.site})`
+          : `Tap to log weekly GLP-1 microdose & B12 injection`;
+      }
+
+      const dates = Object.keys(appState.days).filter(d => d <= appState.activeDate && appState.days[d] && appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)).sort();
+      if (dates.length === 0) {
+        if (phaseTitle) phaseTitle.innerText = "Cycle: No Recorded Injections";
+        if (phaseTip) phaseTip.innerText = "Log your weekly dose in the GLP & B12 tab to activate pharmacokinetic prediction.";
+        if (dayBadge) dayBadge.innerText = "Day --";
+        return;
+      }
+
+      const lastDate = dates[dates.length - 1];
+      const [ay, am, ad] = appState.activeDate.split('-').map(Number);
+      const [ly, lm, ld] = lastDate.split('-').map(Number);
+      const diffDays = Math.round((new Date(ay, am - 1, ad) - new Date(ly, lm - 1, ld)) / (1000 * 60 * 60 * 24));
+      const cycleDay = (diffDays % 7) + 1;
+
+      if (dayBadge) dayBadge.innerText = `Day ${cycleDay} of 7`;
+
+      if (cycleDay === 1) {
+        if (phaseTitle) phaseTitle.innerText = "Day 1: Injection Day (Onset Phase)";
+        if (phaseTip) phaseTip.innerText = "Medication absorbing. Hydrate well & take with high protein to prevent early nausea.";
+      } else if (cycleDay >= 2 && cycleDay <= 3) {
+        if (phaseTitle) phaseTitle.innerText = `Day ${cycleDay}: Peak Satiety & Appetite Suppression 🎯`;
+        if (phaseTip) phaseTip.innerText = "Serum peak. Food volume may feel heavy; prioritize small, protein-dense meals.";
+      } else if (cycleDay >= 4 && cycleDay <= 5) {
+        if (phaseTitle) phaseTitle.innerText = `Day ${cycleDay}: Stable Therapeutic Window`;
+        if (phaseTip) phaseTip.innerText = "Steady metabolism & satiety. Great window for resistance strength training.";
+      } else {
+        if (phaseTitle) phaseTitle.innerText = `Day ${cycleDay}: Trough / Expected Appetite Rebound ⚠️`;
+        if (phaseTip) phaseTip.innerText = "Medication tapering. Mild food noise is normal—rely on fiber and volume vegetables.";
+      }
+    }
+
     function findLastInjectionDate() {
       const dates = Object.keys(appState.days).sort().reverse();
-      for (let d of dates) {
-        if (appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)) {
+      for (const d of dates) {
+        if (appState.days[d] && appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)) {
           return { date: d, ...appState.days[d].protocol };
         }
       }
@@ -3117,8 +3355,10 @@
     }
 
     function renderProtocolTab() {
+      const dateLabel = document.getElementById('protocolActiveDateLabel');
+      if (!dateLabel) return;
       const day = appState.days[appState.activeDate];
-      document.getElementById('protocolActiveDateLabel').innerText = appState.activeDate;
+      dateLabel.innerText = appState.activeDate;
 
       const hasShot = day && day.protocol && (day.protocol.glpDose || day.protocol.b12Dose);
       const badge = document.getElementById('activeShotRecordedBadge');
@@ -3133,11 +3373,10 @@
           if (day.protocol.b12Dose) doses.push(`B12: ${day.protocol.b12Dose}`);
           document.getElementById('summaryBannerDoses').innerText = doses.join(' • ');
           document.getElementById('summaryBannerSite').innerText = `Site: ${day.protocol.site || 'Abdomen'}`;
-          document.getElementById('summaryBannerNotes').innerText = day.protocol.notes 
-            ? `Notes: ${day.protocol.notes} (Appetite: ${day.protocol.appetiteScore || 8}/10)` 
+          document.getElementById('summaryBannerNotes').innerText = day.protocol.notes
+            ? `Notes: ${day.protocol.notes} (Appetite: ${day.protocol.appetiteScore || 8}/10)`
             : `Appetite Satiety: ${day.protocol.appetiteScore || 8}/10 • Motility: ${day.protocol.motility || 'Regular'}`;
         }
-
         document.getElementById('injGlpDose').value = day.protocol.glpDose || '';
         document.getElementById('injB12Dose').value = day.protocol.b12Dose || '';
         document.getElementById('injSite').value = day.protocol.site || 'Abdomen (Left)';
@@ -3154,8 +3393,9 @@
       }
 
       const histEl = document.getElementById('protocolHistoryList');
-      const datesWithProt = Object.keys(appState.days).filter(d => 
-        appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)
+      if (!histEl) return;
+      const datesWithProt = Object.keys(appState.days).filter(d =>
+        appState.days[d] && appState.days[d].protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose)
       ).sort().reverse();
 
       if (datesWithProt.length === 0) {
@@ -3167,10 +3407,10 @@
             <div class="p-3 bg-purple-50/50 rounded-xl border border-purple-100 text-xs space-y-1">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-purple-900">${d}</span>
-                <span class="text-[10px] font-semibold bg-purple-200/70 text-purple-900 px-2 py-0.5 rounded-full">${p.site || 'Site unlisted'}</span>
+                <span class="text-[10px] font-semibold bg-purple-200/70 text-purple-900 px-2 py-0.5 rounded-full">${escapeHtml(p.site || 'Site unlisted')}</span>
               </div>
               <div class="text-[11px] text-slate-700">
-                ${p.glpDose ? `<strong>GLP-1:</strong> ${escapeHtml(p.glpDose)}` : ''} 
+                ${p.glpDose ? `<strong>GLP-1:</strong> ${escapeHtml(p.glpDose)}` : ''}
                 ${p.b12Dose ? `<span class="mx-1">•</span><strong>B12:</strong> ${escapeHtml(p.b12Dose)}` : ''}
               </div>
               ${p.motility ? `<div class="text-[10px] text-purple-700 font-medium">Motility: ${escapeHtml(p.motility)} • Energy: ${escapeHtml(p.energy || 'Normal')}</div>` : ''}
@@ -3197,7 +3437,6 @@
       }
 
       ensureDayExists(appState.activeDate);
-
       appState.days[appState.activeDate].protocol = {
         glpDose: glp,
         b12Dose: b12,
@@ -3837,14 +4076,188 @@
       showToast(`Added ${name} (${cal} kcal) to ${capitalize(meal)}`);
     }
 
-    function openTargetModal() {
-      document.getElementById('customTargetInput').value = appState.targetBudget;
+    function openTargetModal(initialMode) {
+      const mode = initialMode || (appState.goalMode === 'calculated' ? 'calculator' : 'manual');
+      document.getElementById('customTargetInput').value = appState.targetBudget || 1250;
       document.getElementById('customProtTargetInput').value = appState.targetProtein || 85;
+      const fibInput = document.getElementById('customFiberTargetInput');
+      if (fibInput) fibInput.value = appState.targetFiber || 25;
+
+      // Populate calculator inputs from saved calorieProfile + latest logged weight
+      const prof = appState.calorieProfile || {};
+      const latestLoggedWeight = getLatestLoggedWeightLbs();
+      document.getElementById('calcSexSelect').value = prof.sex || 'female';
+      document.getElementById('calcAgeInput').value = prof.age || 38;
+      document.getElementById('calcHeightFtInput').value = prof.heightFt !== undefined ? prof.heightFt : 5;
+      document.getElementById('calcHeightInInput').value = prof.heightIn !== undefined ? prof.heightIn : 5;
+      document.getElementById('calcWeightLbsInput').value = latestLoggedWeight || prof.weightLbs || 170;
+      document.getElementById('calcActivitySelect').value = String(prof.activity || 1.375);
+      document.getElementById('calcGoalPaceSelect').value = String(prof.goalPace !== undefined ? prof.goalPace : -500);
+      document.getElementById('calcSafetyFloorCheck').checked = prof.enforceSafetyFloor !== false;
+
+      recalculateDailyCalorieGoal();
+      updateManualTargetPreview();
+      switchTargetModalMode(mode);
+
       document.getElementById('targetModal').classList.remove('hidden');
+      lucide.createIcons();
     }
 
     function closeTargetModal() {
       document.getElementById('targetModal').classList.add('hidden');
+    }
+
+    function switchTargetModalMode(mode) {
+      const calcPanel = document.getElementById('targetCalcPanel');
+      const manualPanel = document.getElementById('targetManualPanel');
+      const btnCalc = document.getElementById('targetTabBtnCalc');
+      const btnManual = document.getElementById('targetTabBtnManual');
+
+      if (mode === 'calculator') {
+        calcPanel.classList.remove('hidden');
+        manualPanel.classList.add('hidden');
+        btnCalc.className = "py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-emerald-700 shadow-2xs";
+        btnManual.className = "py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900";
+        recalculateDailyCalorieGoal();
+      } else {
+        calcPanel.classList.add('hidden');
+        manualPanel.classList.remove('hidden');
+        btnManual.className = "py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-white text-emerald-700 shadow-2xs";
+        btnCalc.className = "py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900";
+        updateManualTargetPreview();
+      }
+    }
+
+    function syncCalculatorWeightFromLog() {
+      const latest = getLatestLoggedWeightLbs();
+      if (latest) {
+        document.getElementById('calcWeightLbsInput').value = latest;
+        recalculateDailyCalorieGoal();
+        showToast(`Synced ${latest} lbs from your weigh-in log`);
+      } else {
+        showToast("No weigh-in logged yet — enter weight directly");
+      }
+    }
+
+    function computeDailyCalorieCalculation() {
+      const sex = document.getElementById('calcSexSelect').value || 'female';
+      const age = Math.max(18, Math.min(100, Number(document.getElementById('calcAgeInput').value) || 38));
+      const ft = Math.max(3, Math.min(7, Number(document.getElementById('calcHeightFtInput').value) || 5));
+      const inches = Math.max(0, Math.min(11, Number(document.getElementById('calcHeightInInput').value) || 0));
+      const weightLbs = Math.max(60, Math.min(600, Number(document.getElementById('calcWeightLbsInput').value) || 170));
+      const activity = Number(document.getElementById('calcActivitySelect').value) || 1.375;
+      const goalPace = Number(document.getElementById('calcGoalPaceSelect').value || 0);
+      const enforceSafetyFloor = document.getElementById('calcSafetyFloorCheck').checked;
+
+      const weightKg = weightLbs / 2.20462262;
+      const heightCm = ((ft * 12) + inches) * 2.54;
+
+      // Mifflin-St Jeor Equation
+      const bmrRaw = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + (sex === 'male' ? 5 : -161);
+      const bmr = Math.round(bmrRaw);
+      const tdee = Math.round(bmrRaw * activity);
+      const rawTarget = Math.round((tdee + goalPace) / 10) * 10;
+
+      const minFloor = enforceSafetyFloor ? (sex === 'male' ? 1500 : 1200) : 1000;
+      const targetCalories = Math.max(minFloor, rawTarget);
+      const floorApplied = rawTarget < minFloor;
+
+      // Lean mass preservation protein floor (~0.7g per lb of body weight or ~28% of calories, bounded 65g-190g)
+      const suggestedProtein = Math.max(65, Math.min(190, Math.round(Math.min(weightLbs * 0.72, (targetCalories * 0.30) / 4))));
+      const suggestedFiber = targetCalories >= 1800 ? 30 : 25;
+
+      return {
+        sex, age, heightFt: ft, heightIn: inches, weightLbs, activity, goalPace, enforceSafetyFloor,
+        bmr, tdee, rawTarget, targetCalories, minFloor, floorApplied, suggestedProtein, suggestedFiber
+      };
+    }
+
+    function recalculateDailyCalorieGoal() {
+      const res = computeDailyCalorieCalculation();
+      document.getElementById('calcBmrDisplay').innerText = `${res.bmr.toLocaleString()} kcal`;
+      document.getElementById('calcTdeeDisplay').innerText = `${res.tdee.toLocaleString()} kcal`;
+      document.getElementById('calcRecommendedCalDisplay').innerText = `${res.targetCalories.toLocaleString()} kcal`;
+      document.getElementById('calcRecommendedMacrosDisplay').innerHTML = `Suggested: <strong>${res.suggestedProtein}g Protein</strong> • <strong>${res.suggestedFiber}g Fiber</strong>`;
+
+      const weeklyLbs = (res.goalPace * 7) / 3500;
+      const wkBadge = document.getElementById('calcWeeklyChangeBadge');
+      if (weeklyLbs === 0) {
+        wkBadge.innerText = 'Maintain (0 lb/wk)';
+      } else if (weeklyLbs < 0) {
+        wkBadge.innerText = `${weeklyLbs.toFixed(1)} lbs/wk`;
+      } else {
+        wkBadge.innerText = `+${weeklyLbs.toFixed(1)} lbs/wk`;
+      }
+
+      const noticeEl = document.getElementById('calcFloorNoticeText');
+      if (res.floorApplied) {
+        noticeEl.innerText = `Note: Raw target (${res.rawTarget.toLocaleString()} kcal) was raised to ${res.minFloor.toLocaleString()} kcal safety floor. Uncheck the floor box above or switch to Manual Entry for a lower custom goal.`;
+        noticeEl.classList.remove('hidden');
+      } else {
+        noticeEl.classList.add('hidden');
+      }
+    }
+
+    function applyCalculatedCalorieTarget(saveImmediately) {
+      const res = computeDailyCalorieCalculation();
+      appState.calorieProfile = {
+        sex: res.sex,
+        age: res.age,
+        heightFt: res.heightFt,
+        heightIn: res.heightIn,
+        weightLbs: res.weightLbs,
+        activity: res.activity,
+        goalPace: res.goalPace,
+        enforceSafetyFloor: res.enforceSafetyFloor
+      };
+
+      document.getElementById('customTargetInput').value = res.targetCalories;
+      document.getElementById('customProtTargetInput').value = res.suggestedProtein;
+      document.getElementById('customFiberTargetInput').value = res.suggestedFiber;
+      updateManualTargetPreview();
+
+      if (saveImmediately) {
+        appState.targetBudget = res.targetCalories;
+        appState.targetProtein = res.suggestedProtein;
+        appState.targetFiber = res.suggestedFiber;
+        appState.goalMode = 'calculated';
+        saveState();
+        refreshUI();
+        closeTargetModal();
+        showToast(`Applied calculated goal: ${res.targetCalories.toLocaleString()} kcal/day (${res.suggestedProtein}g protein)`);
+      } else {
+        switchTargetModalMode('manual');
+        showToast("Copied calculated values — customize & click Save!");
+      }
+    }
+
+    function setManualCaloriePreset(kcal) {
+      document.getElementById('customTargetInput').value = kcal;
+      autoScaleManualMacros();
+      updateManualTargetPreview();
+    }
+
+    function autoScaleManualMacros() {
+      const kcal = Number(document.getElementById('customTargetInput').value) || 1250;
+      const scaledProt = Math.max(60, Math.min(220, Math.round((kcal * 0.27) / 4)));
+      const scaledFib = kcal >= 1800 ? 30 : 25;
+      document.getElementById('customProtTargetInput').value = scaledProt;
+      document.getElementById('customFiberTargetInput').value = scaledFib;
+      updateManualTargetPreview();
+    }
+
+    function updateManualTargetPreview() {
+      const kcal = Math.max(500, Number(document.getElementById('customTargetInput').value) || 1250);
+      const badge = document.getElementById('manualPreviewTotalBadge');
+      if (badge) badge.innerText = `${kcal.toLocaleString()} kcal/day`;
+      const bEl = document.getElementById('manualPreviewBreakfast');
+      const lEl = document.getElementById('manualPreviewLunch');
+      const dEl = document.getElementById('manualPreviewDinner');
+      const sEl = document.getElementById('manualPreviewSnack');
+      if (bEl) bEl.innerText = `~${Math.round((kcal * 0.25) / 5) * 5} kcal`;
+      if (lEl) lEl.innerText = `~${Math.round((kcal * 0.33) / 5) * 5} kcal`;
+      if (dEl) dEl.innerText = `~${Math.round((kcal * 0.34) / 5) * 5} kcal`;
+      if (sEl) sEl.innerText = `~${Math.round((kcal * 0.08) / 5) * 5} kcal`;
     }
 
     function openInstallModal() {
@@ -3857,17 +4270,20 @@
     }
 
     function saveDailyTargetSettings() {
-      const target = Number(document.getElementById('customTargetInput').value);
-      const prot = Number(document.getElementById('customProtTargetInput').value);
-      if (target > 500 && target < 5000) {
+      const target = Math.round(Number(document.getElementById('customTargetInput').value));
+      const prot = Math.round(Number(document.getElementById('customProtTargetInput').value));
+      const fib = Math.round(Number(document.getElementById('customFiberTargetInput')?.value || 25));
+      if (target >= 500 && target <= 6000) {
         appState.targetBudget = target;
-        appState.targetProtein = prot || 85;
+        appState.targetProtein = prot > 20 ? prot : 85;
+        appState.targetFiber = fib > 5 ? fib : 25;
+        appState.goalMode = 'manual';
         saveState();
         refreshUI();
         closeTargetModal();
-        showToast(`Target: ${target} kcal | Protein floor: ${appState.targetProtein}g`);
+        showToast(`Saved Goal: ${target.toLocaleString()} kcal | Protein: ${appState.targetProtein}g | Fiber: ${appState.targetFiber}g`);
       } else {
-        showToast("Enter a reasonable calorie goal");
+        showToast("Please enter a daily calorie goal between 500 and 6,000 kcal");
       }
     }
 
@@ -3984,6 +4400,17 @@
       { keywords: ['core', 'abs', 'plank', 'crunches', 'abdomen'], name: 'Focused Core & Abdominal Work', met: 3.3, intensity: 'Moderate', muscles: 'Rectus Abdominis, Transverse Core & Obliques' }
     ];
 
+    function getLatestLoggedWeightLbs() {
+      const currDay = appState.days[appState.activeDate];
+      if (currDay && currDay.weight && currDay.weight > 40) return Number(currDay.weight);
+      const dates = Object.keys(appState.days || {}).sort().reverse();
+      for (const d of dates) {
+        const w = appState.days[d] && appState.days[d].weight;
+        if (w && w > 40) return Number(w);
+      }
+      return null;
+    }
+
     function getLatestUserWeightLbs() {
       const currDay = appState.days[appState.activeDate];
       if (currDay && currDay.weight && currDay.weight > 40) return Number(currDay.weight);
@@ -4092,7 +4519,7 @@
 
       const hasResistance = segments.some(s => /strength|barre|pilates|reformer|dumbbell|barbell|core/i.test(s.name + ' ' + s.muscles));
       const clinicalTip = hasResistance
-        ? `Calibrated for ${weightLbs} lbs: Resistance and sculpting work signals lean muscle retention on your 1,250 kcal GLP-1 protocol. Prioritize 25–30g protein within 90 minutes post-workout.`
+        ? `Calibrated for ${weightLbs} lbs: Resistance and sculpting work signals lean muscle retention on your 1,250 kcal nutrition plan. Prioritize 25–30g protein within 90 minutes post-workout.`
         : `Calibrated for ${weightLbs} lbs using realistic ACSM MET values (avoiding inflated smartwatch estimates). Add +8–16 oz water and electrolytes to offset sweat loss.`;
 
       return {
@@ -4117,7 +4544,7 @@
       document.getElementById('aiWorkoutResultCard').classList.add('hidden');
       document.getElementById('aiWorkoutAnalyzeBtn').disabled = true;
 
-      const systemInstruction = `You are a certified clinical exercise physiologist (ACSM) advising a user on a 1,250 kcal/day deficit with weekly GLP-1 and B12 therapy.
+      const systemInstruction = `You are a certified clinical exercise physiologist (ACSM) advising a user on a 1,250 kcal/day deficit with high-protein lean mass preservation.
 The user's current body weight is ${weightLbs} lbs (${(weightLbs / 2.20462).toFixed(1)} kg).
 Analyze their natural-language workout description. Break multi-part workouts into distinct segments.
 Use realistic, evidence-based ACSM Compendium MET values (accounting for rest between sets in strength training, realistic isometric burn in barre/pilates, and pace/grade in cardio—never inflate calories like fitness trackers do).
@@ -4241,6 +4668,9 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         return;
       }
       appState.days[appState.activeDate].weight = val;
+      if (appState.calorieProfile) {
+        appState.calorieProfile.weightLbs = val;
+      }
       saveState();
       renderFitnessTab();
       showToast(`Weight saved: ${val} lbs`);
@@ -4937,7 +5367,7 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `nutritrack_1250_glp1_backup_${getTodayDateString()}.json`);
+      downloadAnchor.setAttribute("download", `nutrition_tracker_1250_backup_${getTodayDateString()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -4983,8 +5413,7 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
           appState = deepMergeState(appState, parsed);
           saveState();
           refreshUI();
-          renderProtocolTab();
-          closeDataSnapshotModal();
+                    closeDataSnapshotModal();
           showToast(`Restored ${countDataEntries(appState)} items successfully! ✓`);
         } else {
           showToast("Invalid snapshot format");
@@ -5229,7 +5658,7 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       document.getElementById('aiFoodLoading').classList.remove('hidden');
       document.getElementById('aiParseSubmitBtn').disabled = true;
 
-      const systemInstruction = `You are a clinical registered dietitian specializing in a 1,250 calorie daily deficit regimen with weekly GLP-1 and B12 therapy.
+      const systemInstruction = `You are a clinical registered dietitian specializing in a 1,250 calorie daily deficit regimen with high-protein lean mass preservation.
 Extract food items with realistic weights, portions, and accurate macros (calories, protein in grams, carbohydrates in grams, fat in grams, dietary fiber in grams).
 Classify which meal the user ate into one of: 'breakfast', 'lunch', 'dinner', 'snack', or 'drink'. Prioritize high protein accuracy and dietary fiber.`;
 
@@ -5487,7 +5916,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       const fiber = Math.max(3, Math.round(parsed.items.reduce((s, i) => s + (i.fib || 0), 0) * scale));
       const title = customPrompt
         ? `High-Protein ${capitalize(customPrompt.slice(0, 36))}`
-        : `Lean GLP-1 ${capitalize(slot)} Bowl`;
+        : `Lean High-Protein ${capitalize(slot)} Bowl`;
       return {
         title,
         mealSlot: slot,
@@ -5528,7 +5957,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       };
     }
 
-    // --- WEEKLY SHOT, EXERCISE & MEAL PLANNER ENGINE ---
+    // --- WEEKLY & DAILY SHOT, EXERCISE & MEAL PLANNER ENGINE ---
     let activePlannerFilterDay = 'all'; // 'all' or '0'..'6'
     const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -5553,11 +5982,15 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       return `${h}:${mStr || '00'} ${ampm}`;
     }
 
-    function getRotatedSiteForDate(baseSite, dateStr, startDateStr) {
+    function getRotatedSiteForDate(baseSite, dateStr, startDateStr, recurrence = 'weekly') {
       if (baseSite && baseSite !== 'Auto-Rotate') return baseSite;
       const d = parseLocalDateParts(dateStr);
       if (startDateStr) {
         const s = parseLocalDateParts(startDateStr);
+        if (recurrence === 'daily') {
+          const daysSinceStart = Math.max(0, Math.floor((d.getTime() - s.getTime()) / (24 * 3600 * 1000)));
+          return ROTATION_SITES[daysSinceStart % ROTATION_SITES.length];
+        }
         const weeksSinceStart = Math.max(0, Math.floor((d.getTime() - s.getTime()) / (7 * 24 * 3600 * 1000)));
         return ROTATION_SITES[weeksSinceStart % ROTATION_SITES.length];
       }
@@ -5570,9 +6003,12 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       if (planItem.recurrence === 'once') {
         return planItem.specificDate === dateStr;
       }
-      // Enforce recurring startDate so items only trigger on or after their scheduled start date
+      // Enforce recurring startDate so daily & weekly items only trigger on or after their scheduled Start Date
       if (planItem.startDate && dateStr < planItem.startDate) {
         return false;
+      }
+      if (planItem.recurrence === 'daily') {
+        return true;
       }
       const dow = String(getDayOfWeekFromDateStr(dateStr));
       const rule = String(planItem.dayOfWeek);
@@ -5589,6 +6025,9 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       if (planItem.recurrence === 'once') {
         return planItem.specificDate && String(getDayOfWeekFromDateStr(planItem.specificDate)) === dow;
       }
+      if (planItem.recurrence === 'daily') {
+        return true;
+      }
       const rule = String(planItem.dayOfWeek);
       if (rule === 'daily') return true;
       if (rule === 'weekdays') return ['1', '2', '3', '4', '5'].includes(dow);
@@ -5603,8 +6042,11 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
         return `📅 One-Time (${planItem.specificDate || 'Date'}) • ${timeLbl}`;
       }
       const startSuffix = planItem.startDate ? ` • Starts ${planItem.startDate}` : '';
+      if (planItem.recurrence === 'daily') {
+        return `☀️ Daily (Every Day) • ${timeLbl}${startSuffix}`;
+      }
       const rule = String(planItem.dayOfWeek);
-      if (rule === 'daily') return `🔁 Every Day • ${timeLbl}${startSuffix}`;
+      if (rule === 'daily') return `☀️ Every Day • ${timeLbl}${startSuffix}`;
       if (rule === 'weekdays') return `🔁 Weekdays (Mon–Fri) • ${timeLbl}${startSuffix}`;
       if (rule === 'mwf') return `🔁 Mon / Wed / Fri • ${timeLbl}${startSuffix}`;
       if (rule === 'tth') return `🔁 Tue / Thu • ${timeLbl}${startSuffix}`;
@@ -5614,7 +6056,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
 
     function ensurePlannerDefaultDates() {
       const defaultDate = appState.activeDate || getTodayDateString();
-      ['planShotStartDate', 'planExStartDate', 'planMealStartDate', 'planShotSpecificDate', 'planExSpecificDate', 'planMealSpecificDate'].forEach(id => {
+      ['planShotStartDate', 'planShotSpecificDate', 'planExStartDate', 'planMealStartDate', 'planExSpecificDate', 'planMealSpecificDate'].forEach(id => {
         const el = document.getElementById(id);
         if (el && !el.value) el.value = defaultDate;
       });
@@ -5625,7 +6067,9 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       const dow = String(getDayOfWeekFromDateStr(dateVal));
       if (section === 'shot') {
         const sel = document.getElementById('planShotDayOfWeek');
-        if (sel) sel.value = dow;
+        if (sel && ['0', '1', '2', '3', '4', '5', '6'].includes(sel.value)) {
+          sel.value = dow;
+        }
       } else if (section === 'exercise') {
         const sel = document.getElementById('planExDayOfWeek');
         if (sel && ['0', '1', '2', '3', '4', '5', '6'].includes(sel.value)) {
@@ -5644,17 +6088,17 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       if (section === 'shot') {
         const mode = document.getElementById('planShotRecurrence').value;
         document.getElementById('planShotStartDateWrap').classList.toggle('hidden', mode === 'once');
-        document.getElementById('planShotDayOfWeekWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planShotDayOfWeekWrap').classList.toggle('hidden', mode !== 'weekly');
         document.getElementById('planShotDateWrap').classList.toggle('hidden', mode !== 'once');
       } else if (section === 'exercise') {
         const mode = document.getElementById('planExRecurrence').value;
         document.getElementById('planExStartDateWrap').classList.toggle('hidden', mode === 'once');
-        document.getElementById('planExDayOfWeekWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planExDayOfWeekWrap').classList.toggle('hidden', mode !== 'weekly');
         document.getElementById('planExDateWrap').classList.toggle('hidden', mode !== 'once');
       } else if (section === 'meal') {
         const mode = document.getElementById('planMealRecurrence').value;
         document.getElementById('planMealStartDateWrap').classList.toggle('hidden', mode === 'once');
-        document.getElementById('planMealDayOfWeekWrap').classList.toggle('hidden', mode === 'once');
+        document.getElementById('planMealDayOfWeekWrap').classList.toggle('hidden', mode !== 'weekly');
         document.getElementById('planMealDateWrap').classList.toggle('hidden', mode !== 'once');
       }
     }
@@ -5707,22 +6151,22 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
     function savePlannedShot() {
       const recurrence = document.getElementById('planShotRecurrence').value;
       const startDate = document.getElementById('planShotStartDate').value || appState.activeDate;
-      const dayOfWeek = document.getElementById('planShotDayOfWeek').value;
+      const dayOfWeek = recurrence === 'daily' ? 'daily' : document.getElementById('planShotDayOfWeek').value;
       const specificDate = document.getElementById('planShotSpecificDate').value || appState.activeDate;
-      const time = document.getElementById('planShotTime').value || '08:00';
+      const time = document.getElementById('planShotTime').value || '08:30';
       const glpDose = document.getElementById('planShotGlpDose').value.trim();
       const b12Dose = document.getElementById('planShotB12Dose').value.trim();
       const site = document.getElementById('planShotSite').value || 'Auto-Rotate';
 
       if (!glpDose && !b12Dose) {
-        showToast("Please enter a planned GLP-1 or Vitamin B12 dose");
+        showToast("Please enter a GLP-1 or Vitamin B12 dose to schedule");
         return;
       }
 
       appState.weeklyPlanner.shots.push({
         id: 'pshot_' + Date.now(),
         recurrence,
-        startDate: recurrence === 'weekly' ? startDate : null,
+        startDate: recurrence !== 'once' ? startDate : null,
         dayOfWeek,
         specificDate: recurrence === 'once' ? specificDate : null,
         time,
@@ -5736,13 +6180,13 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       saveState();
       renderPlannerTab();
       refreshUI();
-      showToast(`Shot schedule saved (${recurrence === 'once' ? specificDate : 'Starts ' + startDate})! ✓`);
+      showToast(`Scheduled injection (${recurrence === 'once' ? specificDate : 'Starts ' + startDate}) 💉`);
     }
 
     function savePlannedExercise() {
       const recurrence = document.getElementById('planExRecurrence').value;
       const startDate = document.getElementById('planExStartDate').value || appState.activeDate;
-      const dayOfWeek = document.getElementById('planExDayOfWeek').value;
+      const dayOfWeek = recurrence === 'daily' ? 'daily' : document.getElementById('planExDayOfWeek').value;
       const specificDate = document.getElementById('planExSpecificDate').value || appState.activeDate;
       const time = document.getElementById('planExTime').value || '17:30';
       const name = document.getElementById('planExName').value.trim() || 'Strength & Conditioning';
@@ -5752,7 +6196,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       appState.weeklyPlanner.exercises.push({
         id: 'pex_' + Date.now(),
         recurrence,
-        startDate: recurrence === 'weekly' ? startDate : null,
+        startDate: recurrence !== 'once' ? startDate : null,
         dayOfWeek,
         specificDate: recurrence === 'once' ? specificDate : null,
         time,
@@ -5771,7 +6215,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
     function savePlannedMeal() {
       const recurrence = document.getElementById('planMealRecurrence').value;
       const startDate = document.getElementById('planMealStartDate').value || appState.activeDate;
-      const dayOfWeek = document.getElementById('planMealDayOfWeek').value;
+      const dayOfWeek = recurrence === 'daily' ? 'daily' : document.getElementById('planMealDayOfWeek').value;
       const specificDate = document.getElementById('planMealSpecificDate').value || appState.activeDate;
       const mealSlot = document.getElementById('planMealSlot').value || 'breakfast';
       const time = document.getElementById('planMealTime').value || '08:00';
@@ -5790,7 +6234,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       const newPlanMeal = {
         id: 'pmeal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
         recurrence,
-        startDate: recurrence === 'weekly' ? startDate : null,
+        startDate: recurrence !== 'once' ? startDate : null,
         dayOfWeek,
         specificDate: recurrence === 'once' ? specificDate : null,
         mealSlot,
@@ -5821,9 +6265,9 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
     }
 
     function applyDefault4MealTemplate() {
-      const recurrence = document.getElementById('planMealRecurrence').value || 'weekly';
+      const recurrence = document.getElementById('planMealRecurrence').value || 'daily';
       const startDate = document.getElementById('planMealStartDate').value || appState.activeDate;
-      const dayOfWeek = document.getElementById('planMealDayOfWeek').value || 'daily';
+      const dayOfWeek = recurrence === 'daily' ? 'daily' : (document.getElementById('planMealDayOfWeek').value || 'daily');
       const specificDate = document.getElementById('planMealSpecificDate').value || appState.activeDate;
 
       const templateMeals = [
@@ -5837,7 +6281,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
         appState.weeklyPlanner.meals.push({
           id: 'pmeal_tpl_' + Date.now() + '_' + idx,
           recurrence,
-          startDate: recurrence === 'weekly' ? startDate : null,
+          startDate: recurrence !== 'once' ? startDate : null,
           dayOfWeek,
           specificDate: recurrence === 'once' ? specificDate : null,
           ...tm
@@ -5847,7 +6291,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       saveState();
       renderPlannerTab();
       refreshUI();
-      showToast("Loaded 4-Small-Meal GLP-1 Template (1,140 kcal • 122g Protein) ✓");
+      showToast("Loaded 4-Small-Meal High-Protein Template (1,140 kcal • 122g Protein) ✓");
     }
 
     function removePlannedItem(category, id) {
@@ -5901,25 +6345,19 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       const shots = (appState.weeklyPlanner.shots || []).filter(filterFn);
       if (shotsEl) {
         if (shots.length === 0) {
-          shotsEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No shot schedules set for this view. Add your weekly GLP-1 & B12 time above.</p>`;
+          shotsEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No scheduled shots for this view. Add your weekly or daily GLP-1 & B12 schedule above.</p>`;
         } else {
           shotsEl.innerHTML = shots.map(s => {
-            const nextSite = getRotatedSiteForDate(s.site, appState.activeDate, s.startDate);
+            const sitePreview = getRotatedSiteForDate(s.site, appState.activeDate, s.startDate, s.recurrence);
             return `
-              <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-xs">
+              <div class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/80 flex items-center justify-between text-xs">
                 <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-bold text-purple-950">${escapeHtml(formatPlanScheduleBadge(s))}</span>
-                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-200/70 text-purple-900">${escapeHtml(nextSite)}</span>
-                  </div>
-                  <div class="text-[11px] text-slate-700 mt-0.5">
-                    ${s.glpDose ? `<strong>GLP-1:</strong> ${escapeHtml(s.glpDose)}` : ''}
-                    ${s.b12Dose ? ` • <strong>B12:</strong> ${escapeHtml(s.b12Dose)}` : ''}
-                  </div>
+                  <span class="font-bold text-purple-950 block">💉 ${s.glpDose ? 'GLP-1: ' + escapeHtml(s.glpDose) : ''} ${s.b12Dose ? (s.glpDose ? ' • ' : '') + 'B12: ' + escapeHtml(s.b12Dose) : ''}</span>
+                  <span class="text-[10px] text-purple-700 block mt-0.5">${escapeHtml(formatPlanScheduleBadge(s))} • Site: ${escapeHtml(sitePreview)}</span>
                 </div>
-                <div class="flex items-center gap-1.5">
-                  <button type="button" onclick="applySinglePlannedItem('shot', '${s.id}')" class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] font-bold transition" title="Log to active date">
-                    Log Today
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button type="button" onclick="applySinglePlannedItem('shot', '${s.id}')" class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] font-bold transition">
+                    Log Shot
                   </button>
                   <button type="button" onclick="removePlannedItem('shots', '${s.id}')" class="text-slate-400 hover:text-rose-500 p-1">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -5936,7 +6374,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       const exercises = (appState.weeklyPlanner.exercises || []).filter(filterFn);
       if (exEl) {
         if (exercises.length === 0) {
-          exEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No planned workouts for this view. Schedule your weekly routines above.</p>`;
+          exEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-2">No planned workouts for this view. Schedule your daily or weekly routines above.</p>`;
         } else {
           exEl.innerHTML = exercises.map(e => `
             <div class="p-2.5 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center justify-between text-xs">
@@ -6017,7 +6455,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       if (type === 'shot') {
         const s = (appState.weeklyPlanner.shots || []).find(x => x.id === planId);
         if (!s) return;
-        const rotatedSite = getRotatedSiteForDate(s.site, dateStr, s.startDate);
+        const rotatedSite = getRotatedSiteForDate(s.site, dateStr, s.startDate, s.recurrence);
         day.protocol = {
           glpDose: s.glpDose || (day.protocol ? day.protocol.glpDose : ''),
           b12Dose: s.b12Dose || (day.protocol ? day.protocol.b12Dose : ''),
@@ -6126,7 +6564,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
         if (applyAllBtn) applyAllBtn.classList.add('hidden');
         container.innerHTML = `
           <div class="text-[11px] text-slate-400 py-1.5 flex items-center justify-between">
-            <span>No recurring or one-time items scheduled for ${DAY_NAMES_FULL[dow]} yet.</span>
+            <span>No daily, weekly, or one-time items scheduled for ${DAY_NAMES_FULL[dow]} yet.</span>
             <button type="button" onclick="switchTab('planner')" class="text-teal-600 font-bold underline">Set up schedule</button>
           </div>
         `;
@@ -6151,14 +6589,15 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
 
       matchingShots.forEach(s => {
         const done = isPlanOccurrenceCompleted(s.id, dateStr);
-        const site = getRotatedSiteForDate(s.site, dateStr, s.startDate);
+        const site = getRotatedSiteForDate(s.site, dateStr, s.startDate, s.recurrence);
+        const freqLabel = s.recurrence === 'once' ? 'One-Time' : (s.recurrence === 'daily' ? 'Daily' : 'Weekly') + (s.startDate ? ' from ' + s.startDate : '');
         rows.push(`
           <div class="p-2 rounded-xl border flex items-center justify-between text-xs ${done ? 'bg-emerald-50/50 border-emerald-200/70 opacity-75' : 'bg-purple-50/70 border-purple-200/80'}">
             <div class="flex items-center gap-2 pr-2">
               <span class="text-sm">💉</span>
               <div>
                 <span class="font-bold text-purple-950 block">${formatTime12h(s.time)} • ${escapeHtml(s.glpDose || '')} ${s.b12Dose ? '+ B12 ' + escapeHtml(s.b12Dose) : ''}</span>
-                <span class="text-[10px] text-purple-700">Site: ${escapeHtml(site)} (${s.recurrence === 'once' ? 'One-Time' : 'Weekly' + (s.startDate ? ' from ' + s.startDate : '')})</span>
+                <span class="text-[10px] text-purple-700">Site: ${escapeHtml(site)} (${freqLabel})</span>
               </div>
             </div>
             ${done
@@ -6171,13 +6610,14 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
 
       matchingEx.forEach(e => {
         const done = isPlanOccurrenceCompleted(e.id, dateStr);
+        const freqLabel = e.recurrence === 'once' ? 'One-Time' : (e.recurrence === 'daily' ? 'Daily' : 'Weekly') + (e.startDate ? ' from ' + e.startDate : '');
         rows.push(`
           <div class="p-2 rounded-xl border flex items-center justify-between text-xs ${done ? 'bg-emerald-50/50 border-emerald-200/70 opacity-75' : 'bg-blue-50/70 border-blue-200/80'}">
             <div class="flex items-center gap-2 pr-2">
               <span class="text-sm">🏃</span>
               <div>
                 <span class="font-bold text-blue-950 block">${formatTime12h(e.time)} • ${escapeHtml(e.name)} (${e.duration}m)</span>
-                <span class="text-[10px] text-blue-700">+${e.cal} kcal burn (${e.recurrence === 'once' ? 'One-Time' : 'Weekly'})</span>
+                <span class="text-[10px] text-blue-700">+${e.cal} kcal burn (${freqLabel})</span>
               </div>
             </div>
             ${done
@@ -6190,13 +6630,14 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
 
       matchingMeals.forEach(m => {
         const done = isPlanOccurrenceCompleted(m.id, dateStr);
+        const freqLabel = m.recurrence === 'once' ? 'One-Time' : (m.recurrence === 'daily' ? 'Daily' : 'Weekly');
         rows.push(`
           <div class="p-2 rounded-xl border flex items-center justify-between text-xs ${done ? 'bg-emerald-50/50 border-emerald-200/70 opacity-75' : 'bg-slate-50 border-slate-200/80'}">
             <div class="flex items-center gap-2 pr-2 min-w-0">
               <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-teal-100 text-teal-800 shrink-0">${escapeHtml(m.mealSlot)}</span>
               <div class="truncate">
                 <span class="font-bold text-slate-800 block truncate">${escapeHtml(m.name)}</span>
-                <span class="text-[10px] text-slate-500">${formatTime12h(m.time)} • ${m.cal} kcal • ${m.p || 0}g P</span>
+                <span class="text-[10px] text-slate-500">${formatTime12h(m.time)} • ${m.cal} kcal • ${m.p || 0}g P (${freqLabel})</span>
               </div>
             </div>
             ${done
