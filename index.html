@@ -839,6 +839,12 @@
           <div id="recipeIngredientsContainer" class="space-y-2"></div>
         </div>
 
+        <!-- Preparation Steps / Instructions -->
+        <div class="pt-1">
+          <label class="text-[11px] font-semibold text-slate-600 block mb-1">Preparation Steps / Instructions <span class="text-slate-400 font-normal">(optional, one step per line)</span></label>
+          <textarea id="rcSteps" rows="3" placeholder="e.g.&#10;1. Brown lean turkey in a nonstick skillet over medium heat.&#10;2. Stir in diced tomatoes, spices, and simmer 15 minutes." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+
         <!-- Realtime Per-Serving Nutrition Summary -->
         <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3">
           <div class="flex items-center justify-between mb-1.5">
@@ -859,7 +865,30 @@
 
       <!-- Saved Custom Recipes Section -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
-        <h3 class="text-sm font-bold text-slate-900">My Saved Custom Recipes</h3>
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">My Saved Custom Recipes</h3>
+            <p class="text-[11px] text-slate-500">Tap any recipe or click View to open full ingredients &amp; steps</p>
+          </div>
+          <span id="savedRecipesCountBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70">0 recipes</span>
+        </div>
+
+        <!-- Search & Meal Slot Filter Bar -->
+        <div class="flex flex-col sm:flex-row gap-2">
+          <div class="relative flex-1">
+            <input type="search" id="savedRecipeSearchInput" oninput="renderSavedRecipesList()" placeholder="Search saved recipes, ingredients, or steps..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+          </div>
+          <select id="savedRecipeMealFilter" onchange="renderSavedRecipesList()" class="text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700">
+            <option value="all">All Meal Slots</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+            <option value="drink">Drink</option>
+          </select>
+        </div>
+
         <div id="savedRecipesList" class="space-y-2"></div>
       </div>
     </section>
@@ -2093,6 +2122,127 @@
     </div>
   </div>
 
+
+  <!-- Modal: Saved Recipe Ingredients & Steps Viewer / Editor -->
+  <div id="savedRecipeDetailModal" onclick="if(event.target===this)closeSavedRecipeModal()" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-100 flex items-start justify-between gap-3 bg-gradient-to-r from-emerald-700 via-teal-700 to-slate-900 text-white">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <span id="srModalMealBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/20 text-emerald-100">DINNER</span>
+            <span id="srModalServingsBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-black/25 text-slate-200">2 Servings</span>
+          </div>
+          <h3 id="srModalTitle" class="font-bold text-base text-white leading-snug break-words">Saved Recipe</h3>
+        </div>
+        <button type="button" onclick="closeSavedRecipeModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center shrink-0 transition" title="Close">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Scrollable Content -->
+      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+        <!-- Per-Serving Macros Summary Strip -->
+        <div class="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-emerald-900 uppercase tracking-wide">Per-Serving Nutrition</span>
+            <span id="srModalCalories" class="text-base font-extrabold text-emerald-700">0 kcal</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5 text-center text-xs bg-white rounded-xl py-2 px-1 border border-emerald-100">
+            <div>
+              <span class="text-[9px] font-bold text-rose-500 uppercase block">Protein</span>
+              <strong id="srModalProtein" class="text-slate-800">0g</strong>
+            </div>
+            <div>
+              <span class="text-[9px] font-bold text-amber-500 uppercase block">Carbs</span>
+              <strong id="srModalCarbs" class="text-slate-800">0g</strong>
+            </div>
+            <div>
+              <span class="text-[9px] font-bold text-indigo-500 uppercase block">Fat</span>
+              <strong id="srModalFat" class="text-slate-800">0g</strong>
+            </div>
+            <div>
+              <span class="text-[9px] font-bold text-emerald-600 uppercase block">Fiber</span>
+              <strong id="srModalFiber" class="text-slate-800">0g</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- READ VIEW -->
+        <div id="srModalReadView" class="space-y-4">
+          <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="shopping-basket" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Ingredients</span>
+              </h4>
+              <span id="srModalIngCount" class="text-[10px] font-semibold text-slate-400"></span>
+            </div>
+            <ul id="srModalIngredientsList" class="space-y-1.5 text-xs text-slate-700"></ul>
+          </div>
+
+          <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="chef-hat" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Preparation Steps</span>
+              </h4>
+              <button type="button" id="srModalQuickEditStepsBtn" onclick="toggleSavedRecipeEditMode(true)" class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                <i data-lucide="pencil" class="w-3 h-3"></i>
+                <span>Edit Recipe</span>
+              </button>
+            </div>
+            <ol id="srModalStepsList" class="space-y-2 text-xs text-slate-700 leading-relaxed"></ol>
+          </div>
+        </div>
+
+        <!-- EDIT VIEW -->
+        <div id="srModalEditView" class="hidden space-y-3">
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Recipe Title</label>
+            <input type="text" id="srEditTitleInput" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800" />
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Ingredients <span class="font-normal text-slate-400">(one per line)</span></label>
+            <textarea id="srEditIngredientsInput" rows="5" placeholder="e.g.&#10;5 oz fresh shrimp&#10;8 spears asparagus&#10;1 tsp extra virgin olive oil" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Preparation Steps <span class="font-normal text-slate-400">(one step per line)</span></label>
+            <textarea id="srEditStepsInput" rows="5" placeholder="e.g.&#10;Steam asparagus for 3 minutes.&#10;Sauté shrimp with garlic and olive oil for 4 minutes until pink." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button type="button" onclick="saveEditedRecipeDetails()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
+              Save Recipe Updates
+            </button>
+            <button type="button" onclick="toggleSavedRecipeEditMode(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div id="srModalFooter" class="p-3 border-t border-slate-100 bg-slate-50 flex items-center gap-2">
+        <button type="button" id="srModalEditToggleBtn" onclick="toggleSavedRecipeEditMode(true)" class="px-3 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-xl text-xs transition flex items-center gap-1.5">
+          <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+          <span>Edit</span>
+        </button>
+        <div class="flex-1 flex items-center gap-1.5">
+          <select id="srModalLogMealSelect" class="text-xs font-semibold px-2.5 py-2.5 bg-white border border-slate-200 rounded-xl outline-none text-slate-700">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+            <option value="drink">Drink</option>
+          </select>
+          <button type="button" id="srModalLogBtn" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center justify-center gap-1.5">
+            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            <span id="srModalLogBtnText">Log 1 Serving</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal 3: Toast Notification Box -->
   <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
@@ -3793,6 +3943,7 @@
         const ps = r.perServing || { cal: 250, p: 20, c: 15, f: 8 };
         map.set(k, {
           name: r.name,
+          recipeId: r.id,
           portion: `1 serving (${r.servings || 1}-serv recipe)`,
           cal: Number(ps.cal) || 0,
           p: Number(ps.p) || 0,
@@ -3939,12 +4090,15 @@
         } else if (f.sourceType === 'curated') {
           badgeHtml = `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">Meal Idea</span>`;
         }
+        const viewRecipeBtnHtml = f.recipeId
+          ? `<span role="button" tabindex="0" onclick="event.stopPropagation(); openSavedRecipeModal('${f.recipeId}')" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 hover:bg-indigo-200 text-indigo-800 transition shrink-0" title="Open Ingredients &amp; Steps">📖 Recipe</span>`
+          : '';
         return `
           <button type="button" onclick="selectQuickFoodItem('${encodeURIComponent(JSON.stringify(f))}')" class="text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/70 hover:border-emerald-300 transition flex flex-col justify-between group">
             <div>
               <div class="flex items-start justify-between gap-1">
                 <div class="font-semibold text-xs text-slate-800 group-hover:text-emerald-900 line-clamp-1">${escapeHtml(f.name)}</div>
-                ${badgeHtml}
+                <div class="flex items-center gap-1 shrink-0">${viewRecipeBtnHtml}${badgeHtml}</div>
               </div>
               <div class="text-[10px] text-slate-400 truncate mt-0.5">${escapeHtml(f.portion || '1 serving')}</div>
             </div>
@@ -4758,10 +4912,56 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       document.getElementById('previewPerServingF').innerText = `${perF}g`;
     }
 
+    let activeSavedRecipeModalId = null;
+
+    function normalizeRecipeStepsArray(rawSteps) {
+      if (!rawSteps) return [];
+      if (Array.isArray(rawSteps)) {
+        return rawSteps.map(s => String(s || '').replace(/^\s*(?:step\s*\d+[:.)\-]?|\d+[.)\-]|[-*•])\s*/i, '').trim()).filter(Boolean);
+      }
+      const str = String(rawSteps).trim();
+      if (!str) return [];
+      const lines = str.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      if (lines.length > 1) {
+        return lines.map(s => s.replace(/^\s*(?:step\s*\d+[:.)\-]?|\d+[.)\-]|[-*•])\s*/i, '').trim()).filter(Boolean);
+      }
+      // Split single-paragraph instructions into numbered or sentence steps cleanly
+      const numberedSplit = str.split(/(?=\b(?:Step\s*\d+[:.)]|\d+\.\s+[A-Z]))/i).map(s => s.trim()).filter(Boolean);
+      if (numberedSplit.length > 1) {
+        return numberedSplit.map(s => s.replace(/^\s*(?:step\s*\d+[:.)\-]?|\d+[.)\-]|[-*•])\s*/i, '').trim()).filter(Boolean);
+      }
+      const sentenceSplit = str.split(/(?<=[.!?])\s+(?=[A-Z])/).map(s => s.trim()).filter(Boolean);
+      return sentenceSplit.length > 1 ? sentenceSplit : [str];
+    }
+
+    function normalizeRecipeIngredientsArray(rawIngredients) {
+      if (!rawIngredients) return [];
+      if (Array.isArray(rawIngredients)) {
+        return rawIngredients.map(ing => {
+          if (typeof ing === 'string') return { label: ing.trim(), meta: '' };
+          const name = String(ing.name || ing.item || '').trim();
+          const cal = Number(ing.cal) || 0;
+          const p = Number(ing.p) || 0;
+          const c = Number(ing.c) || 0;
+          const f = Number(ing.f) || 0;
+          const hasMacroBreakdown = (p > 0 || c > 0 || f > 0);
+          const meta = hasMacroBreakdown
+            ? `${cal} kcal • ${p}g P • ${c}g C • ${f}g F`
+            : (cal > 0 && !name.toLowerCase().includes('kcal') ? `${cal} kcal` : '');
+          return { label: name, meta };
+        }).filter(x => x.label);
+      }
+      if (typeof rawIngredients === 'string') {
+        return rawIngredients.split(/\r?\n/).map(s => ({ label: s.trim(), meta: '' })).filter(x => x.label);
+      }
+      return [];
+    }
+
     function calculateAndSaveRecipe() {
       const name = document.getElementById('rcName').value.trim();
       const servings = Math.max(1, Number(document.getElementById('rcServings').value) || 1);
       const meal = document.getElementById('rcTargetMeal').value;
+      const rawSteps = document.getElementById('rcSteps') ? document.getElementById('rcSteps').value.trim() : '';
       const rows = document.querySelectorAll('.ing-row');
 
       if (!name) {
@@ -4792,6 +4992,8 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         return;
       }
 
+      const parsedSteps = normalizeRecipeStepsArray(rawSteps);
+
       const newRecipe = {
         id: 'rec_' + Date.now(),
         name,
@@ -4803,19 +5005,24 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
           p: Math.round(totalP / servings),
           c: Math.round(totalC / servings),
           f: Math.round(totalF / servings),
+          fib: 0
         },
-        ingredients
+        ingredients,
+        steps: parsedSteps,
+        instructions: rawSteps
       };
 
       appState.customRecipes.unshift(newRecipe);
       saveState();
       renderSavedRecipesList();
+      if (document.getElementById('rcSteps')) document.getElementById('rcSteps').value = '';
       showToast(`Recipe saved! ${newRecipe.perServing.cal} kcal per serving`);
     }
 
     function clearRecipeForm() {
       document.getElementById('rcName').value = '';
       document.getElementById('rcServings').value = 2;
+      if (document.getElementById('rcSteps')) document.getElementById('rcSteps').value = '';
       document.getElementById('recipeIngredientsContainer').innerHTML = '';
       addRecipeIngredientRow();
       addRecipeIngredientRow();
@@ -4824,50 +5031,249 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
 
     function renderSavedRecipesList() {
       const listEl = document.getElementById('savedRecipesList');
+      const countBadge = document.getElementById('savedRecipesCountBadge');
       if (!listEl) return;
-      if (!appState.customRecipes || appState.customRecipes.length === 0) {
-        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No custom recipes saved yet. Create one above!</p>`;
+
+      const allRecipes = appState.customRecipes || [];
+      const searchQuery = (document.getElementById('savedRecipeSearchInput')?.value || '').toLowerCase().trim();
+      const mealFilter = document.getElementById('savedRecipeMealFilter')?.value || 'all';
+
+      if (allRecipes.length === 0) {
+        if (countBadge) countBadge.innerText = '0 recipes';
+        listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No custom recipes saved yet. Generate one with AI or build one above!</p>`;
         return;
       }
 
-      listEl.innerHTML = appState.customRecipes.map((r, idx) => `
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-          <div class="flex items-start justify-between">
-            <div>
-              <h4 class="font-bold text-slate-800 text-xs">${escapeHtml(r.name)}</h4>
-              <p class="text-[10px] text-slate-400">${r.servings} servings • ${r.meal.toUpperCase()}</p>
+      const filtered = allRecipes.filter(r => {
+        const rMeal = (r.meal || 'dinner').toLowerCase();
+        if (mealFilter !== 'all' && rMeal !== mealFilter) return false;
+        if (!searchQuery) return true;
+
+        const titleText = (r.name || '').toLowerCase();
+        const ingText = normalizeRecipeIngredientsArray(r.ingredients).map(i => i.label).join(' ').toLowerCase();
+        const stepsText = normalizeRecipeStepsArray(r.steps || r.instructions).join(' ').toLowerCase();
+        return titleText.includes(searchQuery) || ingText.includes(searchQuery) || stepsText.includes(searchQuery) || rMeal.includes(searchQuery);
+      });
+
+      if (countBadge) {
+        countBadge.innerText = (searchQuery || mealFilter !== 'all')
+          ? `${filtered.length} of ${allRecipes.length} recipes`
+          : `${allRecipes.length} recipe${allRecipes.length === 1 ? '' : 's'}`;
+      }
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-5 bg-slate-50 rounded-xl border border-dashed border-slate-200 space-y-1.5">
+            <p class="text-xs font-semibold text-slate-600">No saved recipes match "${escapeHtml(searchQuery)}"</p>
+            <button type="button" onclick="clearSavedRecipeFilters()" class="text-[11px] font-bold text-emerald-600 hover:underline">Clear search &amp; filters</button>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map((r) => {
+        const ingCount = normalizeRecipeIngredientsArray(r.ingredients).length;
+        const stepCount = normalizeRecipeStepsArray(r.steps || r.instructions).length;
+        const ps = r.perServing || { cal: 0, p: 0, c: 0, f: 0 };
+        const detailMeta = `${ingCount} ingredient${ingCount === 1 ? '' : 's'} • ${stepCount > 0 ? stepCount + (stepCount === 1 ? ' step' : ' steps') : 'Tap View to add steps'}`;
+
+        return `
+          <div class="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/40 border border-slate-200/80 hover:border-emerald-300/80 transition space-y-2">
+            <div onclick="openSavedRecipeModal('${r.id}')" class="flex items-start justify-between gap-2 cursor-pointer group">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">${escapeHtml((r.meal || 'dinner').toUpperCase())}</span>
+                  <span class="text-[10px] text-slate-400 font-medium">${r.servings || 1} ${(r.servings || 1) === 1 ? 'serving' : 'servings'}</span>
+                </div>
+                <h4 class="font-bold text-slate-800 group-hover:text-emerald-700 text-xs mt-1 underline decoration-slate-300 group-hover:decoration-emerald-500 underline-offset-2">${escapeHtml(r.name)}</h4>
+                <p class="text-[10px] text-slate-500 mt-0.5">${detailMeta}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="text-sm font-extrabold text-emerald-600 block">${Math.round(ps.cal || 0)} kcal</span>
+                <span class="text-[10px] text-slate-500">${Math.round(ps.p || 0)}g P • ${Math.round(ps.c || 0)}g C • ${Math.round(ps.f || 0)}g F</span>
+              </div>
             </div>
-            <div class="text-right">
-              <span class="text-sm font-extrabold text-emerald-600 block">${r.perServing.cal} kcal</span>
-              <span class="text-[10px] text-slate-500">${r.perServing.p}g P • ${r.perServing.c}g C • ${r.perServing.f}g F</span>
+            <div class="flex items-center gap-1.5 pt-1.5 border-t border-slate-200/60">
+              <button type="button" onclick="openSavedRecipeModal('${r.id}')" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-lg text-[11px] transition flex items-center gap-1 shadow-2xs">
+                <i data-lucide="book-open" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>View Recipe</span>
+              </button>
+              <button type="button" onclick="logRecipeServingToDay('${r.id}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[11px] transition">
+                Log 1 Serving (${Math.round(ps.cal || 0)} kcal)
+              </button>
+              <button type="button" onclick="deleteSavedRecipe('${r.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition" title="Delete Recipe">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
             </div>
           </div>
-          <div class="flex gap-2 pt-1 border-t border-slate-200/50">
-            <button onclick="logRecipeServingToDay('${r.id}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[11px] transition">
-              Log 1 Serving to Today (${r.perServing.cal} kcal)
-            </button>
-            <button onclick="deleteSavedRecipe(${idx})" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition" title="Delete">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
       lucide.createIcons();
     }
 
-    function logRecipeServingToDay(recipeId) {
-      const rec = appState.customRecipes.find(r => r.id === recipeId);
+    function clearSavedRecipeFilters() {
+      const sInput = document.getElementById('savedRecipeSearchInput');
+      const mSelect = document.getElementById('savedRecipeMealFilter');
+      if (sInput) sInput.value = '';
+      if (mSelect) mSelect.value = 'all';
+      renderSavedRecipesList();
+    }
+
+    function openSavedRecipeModal(recipeId) {
+      const rec = (appState.customRecipes || []).find(r => String(r.id) === String(recipeId));
+      if (!rec) {
+        showToast("Recipe not found");
+        return;
+      }
+
+      activeSavedRecipeModalId = rec.id;
+      const ps = rec.perServing || { cal: 0, p: 0, c: 0, f: 0, fib: 0 };
+      const mealSlot = rec.meal || 'dinner';
+      const servings = rec.servings || 1;
+
+      document.getElementById('srModalTitle').innerText = rec.name || 'Saved Recipe';
+      document.getElementById('srModalMealBadge').innerText = mealSlot.toUpperCase();
+      document.getElementById('srModalServingsBadge').innerText = `${servings} ${servings === 1 ? 'Serving' : 'Servings'}`;
+
+      document.getElementById('srModalCalories').innerText = `${Math.round(ps.cal || 0)} kcal`;
+      document.getElementById('srModalProtein').innerText = `${Math.round(ps.p || 0)}g`;
+      document.getElementById('srModalCarbs').innerText = `${Math.round(ps.c || 0)}g`;
+      document.getElementById('srModalFat').innerText = `${Math.round(ps.f || 0)}g`;
+      document.getElementById('srModalFiber').innerText = `${Math.round(ps.fib ?? ps.fiber ?? 0)}g`;
+
+      const normalizedIngs = normalizeRecipeIngredientsArray(rec.ingredients);
+      const normalizedSteps = normalizeRecipeStepsArray(rec.steps || rec.instructions);
+
+      const ingCountEl = document.getElementById('srModalIngCount');
+      if (ingCountEl) ingCountEl.innerText = `${normalizedIngs.length} item${normalizedIngs.length === 1 ? '' : 's'}`;
+
+      const ingListEl = document.getElementById('srModalIngredientsList');
+      if (normalizedIngs.length > 0) {
+        ingListEl.innerHTML = normalizedIngs.map(ing => `
+          <li class="flex items-start justify-between gap-2 py-1 border-b border-slate-200/50 last:border-b-0">
+            <span class="flex items-start gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
+              <span class="font-medium text-slate-800">${escapeHtml(ing.label)}</span>
+            </span>
+            ${ing.meta ? `<span class="text-[10px] font-semibold text-slate-400 shrink-0">${escapeHtml(ing.meta)}</span>` : ''}
+          </li>
+        `).join('');
+      } else {
+        ingListEl.innerHTML = `<li class="text-slate-400 italic text-xs">No ingredients listed yet. Tap "Edit" below to add them.</li>`;
+      }
+
+      const stepsListEl = document.getElementById('srModalStepsList');
+      if (normalizedSteps.length > 0) {
+        stepsListEl.innerHTML = normalizedSteps.map((step, idx) => `
+          <li class="flex items-start gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+            <span class="text-slate-700 flex-1">${escapeHtml(step)}</span>
+          </li>
+        `).join('');
+      } else {
+        stepsListEl.innerHTML = `
+          <li class="text-slate-400 italic text-xs flex items-center justify-between gap-2">
+            <span>No preparation steps saved for this recipe yet.</span>
+            <button type="button" onclick="toggleSavedRecipeEditMode(true)" class="text-emerald-600 font-semibold not-italic underline shrink-0">+ Add Steps</button>
+          </li>
+        `;
+      }
+
+      // Populate Edit fields
+      document.getElementById('srEditTitleInput').value = rec.name || '';
+      document.getElementById('srEditIngredientsInput').value = normalizedIngs.map(i => i.label).join('\n');
+      document.getElementById('srEditStepsInput').value = normalizedSteps.join('\n');
+
+      // Configure Log Controls
+      const logMealSelect = document.getElementById('srModalLogMealSelect');
+      if (logMealSelect && ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].includes(mealSlot)) {
+        logMealSelect.value = mealSlot;
+      }
+      document.getElementById('srModalLogBtnText').innerText = `Log (${Math.round(ps.cal || 0)} kcal)`;
+      document.getElementById('srModalLogBtn').onclick = () => {
+        const chosenSlot = document.getElementById('srModalLogMealSelect').value || mealSlot;
+        logRecipeServingToDay(rec.id, chosenSlot);
+        closeSavedRecipeModal();
+      };
+
+      toggleSavedRecipeEditMode(false);
+      document.getElementById('savedRecipeDetailModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeSavedRecipeModal() {
+      document.getElementById('savedRecipeDetailModal').classList.add('hidden');
+      activeSavedRecipeModalId = null;
+    }
+
+    function toggleSavedRecipeEditMode(isEdit) {
+      const readView = document.getElementById('srModalReadView');
+      const editView = document.getElementById('srModalEditView');
+      const footer = document.getElementById('srModalFooter');
+      if (isEdit) {
+        readView.classList.add('hidden');
+        editView.classList.remove('hidden');
+        footer.classList.add('hidden');
+      } else {
+        readView.classList.remove('hidden');
+        editView.classList.add('hidden');
+        footer.classList.remove('hidden');
+      }
+    }
+
+    function saveEditedRecipeDetails() {
+      const rec = (appState.customRecipes || []).find(r => String(r.id) === String(activeSavedRecipeModalId));
       if (!rec) return;
 
-      const targetMeal = rec.meal || 'dinner';
-      recordFoodUsage({ name: `${rec.name} (1 serving)`, cal: rec.perServing.cal, p: rec.perServing.p, c: rec.perServing.c, f: rec.perServing.f }, targetMeal, true);
+      const updatedTitle = document.getElementById('srEditTitleInput').value.trim();
+      const rawIngLines = document.getElementById('srEditIngredientsInput').value
+        .split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const rawStepLines = document.getElementById('srEditStepsInput').value
+        .split(/\r?\n/).map(s => s.replace(/^\s*(?:step\s*\d+[:.)\-]?|\d+[.)\-]|[-*•])\s*/i, '').trim()).filter(Boolean);
+
+      if (updatedTitle) rec.name = updatedTitle;
+
+      // Preserve existing per-ingredient macros where names match, otherwise store clean ingredient entries
+      const oldIngMap = new Map();
+      (rec.ingredients || []).forEach(ing => {
+        if (ing && typeof ing === 'object' && ing.name) {
+          oldIngMap.set(ing.name.toLowerCase().trim(), ing);
+        }
+      });
+
+      const perItemCalFallback = rawIngLines.length > 0
+        ? Math.round(((rec.perServing?.cal || 0) * (rec.servings || 1)) / rawIngLines.length)
+        : 0;
+
+      rec.ingredients = rawIngLines.map(line => {
+        const existing = oldIngMap.get(line.toLowerCase());
+        return existing ? existing : { name: line, cal: perItemCalFallback, p: 0, c: 0, f: 0 };
+      });
+
+      rec.steps = rawStepLines;
+      rec.instructions = rawStepLines.join('\n');
+
+      saveState();
+      renderSavedRecipesList();
+      openSavedRecipeModal(rec.id);
+      showToast("Saved recipe ingredients & steps updated! ✓");
+    }
+
+    function logRecipeServingToDay(recipeId, overrideMealSlot) {
+      const rec = appState.customRecipes.find(r => String(r.id) === String(recipeId));
+      if (!rec) return;
+
+      const targetMeal = overrideMealSlot || rec.meal || 'dinner';
+      const fibVal = Number(rec.perServing.fib ?? rec.perServing.fiber ?? 0) || 0;
+      recordFoodUsage({ name: `${rec.name} (1 serving)`, cal: rec.perServing.cal, p: rec.perServing.p, c: rec.perServing.c, f: rec.perServing.f, fib: fibVal }, targetMeal, true);
       appState.days[appState.activeDate][targetMeal].push({
         id: 'rec_log_' + Date.now(),
         name: `${rec.name} (1 serving)`,
         cal: rec.perServing.cal,
         p: rec.perServing.p,
         c: rec.perServing.c,
-        f: rec.perServing.f
+        f: rec.perServing.f,
+        fib: fibVal
       });
 
       saveState();
@@ -4875,8 +5281,15 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       showToast(`Logged 1 serving to ${capitalize(targetMeal)}!`);
     }
 
-    function deleteSavedRecipe(index) {
-      appState.customRecipes.splice(index, 1);
+    function deleteSavedRecipe(idOrIndex) {
+      let idx = -1;
+      if (typeof idOrIndex === 'number') {
+        idx = idOrIndex;
+      } else {
+        idx = (appState.customRecipes || []).findIndex(r => String(r.id) === String(idOrIndex));
+      }
+      if (idx < 0) return;
+      appState.customRecipes.splice(idx, 1);
       saveState();
       renderSavedRecipesList();
       showToast("Recipe removed");
@@ -4920,19 +5333,22 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
 
       const allPool = [
         ...CURATED_RECIPES,
-        ...(appState.customRecipes || []).map(cr => ({
-          id: cr.id,
-          title: cr.name,
-          meal: cr.meal || 'dinner',
-          cal: cr.perServing.cal,
-          protein: cr.perServing.p,
-          carbs: cr.perServing.c,
-          fat: cr.perServing.f,
-          fiber: 2,
-          prepTime: "Custom",
-          ingredients: cr.ingredients ? cr.ingredients.map(i => i.name) : ["Custom saved ingredients"],
-          steps: `Custom user recipe batch (${cr.servings} servings).`
-        }))
+        ...(appState.customRecipes || []).map(cr => {
+          const savedSteps = normalizeRecipeStepsArray(cr.steps || cr.instructions);
+          return {
+            id: cr.id,
+            title: cr.name,
+            meal: cr.meal || 'dinner',
+            cal: cr.perServing.cal,
+            protein: cr.perServing.p,
+            carbs: cr.perServing.c,
+            fat: cr.perServing.f,
+            fiber: Number(cr.perServing.fib ?? cr.perServing.fiber ?? 2) || 2,
+            prepTime: "Saved Recipe",
+            ingredients: cr.ingredients ? cr.ingredients.map(i => typeof i === 'string' ? i : i.name) : ["Custom saved ingredients"],
+            steps: savedSteps.length > 0 ? savedSteps.join(' ') : `Custom user recipe batch (${cr.servings} servings).`
+          };
+        })
       ];
 
       let suggestions = allPool.filter(r => {
@@ -5150,6 +5566,7 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
 
     function saveAICappedToLibrary(encoded) {
       const rec = JSON.parse(decodeURIComponent(encoded));
+      const parsedSteps = normalizeRecipeStepsArray(rec.steps || rec.instructions);
       appState.customRecipes.unshift({
         id: 'rec_lib_' + Date.now(),
         name: rec.title,
@@ -5158,14 +5575,18 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
         totalCal: rec.cal,
         perServing: {
           cal: rec.cal,
-          p: rec.protein,
-          c: rec.carbs,
-          f: rec.fat
+          p: Math.round(rec.protein),
+          c: Math.round(rec.carbs),
+          f: Math.round(rec.fat),
+          fib: Math.round(rec.fiber || 0)
         },
-        ingredients: rec.ingredients.map(i => ({ name: i, cal: Math.round(rec.cal / rec.ingredients.length), p: 0, c: 0, f: 0 }))
+        ingredients: (rec.ingredients || []).map(i => ({ name: i, cal: Math.round(rec.cal / Math.max(1, rec.ingredients.length)), p: 0, c: 0, f: 0 })),
+        steps: parsedSteps,
+        instructions: Array.isArray(rec.steps) ? rec.steps.join('\n') : (rec.steps || '')
       });
       saveState();
-      showToast(`Saved "${rec.title}" to custom recipes library!`);
+      renderSavedRecipesList();
+      showToast(`Saved "${rec.title}" with ingredients & steps to library!`);
     }
 
     function logCuratedMeal(recipeId) {
@@ -5863,6 +6284,7 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
     function saveAIRecipeToLibrary() {
       if (!currentAIRecipeResult) return;
       const rec = currentAIRecipeResult;
+      const parsedSteps = normalizeRecipeStepsArray(rec.instructions || rec.steps);
       const newRecipe = {
         id: 'rec_ai_' + Date.now(),
         name: rec.title,
@@ -5870,18 +6292,21 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
         meal: rec.mealSlot,
         totalCal: rec.perServing.cal * rec.servings,
         perServing: {
-          cal: rec.perServing.cal,
-          p: rec.perServing.p,
-          c: rec.perServing.c,
-          f: rec.perServing.f
+          cal: Math.round(rec.perServing.cal),
+          p: Math.round(rec.perServing.p),
+          c: Math.round(rec.perServing.c),
+          f: Math.round(rec.perServing.f),
+          fib: Math.round(rec.perServing.fiber || 0)
         },
-        ingredients: rec.ingredientsList.map(item => ({ name: item, cal: Math.round(rec.perServing.cal / rec.ingredientsList.length), p: 0, c: 0, f: 0 }))
+        ingredients: (rec.ingredientsList || []).map(item => ({ name: item, cal: Math.round(rec.perServing.cal / Math.max(1, rec.ingredientsList.length)), p: 0, c: 0, f: 0 })),
+        steps: parsedSteps,
+        instructions: rec.instructions || parsedSteps.join('\n')
       };
 
       appState.customRecipes.unshift(newRecipe);
       saveState();
       renderSavedRecipesList();
-      showToast(`Saved "${rec.title}" to recipe library!`);
+      showToast(`Saved "${rec.title}" with full steps to library!`);
     }
 
     function logAIRecipeServingNow() {
