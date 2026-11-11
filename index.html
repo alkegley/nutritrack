@@ -391,70 +391,6 @@
         </div>
       </div>
 
-      <!-- Daily Tasks & Protocol Habits Tracker -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <i data-lucide="check-square" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-slate-800">Daily Tasks & Habits</h3>
-              <p class="text-[10px] text-slate-400">GLP-1 compliance & daily lifestyle checklist</p>
-            </div>
-          </div>
-          <span id="tasksProgressBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0 / 0 Done</span>
-        </div>
-
-        <!-- Task Completion Progress Bar -->
-        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-          <div id="tasksProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-        </div>
-
-        <!-- Tasks Checklist Items -->
-        <div id="dailyTasksList" class="space-y-1.5 pt-1"></div>
-
-        <!-- Add Custom Task Form -->
-        <div class="pt-2 border-t border-slate-100 flex gap-1.5">
-          <input type="text" id="newCustomTaskInput" placeholder="Add custom task (e.g. Magnesium citrate at bed)..." class="flex-1 text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTask();}" />
-          <button onclick="addCustomTask()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow-xs">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>Add</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- How I Feel Today Field -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center">
-              <i data-lucide="smile" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <h3 class="text-xs font-bold text-slate-800">How I Feel Today</h3>
-              <p class="text-[10px] text-slate-400">Track energy, symptoms, digestion & mental clarity</p>
-            </div>
-          </div>
-          <span id="feelStatusSavedBadge" class="text-[10px] font-semibold text-emerald-600 hidden">Saved ✓</span>
-        </div>
-
-        <!-- Feeling Quick Tags -->
-        <div class="flex flex-wrap gap-1.5" id="feelingTagsList">
-          <button type="button" onclick="selectFeelingTag('Great & Energized')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">✨ Energized</button>
-          <button type="button" onclick="selectFeelingTag('Full & Satiated')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🎯 Strong Satiety</button>
-          <button type="button" onclick="selectFeelingTag('Mild Nausea')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🤢 Mild Nausea</button>
-          <button type="button" onclick="selectFeelingTag('Fatigued / Low Energy')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">😴 Low Energy</button>
-          <button type="button" onclick="selectFeelingTag('Food Noise Returning')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🧠 Food Noise</button>
-          <button type="button" onclick="selectFeelingTag('Sluggish Gut')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🐢 Sluggish Gut</button>
-        </div>
-
-        <!-- Custom Feeling Input & Note -->
-        <div class="relative">
-          <textarea id="dailyFeelingInput" rows="2" oninput="debounceSaveFeeling()" placeholder="e.g. Feeling energized today, great digestion, satisfied after meals." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-        </div>
-      </div>
-
       <!-- Meal Categories Sections: Breakfast, Lunch, Dinner, Snacks, Drinks -->
       <div class="space-y-3">
         <div class="flex items-center justify-between px-1">
@@ -597,6 +533,70 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Daily Tasks & Protocol Habits Tracker -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="check-square" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800">Daily Tasks & Habits</h3>
+              <p class="text-[10px] text-slate-400">GLP-1 compliance & daily lifestyle checklist</p>
+            </div>
+          </div>
+          <span id="tasksProgressBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0 / 0 Done</span>
+        </div>
+
+        <!-- Task Completion Progress Bar -->
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+          <div id="tasksProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- Tasks Checklist Items -->
+        <div id="dailyTasksList" class="space-y-1.5 pt-1"></div>
+
+        <!-- Add Custom Task Form -->
+        <div class="pt-2 border-t border-slate-100 flex gap-1.5">
+          <input type="text" id="newCustomTaskInput" placeholder="Add custom task (e.g. Magnesium citrate at bed)..." class="flex-1 text-xs px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTask();}" />
+          <button onclick="addCustomTask()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- How I Feel Today Field -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center">
+              <i data-lucide="smile" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-slate-800">How I Feel Today</h3>
+              <p class="text-[10px] text-slate-400">Track energy, symptoms, digestion & mental clarity</p>
+            </div>
+          </div>
+          <span id="feelStatusSavedBadge" class="text-[10px] font-semibold text-emerald-600 hidden">Saved ✓</span>
+        </div>
+
+        <!-- Feeling Quick Tags -->
+        <div class="flex flex-wrap gap-1.5" id="feelingTagsList">
+          <button type="button" onclick="selectFeelingTag('Great & Energized')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">✨ Energized</button>
+          <button type="button" onclick="selectFeelingTag('Full & Satiated')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🎯 Strong Satiety</button>
+          <button type="button" onclick="selectFeelingTag('Mild Nausea')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🤢 Mild Nausea</button>
+          <button type="button" onclick="selectFeelingTag('Fatigued / Low Energy')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">😴 Low Energy</button>
+          <button type="button" onclick="selectFeelingTag('Food Noise Returning')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🧠 Food Noise</button>
+          <button type="button" onclick="selectFeelingTag('Sluggish Gut')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-pink-50 hover:text-pink-700 border border-slate-200/70 transition feeling-tag-btn">🐢 Sluggish Gut</button>
+        </div>
+
+        <!-- Custom Feeling Input & Note -->
+        <div class="relative">
+          <textarea id="dailyFeelingInput" rows="2" oninput="debounceSaveFeeling()" placeholder="e.g. Feeling energized today, great digestion, satisfied after meals." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
       </div>
     </section>
 
@@ -783,6 +783,11 @@
             <p id="airResultInstructions" class="text-[11px] text-slate-200 leading-relaxed"></p>
           </div>
 
+          <div class="text-xs space-y-1 pt-1">
+            <label for="airResultNotesInput" class="font-semibold text-purple-200 block text-[11px]">Recipe Notes <span class="text-purple-300/75 font-normal">(optional tweaks, storage, or serving tips)</span></label>
+            <textarea id="airResultNotesInput" rows="2" placeholder="e.g. Great over cauliflower rice, add extra squeeze of lime, keeps 3 days in fridge..." class="w-full text-xs p-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-purple-400"></textarea>
+          </div>
+
           <div class="flex gap-2 pt-1">
             <button onclick="saveAIRecipeToLibrary()" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs transition">
               Save Recipe to Library
@@ -845,6 +850,12 @@
           <textarea id="rcSteps" rows="3" placeholder="e.g.&#10;1. Brown lean turkey in a nonstick skillet over medium heat.&#10;2. Stir in diced tomatoes, spices, and simmer 15 minutes." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
         </div>
 
+        <!-- Recipe Notes -->
+        <div class="pt-1">
+          <label class="text-[11px] font-semibold text-slate-600 block mb-1">Recipe Notes <span class="text-slate-400 font-normal">(optional substitutions, meal-prep, or GLP-1 portion tips)</span></label>
+          <textarea id="rcNotes" rows="2" placeholder="e.g. Pair with Bettergoods sea salt crackers, swap Greek yogurt for mayo, or freeze half the batch..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+
         <!-- Realtime Per-Serving Nutrition Summary -->
         <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3">
           <div class="flex items-center justify-between mb-1.5">
@@ -876,7 +887,7 @@
         <!-- Search & Meal Slot Filter Bar -->
         <div class="flex flex-col sm:flex-row gap-2">
           <div class="relative flex-1">
-            <input type="search" id="savedRecipeSearchInput" oninput="renderSavedRecipesList()" placeholder="Search saved recipes, ingredients, or steps..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+            <input type="search" id="savedRecipeSearchInput" oninput="renderSavedRecipesList()" placeholder="Search saved recipes, ingredients, steps, or notes..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
           </div>
           <select id="savedRecipeMealFilter" onchange="renderSavedRecipesList()" class="text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-slate-700">
@@ -1165,6 +1176,82 @@
 
     <!-- ================= TAB 5: TRENDS & ANALYTICS ================= -->
     <section id="tab-analytics" class="space-y-4 hidden">
+      <!-- AI Goal Progress & Clinical Summary Card -->
+      <div class="bg-gradient-to-br from-slate-900 via-emerald-950 to-indigo-950 text-white rounded-3xl p-5 shadow-lg space-y-3.5 relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h2 class="text-sm font-bold text-white">AI Today's Goal &amp; Trend Summary</h2>
+                <span id="trendsAiStatusPill" class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">Live Snapshot</span>
+              </div>
+              <p class="text-[11px] text-emerald-200/85" id="trendsAiDateSubtitle">Evaluating active date &amp; 7-day trajectory</p>
+            </div>
+          </div>
+
+          <button type="button" id="trendsAiRefreshBtn" onclick="generateTrendsAISummary(true)" class="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:opacity-95 text-slate-950 font-extrabold text-[11px] rounded-xl flex items-center gap-1 shadow-sm transition shrink-0" title="Run deep Gemini AI coaching analysis">
+            <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+            <span id="trendsAiRefreshBtnText">AI Deep Dive</span>
+          </button>
+        </div>
+
+        <!-- 4 Live Goal Progress Snapshot Tiles -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div class="bg-white/10 border border-white/10 rounded-xl p-2">
+            <span class="text-[9px] uppercase tracking-wider text-emerald-300 font-bold block">Net Budget</span>
+            <strong id="trendsSnapCal" class="text-xs font-extrabold text-white block mt-0.5">-- / -- kcal</strong>
+            <span id="trendsSnapCalSub" class="text-[9px] text-slate-300 block">-- remaining</span>
+          </div>
+          <div class="bg-white/10 border border-white/10 rounded-xl p-2">
+            <span class="text-[9px] uppercase tracking-wider text-rose-300 font-bold block">Protein Shield</span>
+            <strong id="trendsSnapProt" class="text-xs font-extrabold text-white block mt-0.5">0 / 85g</strong>
+            <span id="trendsSnapProtSub" class="text-[9px] text-slate-300 block">0% of floor</span>
+          </div>
+          <div class="bg-white/10 border border-white/10 rounded-xl p-2">
+            <span class="text-[9px] uppercase tracking-wider text-cyan-300 font-bold block">Fiber &amp; Water</span>
+            <strong id="trendsSnapHydFib" class="text-xs font-extrabold text-white block mt-0.5">0g • 0 oz</strong>
+            <span id="trendsSnapHydFibSub" class="text-[9px] text-slate-300 block">Target 25g • 64oz</span>
+          </div>
+          <div class="bg-white/10 border border-white/10 rounded-xl p-2">
+            <span class="text-[9px] uppercase tracking-wider text-purple-300 font-bold block">7-Day Trend</span>
+            <strong id="trendsSnapWeek" class="text-xs font-extrabold text-white block mt-0.5">--</strong>
+            <span id="trendsSnapWeekSub" class="text-[9px] text-slate-300 block">Cycle &amp; weight</span>
+          </div>
+        </div>
+
+        <!-- Loading Spinner for Gemini AI Deep Dive -->
+        <div id="trendsAiLoading" class="hidden p-3 bg-white/10 rounded-2xl text-center space-y-1.5">
+          <div class="w-5 h-5 border-2 border-emerald-300 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p class="text-[11px] text-emerald-100 font-medium">Analyzing today's macros, hydration, GLP-1/B12 cycle phase &amp; 7-day deficit trend...</p>
+        </div>
+
+        <!-- AI Narrative Summary & Actionable Next Steps -->
+        <div id="trendsAiContentBox" class="bg-black/25 border border-white/10 rounded-2xl p-3.5 space-y-2.5 text-xs">
+          <div class="flex items-start gap-2">
+            <span class="text-base leading-none mt-0.5" id="trendsAiHeadlineIcon">🎯</span>
+            <div class="space-y-1 flex-1">
+              <h3 id="trendsAiHeadline" class="font-bold text-emerald-300 text-xs leading-snug"> Assessing today's goal alignment...</h3>
+              <p id="trendsAiOverview" class="text-[11px] text-slate-200 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <ul id="trendsAiBullets" class="space-y-1.5 pt-2 border-t border-white/10 text-[11px] text-slate-200"></ul>
+
+          <div class="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-400/25 flex items-start gap-2 text-[11px] text-emerald-100">
+            <i data-lucide="compass" class="w-4 h-4 text-emerald-300 shrink-0 mt-0.5"></i>
+            <div>
+              <span class="font-bold text-emerald-300 uppercase text-[9px] tracking-wider block">Priority Focus for Rest of Today</span>
+              <span id="trendsAiNextStep" class="leading-relaxed"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
         <div class="flex items-center justify-between mb-3">
           <div>
@@ -2194,6 +2281,23 @@
             </div>
             <ol id="srModalStepsList" class="space-y-2 text-xs text-slate-700 leading-relaxed"></ol>
           </div>
+
+          <!-- Recipe Notes Section (Direct Quick-Add & Auto-Save right inside Read View) -->
+          <div class="bg-amber-50/60 rounded-2xl p-3.5 border border-amber-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="sticky-note" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>Recipe Notes</span>
+              </h4>
+              <span id="srModalNoteSavedBadge" class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full hidden">Saved ✓</span>
+            </div>
+            <textarea id="srModalQuickNotesInput" rows="2" oninput="debounceSaveQuickRecipeNote()" placeholder="Add personal notes, seasoning tweaks, cracker pairings, or storage tips..." class="w-full text-xs p-2.5 bg-white border border-amber-200/90 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-slate-700 leading-relaxed"></textarea>
+            <div class="flex justify-end">
+              <button type="button" onclick="saveQuickRecipeNoteNow()" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-[11px] transition shadow-2xs">
+                Save Note
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- EDIT VIEW -->
@@ -2204,11 +2308,15 @@
           </div>
           <div>
             <label class="text-[11px] font-bold text-slate-700 block mb-1">Ingredients <span class="font-normal text-slate-400">(one per line)</span></label>
-            <textarea id="srEditIngredientsInput" rows="5" placeholder="e.g.&#10;5 oz fresh shrimp&#10;8 spears asparagus&#10;1 tsp extra virgin olive oil" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            <textarea id="srEditIngredientsInput" rows="4" placeholder="e.g.&#10;5 oz fresh shrimp&#10;8 spears asparagus&#10;1 tsp extra virgin olive oil" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
           </div>
           <div>
             <label class="text-[11px] font-bold text-slate-700 block mb-1">Preparation Steps <span class="font-normal text-slate-400">(one step per line)</span></label>
-            <textarea id="srEditStepsInput" rows="5" placeholder="e.g.&#10;Steam asparagus for 3 minutes.&#10;Sauté shrimp with garlic and olive oil for 4 minutes until pink." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            <textarea id="srEditStepsInput" rows="4" placeholder="e.g.&#10;Steam asparagus for 3 minutes.&#10;Sauté shrimp with garlic and olive oil for 4 minutes until pink." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Recipe Notes <span class="font-normal text-slate-400">(optional tweaks, storage, or serving notes)</span></label>
+            <textarea id="srEditNotesInput" rows="3" placeholder="e.g. Double the lime juice, serve chilled, or portion into 4 oz containers..." class="w-full text-xs p-2.5 bg-amber-50/40 border border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-400"></textarea>
           </div>
           <div class="flex gap-2 pt-1">
             <button type="button" onclick="saveEditedRecipeDetails()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
@@ -3110,6 +3218,10 @@
       document.getElementById('activeDateInput').value = dateStr;
       refreshUI();
       renderProtocolTab();
+      const analyticsSec = document.getElementById('tab-analytics');
+      if (analyticsSec && !analyticsSec.classList.contains('hidden')) {
+        renderAnalyticsCharts();
+      }
     }
 
     function refreshUI() {
@@ -4962,6 +5074,7 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       const servings = Math.max(1, Number(document.getElementById('rcServings').value) || 1);
       const meal = document.getElementById('rcTargetMeal').value;
       const rawSteps = document.getElementById('rcSteps') ? document.getElementById('rcSteps').value.trim() : '';
+      const rawNotes = document.getElementById('rcNotes') ? document.getElementById('rcNotes').value.trim() : '';
       const rows = document.querySelectorAll('.ing-row');
 
       if (!name) {
@@ -5009,13 +5122,15 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         },
         ingredients,
         steps: parsedSteps,
-        instructions: rawSteps
+        instructions: rawSteps,
+        notes: rawNotes
       };
 
       appState.customRecipes.unshift(newRecipe);
       saveState();
       renderSavedRecipesList();
       if (document.getElementById('rcSteps')) document.getElementById('rcSteps').value = '';
+      if (document.getElementById('rcNotes')) document.getElementById('rcNotes').value = '';
       showToast(`Recipe saved! ${newRecipe.perServing.cal} kcal per serving`);
     }
 
@@ -5023,6 +5138,7 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       document.getElementById('rcName').value = '';
       document.getElementById('rcServings').value = 2;
       if (document.getElementById('rcSteps')) document.getElementById('rcSteps').value = '';
+      if (document.getElementById('rcNotes')) document.getElementById('rcNotes').value = '';
       document.getElementById('recipeIngredientsContainer').innerHTML = '';
       addRecipeIngredientRow();
       addRecipeIngredientRow();
@@ -5052,7 +5168,8 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         const titleText = (r.name || '').toLowerCase();
         const ingText = normalizeRecipeIngredientsArray(r.ingredients).map(i => i.label).join(' ').toLowerCase();
         const stepsText = normalizeRecipeStepsArray(r.steps || r.instructions).join(' ').toLowerCase();
-        return titleText.includes(searchQuery) || ingText.includes(searchQuery) || stepsText.includes(searchQuery) || rMeal.includes(searchQuery);
+        const notesText = String(r.notes || '').toLowerCase();
+        return titleText.includes(searchQuery) || ingText.includes(searchQuery) || stepsText.includes(searchQuery) || notesText.includes(searchQuery) || rMeal.includes(searchQuery);
       });
 
       if (countBadge) {
@@ -5075,7 +5192,11 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         const ingCount = normalizeRecipeIngredientsArray(r.ingredients).length;
         const stepCount = normalizeRecipeStepsArray(r.steps || r.instructions).length;
         const ps = r.perServing || { cal: 0, p: 0, c: 0, f: 0 };
-        const detailMeta = `${ingCount} ingredient${ingCount === 1 ? '' : 's'} • ${stepCount > 0 ? stepCount + (stepCount === 1 ? ' step' : ' steps') : 'Tap View to add steps'}`;
+        const hasNote = !!(r.notes && String(r.notes).trim());
+        const detailMeta = `${ingCount} ingredient${ingCount === 1 ? '' : 's'} • ${stepCount > 0 ? stepCount + (stepCount === 1 ? ' step' : ' steps') : 'Tap View to add steps'}${hasNote ? ' • 📝 Note saved' : ''}`;
+        const notePreviewHtml = hasNote
+          ? `<p class="text-[10px] text-amber-800 bg-amber-50/90 border border-amber-200/70 rounded-lg px-2 py-1 mt-1.5 line-clamp-2">📝 ${escapeHtml(String(r.notes).trim())}</p>`
+          : '';
 
         return `
           <div class="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/40 border border-slate-200/80 hover:border-emerald-300/80 transition space-y-2">
@@ -5087,6 +5208,7 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
                 </div>
                 <h4 class="font-bold text-slate-800 group-hover:text-emerald-700 text-xs mt-1 underline decoration-slate-300 group-hover:decoration-emerald-500 underline-offset-2">${escapeHtml(r.name)}</h4>
                 <p class="text-[10px] text-slate-500 mt-0.5">${detailMeta}</p>
+                ${notePreviewHtml}
               </div>
               <div class="text-right shrink-0">
                 <span class="text-sm font-extrabold text-emerald-600 block">${Math.round(ps.cal || 0)} kcal</span>
@@ -5179,10 +5301,19 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         `;
       }
 
-      // Populate Edit fields
+      // Populate Read-View Quick Notes & Edit fields
+      const existingNotes = String(rec.notes || '').trim();
+      const quickNotesEl = document.getElementById('srModalQuickNotesInput');
+      if (quickNotesEl) quickNotesEl.value = existingNotes;
+      const savedBadgeEl = document.getElementById('srModalNoteSavedBadge');
+      if (savedBadgeEl) savedBadgeEl.classList.add('hidden');
+
       document.getElementById('srEditTitleInput').value = rec.name || '';
       document.getElementById('srEditIngredientsInput').value = normalizedIngs.map(i => i.label).join('\n');
       document.getElementById('srEditStepsInput').value = normalizedSteps.join('\n');
+      if (document.getElementById('srEditNotesInput')) {
+        document.getElementById('srEditNotesInput').value = existingNotes;
+      }
 
       // Configure Log Controls
       const logMealSelect = document.getElementById('srModalLogMealSelect');
@@ -5211,6 +5342,9 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       const editView = document.getElementById('srModalEditView');
       const footer = document.getElementById('srModalFooter');
       if (isEdit) {
+        const qNotes = document.getElementById('srModalQuickNotesInput');
+        const eNotes = document.getElementById('srEditNotesInput');
+        if (qNotes && eNotes) eNotes.value = qNotes.value;
         readView.classList.add('hidden');
         editView.classList.remove('hidden');
         footer.classList.add('hidden');
@@ -5250,13 +5384,50 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
         return existing ? existing : { name: line, cal: perItemCalFallback, p: 0, c: 0, f: 0 };
       });
 
+      const updatedNotes = document.getElementById('srEditNotesInput')
+        ? document.getElementById('srEditNotesInput').value.trim()
+        : (rec.notes || '');
+
       rec.steps = rawStepLines;
       rec.instructions = rawStepLines.join('\n');
+      rec.notes = updatedNotes;
 
       saveState();
       renderSavedRecipesList();
       openSavedRecipeModal(rec.id);
-      showToast("Saved recipe ingredients & steps updated! ✓");
+      showToast("Saved recipe details & notes updated! ✓");
+    }
+
+    let recipeNoteDebounceTimer = null;
+
+    function debounceSaveQuickRecipeNote() {
+      clearTimeout(recipeNoteDebounceTimer);
+      const badge = document.getElementById('srModalNoteSavedBadge');
+      if (badge) badge.classList.add('hidden');
+      recipeNoteDebounceTimer = setTimeout(() => {
+        saveQuickRecipeNoteNow(true);
+      }, 600);
+    }
+
+    function saveQuickRecipeNoteNow(silent = false) {
+      if (!activeSavedRecipeModalId) return;
+      const rec = (appState.customRecipes || []).find(r => String(r.id) === String(activeSavedRecipeModalId));
+      if (!rec) return;
+      const noteVal = (document.getElementById('srModalQuickNotesInput')?.value || '').trim();
+      rec.notes = noteVal;
+      if (document.getElementById('srEditNotesInput')) {
+        document.getElementById('srEditNotesInput').value = noteVal;
+      }
+      saveState();
+      renderSavedRecipesList();
+      const badge = document.getElementById('srModalNoteSavedBadge');
+      if (badge) {
+        badge.classList.remove('hidden');
+        setTimeout(() => badge.classList.add('hidden'), 2200);
+      }
+      if (!silent) {
+        showToast("Recipe note saved! 📝");
+      }
     }
 
     function logRecipeServingToDay(recipeId, overrideMealSlot) {
@@ -5346,7 +5517,8 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
             fiber: Number(cr.perServing.fib ?? cr.perServing.fiber ?? 2) || 2,
             prepTime: "Saved Recipe",
             ingredients: cr.ingredients ? cr.ingredients.map(i => typeof i === 'string' ? i : i.name) : ["Custom saved ingredients"],
-            steps: savedSteps.length > 0 ? savedSteps.join(' ') : `Custom user recipe batch (${cr.servings} servings).`
+            steps: savedSteps.length > 0 ? savedSteps.join(' ') : `Custom user recipe batch (${cr.servings} servings).`,
+            notes: cr.notes || ''
           };
         })
       ];
@@ -5424,6 +5596,10 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
             ${r.steps ? `
               <p class="font-semibold text-slate-800 text-[11px] pt-1">Quick Prep:</p>
               <p class="text-[11px] text-slate-500 leading-relaxed">${escapeHtml(r.steps)}</p>
+            ` : ''}
+            ${r.notes ? `
+              <p class="font-semibold text-amber-800 text-[11px] pt-1">📝 Recipe Notes:</p>
+              <p class="text-[11px] text-amber-900/90 bg-amber-50/80 px-2 py-1 rounded-lg border border-amber-200/70 leading-relaxed">${escapeHtml(r.notes)}</p>
             ` : ''}
           </div>
 
@@ -5782,6 +5958,345 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
           }
         }
       });
+
+      // Automatically render instant clinical AI summary for today & 7-day trends
+      generateTrendsAISummary(false);
+    }
+
+    function collectTrendsMetricsSnapshot() {
+      const dateStr = appState.activeDate || getTodayDateString();
+      ensureDayExists(dateStr);
+      const day = appState.days[dateStr];
+      const targetCal = Number(appState.targetBudget) || 1250;
+      const targetProt = Number(appState.targetProtein) || 85;
+      const targetFib = Number(appState.targetFiber) || 25;
+
+      const mealSlots = ['breakfast', 'lunch', 'dinner', 'snack', 'drink'];
+      let foodCal = 0, prot = 0, carbs = 0, fat = 0, fib = 0, loggedItemCount = 0;
+      mealSlots.forEach(slot => {
+        (day[slot] || []).forEach(it => {
+          foodCal += Number(it.cal) || 0;
+          prot += Number(it.p) || 0;
+          carbs += Number(it.c) || 0;
+          fat += Number(it.f) || 0;
+          fib += Number(it.fib) || 0;
+          loggedItemCount++;
+        });
+      });
+
+      const fitBurn = (day.fitness || []).reduce((s, f) => s + (Number(f.cal) || 0), 0);
+      const fitMins = (day.fitness || []).reduce((s, f) => s + (Number(f.duration) || 0), 0);
+      const allowedBudget = targetCal + fitBurn;
+      const remainingCal = allowedBudget - foodCal;
+      const waterOz = Number(day.waterOz) || 0;
+      const electrolytes = !!day.electrolytes;
+      const totalTasks = (day.tasks || []).length;
+      const doneTasks = (day.tasks || []).filter(t => t.completed).length;
+
+      // 7-day rolling metrics
+      const parts = dateStr.split('-').map(Number);
+      const dNow = new Date(parts[0], parts[1] - 1, parts[2]);
+      let activeCalDays = 0, sum7Cal = 0, sum7Prot = 0, daysUnderCap = 0;
+      const weights7 = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(dNow.getFullYear(), dNow.getMonth(), dNow.getDate() - i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const dObj = appState.days[iso];
+        if (dObj) {
+          const c = mealSlots.reduce((sum, m) => sum + (dObj[m] || []).reduce((a, it) => a + (Number(it.cal) || 0), 0), 0);
+          const p = mealSlots.reduce((sum, m) => sum + (dObj[m] || []).reduce((a, it) => a + (Number(it.p) || 0), 0), 0);
+          const b = (dObj.fitness || []).reduce((a, it) => a + (Number(it.cal) || 0), 0);
+          if (c > 0) {
+            activeCalDays++;
+            sum7Cal += c;
+            sum7Prot += p;
+            if (c <= (targetCal + b)) daysUnderCap++;
+          }
+          if (dObj.weight && Number(dObj.weight) > 40) {
+            weights7.push({ date: iso, w: Number(dObj.weight) });
+          }
+        }
+      }
+
+      const avg7Cal = activeCalDays > 0 ? Math.round(sum7Cal / activeCalDays) : 0;
+      const avg7Prot = activeCalDays > 0 ? Math.round(sum7Prot / activeCalDays) : 0;
+      const weightDelta7 = weights7.length >= 2
+        ? Math.round((weights7[weights7.length - 1].w - weights7[0].w) * 10) / 10
+        : null;
+      const latestWeight = weights7.length > 0 ? weights7[weights7.length - 1].w : getLatestLoggedWeightLbs();
+
+      // GLP-1 & B12 Cycle Day calculation
+      const shotDates = Object.keys(appState.days || {})
+        .filter(d => d <= dateStr && appState.days[d]?.protocol && (appState.days[d].protocol.glpDose || appState.days[d].protocol.b12Dose))
+        .sort();
+      let cycleDay = null;
+      let lastShotInfo = null;
+      if (shotDates.length > 0) {
+        const lastDate = shotDates[shotDates.length - 1];
+        const [ly, lm, ld] = lastDate.split('-').map(Number);
+        const diffDays = Math.round((dNow - new Date(ly, lm - 1, ld)) / (1000 * 60 * 60 * 24));
+        cycleDay = (diffDays % 7) + 1;
+        lastShotInfo = { date: lastDate, ...appState.days[lastDate].protocol };
+      }
+
+      return {
+        dateStr, targetCal, targetProt, targetFib,
+        foodCal: Math.round(foodCal), prot: Math.round(prot), carbs: Math.round(carbs), fat: Math.round(fat), fib: Math.round(fib),
+        loggedItemCount, fitBurn: Math.round(fitBurn), fitMins: Math.round(fitMins),
+        allowedBudget: Math.round(allowedBudget), remainingCal: Math.round(remainingCal),
+        waterOz, electrolytes, totalTasks, doneTasks,
+        howIFeel: (day.howIFeel || '').trim(),
+        activeCalDays, avg7Cal, avg7Prot, daysUnderCap, weightDelta7, latestWeight,
+        cycleDay, lastShotInfo
+      };
+    }
+
+    function buildLocalClinicalSummary(m) {
+      let statusBadge = 'On Track ✓';
+      let headlineIcon = '🎯';
+      let headline = '';
+      let overview = '';
+      const bullets = [];
+      let nextStep = '';
+
+      const protGap = Math.max(0, m.targetProt - m.prot);
+      const fibGap = Math.max(0, m.targetFib - m.fib);
+      const waterGap = Math.max(0, 64 - m.waterOz);
+      const protPct = Math.round((m.prot / Math.max(1, m.targetProt)) * 100);
+
+      if (m.loggedItemCount === 0 && m.fitBurn === 0 && m.waterOz === 0) {
+        statusBadge = 'Ready to Log';
+        headlineIcon = '☀️';
+        headline = `Fresh slate for ${m.dateStr} — ${m.targetCal.toLocaleString()} kcal & ${m.targetProt}g protein target ready`;
+        overview = m.activeCalDays > 0
+          ? `Nothing logged yet for ${m.dateStr}. Over your last ${m.activeCalDays} active day${m.activeCalDays === 1 ? '' : 's'}, you averaged ${m.avg7Cal.toLocaleString()} kcal and ${m.avg7Prot}g protein (${m.daysUnderCap}/${m.activeCalDays} days within budget).`
+          : `No meals or workouts logged yet for ${m.dateStr}. Start by logging breakfast or applying your scheduled daily plan so your macro and GLP-1 safeguards can calibrate.`;
+      } else if (m.remainingCal >= 0 && protGap === 0) {
+        statusBadge = 'Goal Crushed ✓';
+        headlineIcon = '🏆';
+        headline = `Strong execution today: Within calorie cap & ${m.prot}g Protein Shield locked in!`;
+        overview = `You have logged ${m.foodCal.toLocaleString()} kcal against an effective allowance of ${m.allowedBudget.toLocaleString()} kcal (${m.remainingCal.toLocaleString()} kcal remaining) while hitting ${protPct}% of your ${m.targetProt}g lean-muscle floor.`;
+      } else if (m.remainingCal < 0) {
+        statusBadge = 'Over Cap';
+        headlineIcon = '⚖️';
+        headline = `${Math.abs(m.remainingCal).toLocaleString()} kcal above today's net target (${m.prot}g / ${m.targetProt}g protein)`;
+        overview = `Food intake is at ${m.foodCal.toLocaleString()} kcal${m.fitBurn > 0 ? ` with +${m.fitBurn} kcal exercise burn` : ''}. Keep hydration steady and prioritize lean protein + leafy greens if you are still hungry.`;
+      } else {
+        statusBadge = 'In Progress';
+        headlineIcon = '📊';
+        headline = `${m.remainingCal.toLocaleString()} kcal remaining today • ${protPct}% toward your ${m.targetProt}g protein floor`;
+        overview = `You've consumed ${m.foodCal.toLocaleString()} kcal across ${m.loggedItemCount} item${m.loggedItemCount === 1 ? '' : 's'}${m.fitBurn > 0 ? ` and earned +${m.fitBurn} kcal from ${m.fitMins} mins of exercise` : ''}. You have plenty of room to close your remaining macro targets cleanly.`;
+      }
+
+      // Bullet 1: Protein & Calorie Density
+      if (protGap > 0) {
+        const neededRatio = m.remainingCal > 0 ? Math.round((protGap * 4 / m.remainingCal) * 100) : 100;
+        bullets.push(`🥩 <strong>Muscle Defense:</strong> At <strong>${m.prot}g / ${m.targetProt}g protein</strong> — aim for ~${protGap}g more lean protein (egg whites, tuna, shrimp, Greek yogurt, or chicken breast)${m.remainingCal > 0 ? ` using ~${Math.min(100, neededRatio)}% of your remaining ${m.remainingCal} kcal` : ''}.`);
+      } else {
+        bullets.push(`🥩 <strong>Muscle Defense Active:</strong> You reached <strong>${m.prot}g protein</strong> (target ≥${m.targetProt}g), protecting lean mass on your ${m.targetCal.toLocaleString()} kcal deficit.`);
+      }
+
+      // Bullet 2: Hydration, Electrolytes & Fiber Motility
+      if (waterGap > 0 || fibGap > 0) {
+        bullets.push(`💧 <strong>Motility & Hydration:</strong> Fiber is at <strong>${m.fib}/${m.targetFib}g</strong> and water is at <strong>${m.waterOz}/64 oz</strong> (${m.electrolytes ? 'electrolytes taken ✓' : 'electrolytes not logged yet'}).${fibGap > 8 ? ' Add berries, chia, or steamed greens to support GLP-1 gut motility.' : ''}`);
+      } else {
+        bullets.push(`💧 <strong>Motility & Hydration Complete:</strong> Both your <strong>${m.fib}g fiber</strong> and <strong>${m.waterOz} oz hydration</strong> floors are met today${m.electrolytes ? ' with electrolytes logged ✓' : ''}.`);
+      }
+
+      // Bullet 3: GLP-1/B12 Cycle + 7-Day Trend
+      const cyclePhrase = m.cycleDay
+        ? `Day ${m.cycleDay} of 7 in your GLP-1/B12 cycle (${m.cycleDay <= 3 ? 'peak satiety window' : (m.cycleDay <= 5 ? 'steady therapeutic window' : 'trough days — lean on volume fiber')})`
+        : `No weekly GLP-1/B12 shot logged yet`;
+      const weightPhrase = m.weightDelta7 !== null
+        ? ` • 7-day weight change: <strong>${m.weightDelta7 > 0 ? '+' : ''}${m.weightDelta7} lbs</strong>`
+        : (m.latestWeight ? ` • Latest weigh-in: <strong>${m.latestWeight} lbs</strong>` : '');
+      const avgPhrase = m.activeCalDays > 0
+        ? ` • 7-day avg: <strong>${m.avg7Cal.toLocaleString()} kcal</strong> (${m.avg7Prot}g P)`
+        : '';
+      bullets.push(`🧬 <strong>Protocol & 7-Day Trajectory:</strong> ${cyclePhrase}${weightPhrase}${avgPhrase}.`);
+
+      // Priority Next Step
+      if (m.loggedItemCount === 0) {
+        nextStep = `Log your first meal (aim for 25–30g protein) and 16 oz of water with minerals to anchor satiety early.`;
+      } else if (protGap >= 20 && m.remainingCal >= 150) {
+        nextStep = `Prioritize a high-protein, low-calorie meal or snack next (~${Math.min(protGap, 35)}g protein under ${Math.min(m.remainingCal, 350)} kcal) plus ${waterGap > 0 ? Math.min(16, waterGap) + ' oz water' : 'steady hydration'}.`;
+      } else if (waterGap >= 16 || !m.electrolytes) {
+        nextStep = `Protein pacing looks solid—focus on sipping ${waterGap > 0 ? waterGap + ' oz more water' : 'fluids'}${!m.electrolytes ? ' and logging your daily electrolytes' : ''}${fibGap > 5 ? ` plus ${fibGap}g fiber` : ''}.`;
+      } else if (m.fitMins === 0) {
+        nextStep = `Macros and hydration are right on point! A 20–30 min walk or light resistance session will further protect metabolic rate and muscle tone.`;
+      } else {
+        nextStep = `Stay the course—your calorie cap, protein shield, hydration, and activity are all aligned for steady fat loss today (${m.doneTasks}/${m.totalTasks} daily habits checked).`;
+      }
+
+      return { statusBadge, headlineIcon, headline, overview, bullets, nextStep };
+    }
+
+    function renderTrendsAISummaryDOM(m, summary, isCloudAI) {
+      const subEl = document.getElementById('trendsAiDateSubtitle');
+      if (subEl) {
+        subEl.innerText = `Status for ${m.dateStr} + rolling 7-day compliance`;
+      }
+      const pill = document.getElementById('trendsAiStatusPill');
+      if (pill) {
+        pill.innerText = isCloudAI ? `✨ Gemini AI • ${summary.statusBadge}` : summary.statusBadge;
+      }
+
+      // Populate 4 Snapshot Tiles
+      const snapCal = document.getElementById('trendsSnapCal');
+      const snapCalSub = document.getElementById('trendsSnapCalSub');
+      if (snapCal) snapCal.innerText = `${m.foodCal.toLocaleString()} / ${m.allowedBudget.toLocaleString()}`;
+      if (snapCalSub) {
+        snapCalSub.innerText = m.remainingCal >= 0
+          ? `${m.remainingCal.toLocaleString()} kcal left`
+          : `${Math.abs(m.remainingCal).toLocaleString()} kcal over`;
+      }
+
+      const snapProt = document.getElementById('trendsSnapProt');
+      const snapProtSub = document.getElementById('trendsSnapProtSub');
+      if (snapProt) snapProt.innerText = `${m.prot}g / ${m.targetProt}g`;
+      if (snapProtSub) {
+        const pct = Math.round((m.prot / Math.max(1, m.targetProt)) * 100);
+        snapProtSub.innerText = pct >= 100 ? `✓ Shield Met (${pct}%)` : `${Math.max(0, m.targetProt - m.prot)}g to go (${pct}%)`;
+      }
+
+      const snapHF = document.getElementById('trendsSnapHydFib');
+      const snapHFSub = document.getElementById('trendsSnapHydFibSub');
+      if (snapHF) snapHF.innerText = `${m.fib}g • ${m.waterOz}oz`;
+      if (snapHFSub) snapHFSub.innerText = `Goal ${m.targetFib}g • 64oz`;
+
+      const snapWk = document.getElementById('trendsSnapWeek');
+      const snapWkSub = document.getElementById('trendsSnapWeekSub');
+      if (snapWk) {
+        if (m.weightDelta7 !== null) {
+          snapWk.innerText = `${m.weightDelta7 > 0 ? '+' : ''}${m.weightDelta7} lbs (7d)`;
+        } else if (m.activeCalDays > 0) {
+          snapWk.innerText = `${m.avg7Cal.toLocaleString()} kcal avg`;
+        } else {
+          snapWk.innerText = m.latestWeight ? `${m.latestWeight} lbs` : 'Day 1';
+        }
+      }
+      if (snapWkSub) {
+        snapWkSub.innerText = m.cycleDay ? `GLP Cycle Day ${m.cycleDay}/7` : `${m.daysUnderCap}/${Math.max(1, m.activeCalDays)}d on cap`;
+      }
+
+      // Narrative Content
+      const iconEl = document.getElementById('trendsAiHeadlineIcon');
+      const headEl = document.getElementById('trendsAiHeadline');
+      const overEl = document.getElementById('trendsAiOverview');
+      const listEl = document.getElementById('trendsAiBullets');
+      const nextEl = document.getElementById('trendsAiNextStep');
+
+      if (iconEl) iconEl.innerText = summary.headlineIcon || '🎯';
+      if (headEl) headEl.innerText = summary.headline || '';
+      if (overEl) overEl.innerText = summary.overview || '';
+      if (listEl) {
+        listEl.innerHTML = (summary.bullets || []).map(b => `<li class="leading-relaxed">${b}</li>`).join('');
+      }
+      if (nextEl) nextEl.innerText = summary.nextStep || '';
+      lucide.createIcons();
+    }
+
+    async function generateTrendsAISummary(forceCloudCall = false) {
+      const m = collectTrendsMetricsSnapshot();
+      const localSummary = buildLocalClinicalSummary(m);
+
+      // Always display instant clinical summary immediately so user never waits on an empty card
+      if (!forceCloudCall) {
+        renderTrendsAISummaryDOM(m, localSummary, false);
+        return;
+      }
+
+      const apiKey = getStoredApiKey();
+      if (!apiKey) {
+        renderTrendsAISummaryDOM(m, localSummary, false);
+        showToast("Refreshed goal analysis! (Add free Gemini AI Key above for deep LLM coaching)");
+        return;
+      }
+
+      const loadingEl = document.getElementById('trendsAiLoading');
+      const contentEl = document.getElementById('trendsAiContentBox');
+      const btn = document.getElementById('trendsAiRefreshBtn');
+      const btnTxt = document.getElementById('trendsAiRefreshBtnText');
+
+      if (loadingEl) loadingEl.classList.remove('hidden');
+      if (contentEl) contentEl.classList.add('opacity-50');
+      if (btn) btn.disabled = true;
+      if (btnTxt) btnTxt.innerText = 'Analyzing...';
+
+      const systemInstruction = `You are a supportive, concrete clinical GLP-1 & B12 nutrition and fitness coach.
+Evaluate where the user stands TODAY (${m.dateStr}) against their daily calorie cap, lean-muscle protein floor, fiber motility target, hydration/electrolytes, exercise burn, and 7-day trend.
+Be concise, specific with their actual numbers, and encouraging without fluff. Highlight any gaps (especially protein, fiber, or hydration) and give one clear, practical action for the rest of today.`;
+
+      const userPrompt = JSON.stringify({
+        activeDate: m.dateStr,
+        goals: { calories: m.targetCal, proteinGrams: m.targetProt, fiberGrams: m.targetFib, waterOz: 64 },
+        todayProgress: {
+          foodCalories: m.foodCal,
+          exerciseBurnCalories: m.fitBurn,
+          exerciseMinutes: m.fitMins,
+          remainingAllowanceCalories: m.remainingCal,
+          proteinGrams: m.prot,
+          carbsGrams: m.carbs,
+          fatGrams: m.fat,
+          fiberGrams: m.fib,
+          waterOz: m.waterOz,
+          electrolytesTaken: m.electrolytes,
+          habitsCompleted: `${m.doneTasks}/${m.totalTasks}`,
+          howIFeelNote: m.howIFeel || 'None noted'
+        },
+        sevenDayTrend: {
+          activeLoggedDays: m.activeCalDays,
+          avgCalories: m.avg7Cal,
+          avgProteinGrams: m.avg7Prot,
+          daysWithinCap: m.daysUnderCap,
+          sevenDayWeightChangeLbs: m.weightDelta7,
+          latestWeightLbs: m.latestWeight,
+          glpCycleDayOf7: m.cycleDay
+        }
+      });
+
+      const responseSchema = {
+        type: "OBJECT",
+        properties: {
+          statusBadge: { type: "STRING", description: "Short 2-3 word status badge, e.g. On Track, Strong Protein, Needs Hydration" },
+          headlineIcon: { type: "STRING", description: "Single relevant emoji" },
+          headline: { type: "STRING", description: "1 crisp sentence summarizing where the user stands right now with numbers" },
+          overview: { type: "STRING", description: "1-2 concise sentences connecting today's intake/burn with their 7-day trend" },
+          bullets: {
+            type: "ARRAY",
+            items: { type: "STRING" },
+            description: "3 concise plain-text coaching points covering (1) Calories & Protein, (2) Fiber & Hydration, (3) GLP-1/B12 Cycle & 7-Day Trend"
+          },
+          nextStep: { type: "STRING", description: "1 concrete, actionable step for the rest of today" }
+        },
+        required: ["statusBadge", "headlineIcon", "headline", "overview", "bullets", "nextStep"]
+      };
+
+      try {
+        const aiRes = await callGeminiStructured(systemInstruction, userPrompt, responseSchema);
+        if (aiRes && aiRes.headline) {
+          const safeSummary = {
+            statusBadge: escapeHtml(aiRes.statusBadge || 'AI Reviewed'),
+            headlineIcon: aiRes.headlineIcon || '✨',
+            headline: aiRes.headline,
+            overview: aiRes.overview || '',
+            bullets: (aiRes.bullets || []).map(b => `✨ ${escapeHtml(b)}`),
+            nextStep: aiRes.nextStep || localSummary.nextStep
+          };
+          renderTrendsAISummaryDOM(m, safeSummary, true);
+          showToast("Gemini AI goal analysis updated! ✨");
+        } else {
+          renderTrendsAISummaryDOM(m, localSummary, false);
+        }
+      } catch (err) {
+        renderTrendsAISummaryDOM(m, localSummary, false);
+        showToast("Updated with local clinical coach (check AI Key for live Gemini)");
+      } finally {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (contentEl) contentEl.classList.remove('opacity-50');
+        if (btn) btn.disabled = false;
+        if (btnTxt) btnTxt.innerText = 'AI Deep Dive';
+      }
     }
 
     function exportUserDataJSON() {
@@ -6277,6 +6792,9 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       ingListEl.innerHTML = recipe.ingredientsList.map(i => `<li>${escapeHtml(i)}</li>`).join('');
 
       document.getElementById('airResultInstructions').innerText = recipe.instructions;
+      if (document.getElementById('airResultNotesInput')) {
+        document.getElementById('airResultNotesInput').value = recipe.notes || '';
+      }
       document.getElementById('aiRecipeResultCard').classList.remove('hidden');
       lucide.createIcons();
     }
@@ -6300,13 +6818,15 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
         },
         ingredients: (rec.ingredientsList || []).map(item => ({ name: item, cal: Math.round(rec.perServing.cal / Math.max(1, rec.ingredientsList.length)), p: 0, c: 0, f: 0 })),
         steps: parsedSteps,
-        instructions: rec.instructions || parsedSteps.join('\n')
+        instructions: rec.instructions || parsedSteps.join('\n'),
+        notes: (document.getElementById('airResultNotesInput')?.value || '').trim()
       };
 
       appState.customRecipes.unshift(newRecipe);
       saveState();
       renderSavedRecipesList();
-      showToast(`Saved "${rec.title}" with full steps to library!`);
+      if (document.getElementById('airResultNotesInput')) document.getElementById('airResultNotesInput').value = '';
+      showToast(`Saved "${rec.title}" to recipe library!`);
     }
 
     function logAIRecipeServingNow() {
