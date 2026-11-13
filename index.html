@@ -171,14 +171,14 @@
             <span class="text-[10px] text-slate-400 group-hover:text-emerald-300 block">Base Goal ✎</span>
             <span class="text-sm font-semibold text-slate-200" id="baseGoalDisplay">1250</span>
           </button>
-          <div class="bg-white/5 rounded-xl py-2 px-1">
-            <span class="text-[10px] text-amber-300 block">Food Intake</span>
-            <span class="text-sm font-semibold text-amber-400" id="foodConsumedDisplay">0</span>
-          </div>
-          <div class="bg-white/5 rounded-xl py-2 px-1">
-            <span class="text-[10px] text-emerald-300 block">Exercise Burn</span>
+          <button type="button" onclick="openTodayFoodLogSummaryModal()" class="bg-white/5 hover:bg-white/15 rounded-xl py-2 px-1 transition text-center group cursor-pointer" title="Tap to see everything logged today">
+            <span class="text-[10px] text-amber-300 group-hover:text-amber-200 block">Food Intake 🔎</span>
+            <span class="text-sm font-semibold text-amber-400 underline decoration-amber-400/40 underline-offset-2" id="foodConsumedDisplay">0</span>
+          </button>
+          <button type="button" onclick="openFitnessModal()" class="bg-white/5 hover:bg-white/15 rounded-xl py-2 px-1 transition text-center group cursor-pointer" title="Tap to view or log workouts">
+            <span class="text-[10px] text-emerald-300 group-hover:text-emerald-200 block">Exercise Burn</span>
             <span class="text-sm font-semibold text-emerald-400" id="exerciseBurnDisplay">+0</span>
-          </div>
+          </button>
         </div>
 
         <!-- Calorie Bar Progress -->
@@ -193,114 +193,7 @@
         </div>
       </div>
 
-      <!-- Quick Action Buttons -->
-      <div class="grid grid-cols-3 gap-2">
-        <button onclick="openAIFoodLoggerModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md hover:opacity-95 transition active:scale-95 col-span-1">
-          <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center mb-1 text-white">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
-          </div>
-          <span class="text-xs font-bold leading-tight">AI Log Meal</span>
-        </button>
-
-        <button onclick="openQuickFoodModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-emerald-300 transition active:scale-95">
-          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-          </div>
-          <span class="text-xs font-semibold text-slate-700 leading-tight">Food Database</span>
-        </button>
-
-        <button onclick="openFitnessModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-300 transition active:scale-95">
-          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1">
-            <i data-lucide="activity" class="w-4 h-4"></i>
-          </div>
-          <span class="text-xs font-semibold text-slate-700 leading-tight">Log Fitness</span>
-        </button>
-      </div>
-
-      <!-- Today's Scheduled Plan Card (One-Time & Recurring Weekly Shots, Workouts & Meals) -->
-      <div id="todayScheduledPlanCard" class="bg-white rounded-2xl p-4 border border-teal-200/90 shadow-xs space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-              <i data-lucide="calendar-clock" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-1.5">
-                <h3 class="text-xs font-bold text-slate-900">Scheduled Plan for <span id="dashPlanDayLabel">Today</span></h3>
-                <span id="dashPlanCountBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800">0 planned</span>
-              </div>
-              <p class="text-[10px] text-slate-500">Daily, weekly & one-time shots, workouts & meals</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button type="button" id="applyAllPlannedTodayBtn" onclick="applyAllPlannedItemsForActiveDate()" class="hidden px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold transition shadow-2xs">
-              ✓ Apply All
-            </button>
-            <button type="button" onclick="switchTab('planner')" class="px-2.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-[11px] font-bold transition flex items-center gap-1">
-              <span>Plan Week</span>
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-        </div>
-        <div id="dashScheduledItemsList" class="space-y-1.5"></div>
-      </div>
-
-      <!-- Live Budget Meal Ideas Teaser Card -->
-      <div class="bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-teal-500/10 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
-            <i data-lucide="utensils" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold text-slate-900">Recommended Meals Under Cap</span>
-              <span id="dashRemainingCapTag" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">≤ 1,250 kcal</span>
-            </div>
-            <p class="text-[11px] text-slate-500 mt-0.5">Find meals that fit your remaining allowance</p>
-          </div>
-        </div>
-        <button onclick="openRecipesUnderRemaining()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-xs">
-          <span>Browse</span>
-          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-
-
-
-      <!-- GLP-1 & B12 Daily Protocol Card -->
-      <div id="glpProtocolCard" class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white rounded-2xl p-4 border border-purple-800/60 shadow-xs space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 shrink-0">
-              <i data-lucide="syringe" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-purple-200">GLP-1 & B12 Cycle</span>
-                <span id="glpStatusBadge" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-purple-500/30 text-purple-200">No Shot Today</span>
-              </div>
-              <p class="text-[11px] text-slate-300 mt-0.5" id="glpSummaryLine">Track weekly microdoses & clinical safeguards</p>
-            </div>
-          </div>
-          <button onclick="switchTab('protocol')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-xl text-xs font-bold text-white transition flex items-center gap-1 shrink-0">
-            <span>Log Shot</span>
-            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <div id="cyclePhaseCard" class="bg-purple-900/40 border border-purple-700/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
-          <div class="flex items-center gap-2">
-            <span class="text-sm">🧬</span>
-            <div>
-              <span class="font-bold text-purple-200 block text-[11px]" id="cyclePhaseTitle">Cycle Status: Standby</span>
-              <span class="text-[10px] text-slate-300" id="cyclePhaseTip">Log your weekly injection to track appetite curve</span>
-            </div>
-          </div>
-          <span class="text-[10px] font-mono px-2 py-0.5 bg-purple-950/80 text-purple-300 rounded-lg border border-purple-600/40" id="cycleDayBadge">Day --</span>
-        </div>
-      </div>
-
-      <!-- Macro Split & GLP-1 Muscle Floor Warning -->
+      <!-- Macro Split & GLP-1 Muscle Floor Warning (Directly under Remaining Calorie Allowance) -->
       <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Macronutrients</h3>
@@ -388,6 +281,119 @@
           <button onclick="toggleElectrolytes()" id="electrolyteToggleBtn" class="w-full py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition text-center border border-slate-200">
             + Log Minerals
           </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="openAIFoodLoggerModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md hover:opacity-95 transition active:scale-95 col-span-1">
+          <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center mb-1 text-white">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-bold leading-tight">AI Log Meal</span>
+        </button>
+
+        <button onclick="openQuickFoodModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-emerald-300 transition active:scale-95">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-700 leading-tight">Food Database</span>
+        </button>
+
+        <button onclick="openFitnessModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-300 transition active:scale-95">
+          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-700 leading-tight">Log Fitness</span>
+        </button>
+      </div>
+
+      <!-- Today's Scheduled Plan Card (Collapsible with Caret, Collapsed by Default) -->
+      <div id="todayScheduledPlanCard" class="bg-white rounded-2xl p-3.5 border border-teal-200/90 shadow-xs">
+        <div class="flex items-center justify-between gap-2">
+          <button type="button" onclick="toggleScheduledPlanSection()" aria-expanded="false" id="scheduledPlanToggleBtn" class="flex items-center gap-2 text-left flex-1 min-w-0 group cursor-pointer">
+            <div class="w-8 h-8 rounded-xl bg-teal-50 group-hover:bg-teal-100 text-teal-600 flex items-center justify-center shrink-0 transition">
+              <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h3 class="text-xs font-bold text-slate-900 group-hover:text-teal-800 transition">Scheduled Plan for <span id="dashPlanDayLabel">Today</span></h3>
+                <span id="dashPlanCountBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800">0 planned</span>
+              </div>
+              <p class="text-[10px] text-slate-500 truncate">Tap to expand daily, weekly &amp; one-time schedule</p>
+            </div>
+            <div class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-teal-50 text-slate-500 group-hover:text-teal-700 flex items-center justify-center shrink-0 transition" title="Expand / Collapse Scheduled Plan">
+              <i data-lucide="chevron-down" id="scheduledPlanChevron" class="w-4 h-4 transition-transform duration-200"></i>
+            </div>
+          </button>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" id="applyAllPlannedTodayBtn" onclick="applyAllPlannedItemsForActiveDate()" class="hidden px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold transition shadow-2xs">
+              ✓ Apply All
+            </button>
+            <button type="button" onclick="switchTab('planner')" class="px-2.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 rounded-xl text-[11px] font-bold transition flex items-center gap-1">
+              <span>Plan Week</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible Body (Hidden / Collapsed by Default) -->
+        <div id="dashScheduledCollapsibleBody" class="hidden pt-3 mt-2.5 border-t border-slate-100">
+          <div id="dashScheduledItemsList" class="space-y-1.5"></div>
+        </div>
+      </div>
+
+      <!-- Live Budget Meal Ideas Teaser Card -->
+      <div class="bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-teal-500/10 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+            <i data-lucide="utensils" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-900">Recommended Meals Under Cap</span>
+              <span id="dashRemainingCapTag" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">≤ 1,250 kcal</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Find meals that fit your remaining allowance</p>
+          </div>
+        </div>
+        <button onclick="openRecipesUnderRemaining()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-xs">
+          <span>Browse</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- GLP-1 & B12 Daily Protocol Card -->
+      <div id="glpProtocolCard" class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 text-white rounded-2xl p-4 border border-purple-800/60 shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 shrink-0">
+              <i data-lucide="syringe" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-purple-200">GLP-1 & B12 Cycle</span>
+                <span id="glpStatusBadge" class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-purple-500/30 text-purple-200">No Shot Today</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-0.5" id="glpSummaryLine">Track weekly microdoses & clinical safeguards</p>
+            </div>
+          </div>
+          <button onclick="switchTab('protocol')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-xl text-xs font-bold text-white transition flex items-center gap-1 shrink-0">
+            <span>Log Shot</span>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <div id="cyclePhaseCard" class="bg-purple-900/40 border border-purple-700/40 rounded-xl p-2.5 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🧬</span>
+            <div>
+              <span class="font-bold text-purple-200 block text-[11px]" id="cyclePhaseTitle">Cycle Status: Standby</span>
+              <span class="text-[10px] text-slate-300" id="cyclePhaseTip">Log your weekly injection to track appetite curve</span>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 bg-purple-950/80 text-purple-300 rounded-lg border border-purple-600/40" id="cycleDayBadge">Day --</span>
         </div>
       </div>
 
@@ -1642,44 +1648,181 @@
       </div>
     </section>
 
+    <!-- ================= TAB 7: SMART SHOPPING LIST ================= -->
+    <section id="tab-shopping" class="space-y-4 hidden">
+      <!-- Shopping List Hero Banner -->
+      <div class="bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900 text-white rounded-3xl p-5 shadow-lg space-y-3.5 relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+              <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-base font-bold text-white">Smart Shopping List</h2>
+                <span id="shopProgressBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">0 to buy</span>
+              </div>
+              <p class="text-[11px] text-emerald-200/85">Auto-sorted by aisle • Syncs with your saved recipes &amp; meal plan</p>
+            </div>
+          </div>
+
+          <button type="button" onclick="copyShoppingListToClipboard()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/15 rounded-xl text-[11px] font-bold transition flex items-center gap-1.5 shrink-0" title="Copy unchecked shopping list to clipboard">
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-emerald-300"></i>
+            <span>Copy List</span>
+          </button>
+        </div>
+
+        <!-- Cart Progress Bar -->
+        <div>
+          <div class="flex justify-between text-[10px] text-emerald-200/80 mb-1">
+            <span id="shopCartSummaryText">0 of 0 items in cart</span>
+            <span id="shopCartPctText">0%</span>
+          </div>
+          <div class="w-full bg-black/30 rounded-full h-2 overflow-hidden">
+            <div id="shopCartProgressBar" class="bg-gradient-to-r from-emerald-400 to-teal-300 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/10">
+          <button type="button" onclick="importPlannedMealsToShoppingList()" class="px-2.5 py-1.5 bg-teal-500/25 hover:bg-teal-500/35 border border-teal-400/30 text-teal-100 rounded-xl text-[11px] font-bold transition flex items-center gap-1.5">
+            <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-teal-300"></i>
+            <span>+ Add Planned Week Meals</span>
+          </button>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="clearCheckedShoppingItems()" class="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-slate-200 rounded-xl text-[10px] font-semibold transition">
+              Clear Checked
+            </button>
+            <button type="button" onclick="clearAllShoppingItems()" class="px-2.5 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/25 rounded-xl text-[10px] font-semibold transition">
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Item & Import from Recipe Card -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3.5">
+        <form onsubmit="event.preventDefault(); addManualShoppingItem();" class="space-y-2">
+          <label class="text-xs font-bold text-slate-800 block">Add Grocery Item</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" id="shopItemNameInput" placeholder="e.g. 2 cans chunk light tuna, 1 lb shrimp, spinach..." class="flex-1 text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+            <div class="flex gap-1.5">
+              <select id="shopItemCategorySelect" class="flex-1 sm:w-44 text-xs px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-slate-700">
+                <option value="auto" selected>✨ Auto-Detect Aisle</option>
+                <option value="Protein & Seafood">🥩 Protein &amp; Seafood</option>
+                <option value="Produce">🥬 Produce</option>
+                <option value="Dairy & Eggs">🥛 Dairy &amp; Eggs</option>
+                <option value="Pantry & Crackers">🥫 Pantry &amp; Crackers</option>
+                <option value="Drinks & Electrolytes">💧 Drinks &amp; Electrolytes</option>
+                <option value="Frozen">❄️ Frozen</option>
+                <option value="Household & Other">🏠 Household &amp; Other</option>
+              </select>
+              <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1 shrink-0 shadow-xs">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Add</span>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Import Ingredients from Any Saved or Curated Recipe -->
+        <div class="pt-2.5 border-t border-slate-100 space-y-1.5">
+          <label class="text-[11px] font-bold text-slate-700 block">Pull Ingredients from a Recipe</label>
+          <div class="flex gap-2">
+            <select id="shopRecipeImportSelect" class="flex-1 text-xs px-3 py-2 bg-emerald-50/60 border border-emerald-200 rounded-xl outline-none font-medium text-slate-700">
+              <option value="">-- Select a Saved or Recommended Recipe --</option>
+            </select>
+            <button type="button" onclick="importSelectedRecipeToShoppingList()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1 shadow-xs">
+              <i data-lucide="shopping-basket" class="w-3.5 h-3.5"></i>
+              <span>+ Ingredients</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1-Tap High-Protein & GLP-1 Staples -->
+        <div class="pt-2.5 border-t border-slate-100">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Quick-Add GLP-1 &amp; High-Protein Staples:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="quickAddStapleToShop('Canned Tuna in Water', 'Protein & Seafood')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🐟 Canned Tuna</button>
+            <button type="button" onclick="quickAddStapleToShop('Canned or Grilled Chicken Breast', 'Protein & Seafood')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🍗 Chicken Breast</button>
+            <button type="button" onclick="quickAddStapleToShop('Fresh Shrimp (1 lb)', 'Protein & Seafood')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🍤 Shrimp</button>
+            <button type="button" onclick="quickAddStapleToShop('Liquid Egg Whites', 'Dairy & Eggs')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🥚 Egg Whites</button>
+            <button type="button" onclick="quickAddStapleToShop('Non-Fat Greek Yogurt', 'Dairy & Eggs')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🥣 Greek Yogurt</button>
+            <button type="button" onclick="quickAddStapleToShop('Low-Fat Cottage Cheese', 'Dairy & Eggs')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🧀 Cottage Cheese</button>
+            <button type="button" onclick="quickAddStapleToShop('Flatbread / Saltine Crackers', 'Pantry & Crackers')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🍘 Flatbread / Crackers</button>
+            <button type="button" onclick="quickAddStapleToShop('Baby Spinach & Mixed Greens', 'Produce')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🥬 Baby Spinach</button>
+            <button type="button" onclick="quickAddStapleToShop('Fresh Berries', 'Produce')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🫐 Berries</button>
+            <button type="button" onclick="quickAddStapleToShop('Electrolyte Packets', 'Drinks & Electrolytes')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">⚡ Electrolytes</button>
+            <button type="button" onclick="quickAddStapleToShop('Protein Shakes', 'Drinks & Electrolytes')" class="text-[10px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200/80 font-medium transition">🥤 Protein Shakes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shopping List Filter & Grouped Checklist -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="relative flex-1">
+            <input type="search" id="shopSearchInput" oninput="renderShoppingTab()" placeholder="Filter shopping list items or recipe names..." class="w-full text-xs pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" />
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+          </div>
+          <label class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer select-none shrink-0 px-1">
+            <input type="checkbox" id="shopHideCheckedToggle" onchange="renderShoppingTab()" class="rounded accent-emerald-600" />
+            <span>Hide checked items</span>
+          </label>
+        </div>
+
+        <div id="shoppingListGroupedContainer" class="space-y-3"></div>
+      </div>
+    </section>
+
   </main>
 
     <!-- ================= BOTTOM NAVIGATION BAR ================= -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-1.5 py-1 shadow-lg">
-    <div class="max-w-xl lg:max-w-2xl mx-auto grid grid-cols-7 text-center">
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 px-1 py-1 shadow-lg">
+    <div class="max-w-xl lg:max-w-2xl mx-auto grid grid-cols-8 text-center">
       <button onclick="switchTab('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center py-1.5 text-emerald-600 font-semibold">
         <i data-lucide="layout-dashboard" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">Today</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Today</span>
       </button>
 
       <button onclick="switchTab('planner')" id="nav-btn-planner" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="calendar-clock" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">Planner</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Planner</span>
+      </button>
+
+      <button onclick="switchTab('shopping')" id="nav-btn-shopping" class="relative flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
+        <div class="relative">
+          <i data-lucide="shopping-cart" class="w-4 h-4 mb-0.5"></i>
+          <span id="navShopCountBadge" class="hidden absolute -top-1.5 -right-2.5 min-w-[14px] h-[14px] px-1 rounded-full bg-emerald-600 text-white text-[8px] font-extrabold flex items-center justify-center leading-none">0</span>
+        </div>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Shop</span>
       </button>
 
       <button onclick="switchTab('recipes')" id="nav-btn-recipes" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="utensils" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">Ideas</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Ideas</span>
       </button>
 
       <button onclick="switchTab('calculator')" id="nav-btn-calculator" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="calculator" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">Builder</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Builder</span>
       </button>
 
       <button onclick="switchTab('protocol')" id="nav-btn-protocol" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="syringe" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">GLP & B12</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">GLP/B12</span>
       </button>
 
       <button onclick="switchTab('fitness')" id="nav-btn-fitness" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="activity" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">Fitness</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Fitness</span>
       </button>
 
       <button onclick="switchTab('analytics')" id="nav-btn-analytics" class="flex flex-col items-center py-1.5 text-slate-400 hover:text-slate-600">
         <i data-lucide="line-chart" class="w-4 h-4 mb-0.5"></i>
-        <span class="text-[9px] sm:text-[10px]">Trends</span>
+        <span class="text-[8.5px] sm:text-[10px] leading-tight">Trends</span>
       </button>
     </div>
   </nav>
@@ -2258,12 +2401,18 @@
         <!-- READ VIEW -->
         <div id="srModalReadView" class="space-y-4">
           <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <i data-lucide="shopping-basket" class="w-3.5 h-3.5 text-emerald-600"></i>
-                <span>Ingredients</span>
-              </h4>
-              <span id="srModalIngCount" class="text-[10px] font-semibold text-slate-400"></span>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="shopping-basket" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>Ingredients</span>
+                </h4>
+                <span id="srModalIngCount" class="text-[10px] font-semibold text-slate-400"></span>
+              </div>
+              <button type="button" id="srModalAddToShopBtn" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px] transition flex items-center gap-1 shadow-2xs">
+                <i data-lucide="shopping-cart" class="w-3 h-3"></i>
+                <span>+ Add to Shop List</span>
+              </button>
             </div>
             <ul id="srModalIngredientsList" class="space-y-1.5 text-xs text-slate-700"></ul>
           </div>
@@ -2348,6 +2497,187 @@
             <span id="srModalLogBtnText">Log 1 Serving</span>
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Logged Food Item Detail & Edit Inspector -->
+  <div id="loggedFoodDetailModal" onclick="if(event.target===this)closeLoggedFoodDetailModal()" class="fixed inset-0 z-[65] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom">
+      <!-- Header -->
+      <div class="p-4 border-b border-slate-100 flex items-start justify-between gap-3 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-900 text-white">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap mb-1">
+            <span id="lfdMealBadge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">BREAKFAST</span>
+            <span id="lfdSourceBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/10 text-slate-200">Logged Entry</span>
+          </div>
+          <h3 id="lfdTitle" class="font-bold text-base text-white leading-snug break-words">Logged Food</h3>
+        </div>
+        <button type="button" onclick="closeLoggedFoodDetailModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center shrink-0 transition" title="Close">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+        <!--READ VIEW-->
+        <div id="lfdReadView" class="space-y-3.5">
+          <!-- Nutrition Breakdown Card -->
+          <div class="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">Logged Calories</span>
+                <span id="lfdPortionText" class="text-[11px] text-slate-500">1 serving</span>
+              </div>
+              <span id="lfdCalories" class="text-2xl font-black text-emerald-700">0 kcal</span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-1.5 text-center text-xs bg-white rounded-xl py-2 px-1 border border-emerald-100">
+              <div>
+                <span class="text-[9px] font-bold text-rose-500 uppercase block">Protein</span>
+                <strong id="lfdProtein" class="text-slate-800">0g</strong>
+              </div>
+              <div>
+                <span class="text-[9px] font-bold text-amber-500 uppercase block">Carbs</span>
+                <strong id="lfdCarbs" class="text-slate-800">0g</strong>
+              </div>
+              <div>
+                <span class="text-[9px] font-bold text-indigo-500 uppercase block">Fat</span>
+                <strong id="lfdFat" class="text-slate-800">0g</strong>
+              </div>
+              <div>
+                <span class="text-[9px] font-bold text-emerald-600 uppercase block">Fiber</span>
+                <strong id="lfdFiber" class="text-slate-800">0g</strong>
+              </div>
+            </div>
+
+            <div id="lfdBudgetShareLine" class="text-[11px] text-emerald-900/85 font-medium flex items-center justify-between pt-0.5"></div>
+          </div>
+
+          <!-- Linked Recipe Details (if this logged item matches a saved or curated recipe) -->
+          <div id="lfdRecipeContextBox" class="hidden bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i data-lucide="chef-hat" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Recipe Ingredients &amp; Prep</span>
+              </span>
+              <button type="button" id="lfdOpenFullRecipeBtn" class="hidden text-[11px] font-bold text-emerald-600 hover:underline">
+                Open Full Recipe →
+              </button>
+            </div>
+            <div id="lfdRecipeIngredients" class="text-[11px] text-slate-600 leading-relaxed"></div>
+            <div id="lfdRecipeSteps" class="text-[11px] text-slate-600 leading-relaxed"></div>
+            <div id="lfdRecipeNotes" class="hidden text-[11px] text-amber-900 bg-amber-50 px-2.5 py-1.5 rounded-xl border border-amber-200/70 leading-relaxed"></div>
+          </div>
+
+          <!-- Item Notes / Details -->
+          <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 space-y-1.5">
+            <label for="lfdQuickNoteInput" class="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+              <span>Logged Entry Note <span class="font-normal text-slate-400">(optional)</span></span>
+              <span id="lfdQuickNoteSaved" class="text-[10px] font-bold text-emerald-600 hidden">Saved ✓</span>
+            </label>
+            <input type="text" id="lfdQuickNoteInput" oninput="saveLoggedFoodQuickNote()" placeholder="e.g. Had with Bettergoods crackers, half portion, post-workout..." class="w-full text-xs px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700" />
+          </div>
+        </div>
+
+        <!--EDIT VIEW-->
+        <div id="lfdEditView" class="hidden space-y-3">
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Food / Meal Name</label>
+            <input type="text" id="lfdEditName" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-bold text-slate-700 block mb-1">Meal Category</label>
+              <select id="lfdEditMealSlot" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-slate-700">
+                <option value="breakfast">☕ Breakfast</option>
+                <option value="lunch">🥗 Lunch</option>
+                <option value="dinner">🍲 Dinner</option>
+                <option value="snack">🍎 Snack</option>
+                <option value="drink">🥤 Drink</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-700 block mb-1">Calories (kcal)</label>
+              <input type="number" id="lfdEditCal" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-emerald-700" />
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Prot (g)</label>
+              <input type="number" step="0.1" id="lfdEditP" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Carbs (g)</label>
+              <input type="number" step="0.1" id="lfdEditC" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Fat (g)</label>
+              <input type="number" step="0.1" id="lfdEditF" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Fiber (g)</label>
+              <input type="number" step="0.1" id="lfdEditFib" class="w-full text-xs px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+            </div>
+          </div>
+          <div class="flex gap-2 pt-1">
+            <button type="button" onclick="saveEditedLoggedFoodItem()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-xs">
+              Save Changes
+            </button>
+            <button type="button" onclick="toggleLoggedFoodEditMode(false)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-xl text-xs transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div id="lfdFooter" class="p-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+        <button type="button" id="lfdDeleteBtn" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 font-semibold rounded-xl text-xs transition flex items-center gap-1">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span>Delete</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="toggleLoggedFoodEditMode(true)" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-xl text-xs transition flex items-center gap-1.5">
+            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            <span>Edit Entry</span>
+          </button>
+          <button type="button" onclick="closeLoggedFoodDetailModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Full Day Logged Food Summary (Triggered when clicking Food Intake on Hero Card) -->
+  <div id="todayFoodSummaryModal" onclick="if(event.target===this)closeTodayFoodLogSummaryModal()" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-400/20 border border-amber-300/30 flex items-center justify-center text-amber-300">
+            <i data-lucide="utensils" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Food Logged for <span id="tfsDateLabel">Today</span></h3>
+            <p class="text-[11px] text-emerald-200" id="tfsTotalsSubtitle">0 items • 0 kcal total</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeTodayFoodLogSummaryModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="tfsContentList" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
+
+      <div class="p-3 border-t border-slate-100 bg-slate-50 flex gap-2">
+        <button type="button" onclick="closeTodayFoodLogSummaryModal(); openQuickFoodModal();" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+          <span>Log More Food</span>
+        </button>
+        <button type="button" onclick="closeTodayFoodLogSummaryModal()" class="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-xl text-xs transition">
+          Close
+        </button>
       </div>
     </div>
   </div>
@@ -2551,7 +2881,8 @@
         exercises: [],
         meals: [],
         completedOccurrences: {} // key: "planId_YYYY-MM-DD" -> true
-      }
+      },
+      shoppingList: []
     };
 
     let calorieChartInstance = null;
@@ -2749,7 +3080,7 @@
 
     function countDataEntries(st) {
       if (!st || !st.days) return 0;
-      let count = (st.customRecipes || []).length + (st.savedMeals || []).length;
+      let count = (st.customRecipes || []).length + (st.savedMeals || []).length + (st.shoppingList || []).length;
       if (st.weeklyPlanner) {
         count += (st.weeklyPlanner.shots || []).length + (st.weeklyPlanner.exercises || []).length + (st.weeklyPlanner.meals || []).length;
       }
@@ -2857,6 +3188,12 @@
           completedOccurrences: { ...(bp.completedOccurrences || {}), ...(ip.completedOccurrences || {}) }
         };
       }
+      if (incoming.shoppingList && incoming.shoppingList.length > 0) {
+        const shopMap = new Map();
+        (base.shoppingList || []).forEach(it => it && it.id && shopMap.set(it.id, it));
+        incoming.shoppingList.forEach(it => it && it.id && shopMap.set(it.id, it));
+        merged.shoppingList = Array.from(shopMap.values());
+      }
       return merged;
     }
 
@@ -2919,6 +3256,7 @@
               if (!appState.targetBudget) appState.targetBudget = 1250;
               if (!appState.targetProtein) appState.targetProtein = 85;
               if (!appState.customRecipes) appState.customRecipes = [];
+              if (!Array.isArray(appState.shoppingList)) appState.shoppingList = [];
               if (!appState.days) appState.days = {};
               if (!appState.activeDate) appState.activeDate = getTodayDateString();
               ensureDayExists(appState.activeDate);
@@ -3038,6 +3376,7 @@
       if (!appState.weeklyPlanner.exercises) appState.weeklyPlanner.exercises = [];
       if (!appState.weeklyPlanner.meals) appState.weeklyPlanner.meals = [];
       if (!appState.weeklyPlanner.completedOccurrences) appState.weeklyPlanner.completedOccurrences = {};
+      if (!Array.isArray(appState.shoppingList)) appState.shoppingList = [];
       if (!appState.days) appState.days = {};
       rebuildFoodUsageStatsFromHistory();
       if (!appState.lastUpdated) appState.lastUpdated = new Date().toISOString();
@@ -3164,7 +3503,7 @@
     }
 
     function switchTab(tabId) {
-      const tabs = ['dashboard', 'planner', 'protocol', 'calculator', 'recipes', 'fitness', 'analytics'];
+      const tabs = ['dashboard', 'planner', 'shopping', 'protocol', 'calculator', 'recipes', 'fitness', 'analytics'];
       tabs.forEach(t => {
         const sec = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`nav-btn-${t}`);
@@ -3197,6 +3536,8 @@
         }
       } else if (tabId === 'planner') {
         renderPlannerTab();
+      } else if (tabId === 'shopping') {
+        renderShoppingTab();
       }
     }
 
@@ -3377,6 +3718,7 @@
       renderMealSection('drink', day.drink);
       renderFitnessDashList(day.fitness);
       renderDashboardScheduledPlan();
+      updateShoppingNavBadge();
 
       lucide.createIcons();
     }
@@ -3748,25 +4090,25 @@
              ontouchstart="handleMealTouchStart(event, '${mealKey}', ${idx})"
              ontouchmove="handleMealTouchMove(event)"
              ontouchend="handleMealTouchEnd(event)"
-             class="py-2 px-1.5 flex items-center justify-between text-xs group hover:bg-slate-50/90 rounded-xl transition cursor-grab active:cursor-grabbing">
+             class="py-2 px-1.5 flex items-center justify-between text-xs group hover:bg-emerald-50/50 rounded-xl transition">
           <div class="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-            <span class="text-slate-300 group-hover:text-emerald-600 transition shrink-0" title="Drag to move to another meal">
+            <span class="text-slate-300 group-hover:text-emerald-600 transition shrink-0 cursor-grab active:cursor-grabbing" title="Drag to move to another meal">
               <i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>
             </span>
-            <div class="min-w-0 flex-1">
-              <span class="font-semibold text-slate-800 block truncate">${escapeHtml(item.name)}</span>
-              <span class="text-[10px] text-slate-400 font-medium">
-                ${item.p || 0}g P • ${item.c || 0}g C • ${item.f || 0}g F ${item.fib ? '• ' + item.fib + 'g Fib' : ''}
+            <button type="button" onclick="openLoggedFoodDetailModal('${mealKey}', ${idx})" class="min-w-0 flex-1 text-left cursor-pointer focus:outline-none" title="Tap to view logged food details &amp; macros">
+              <span class="font-semibold text-slate-800 group-hover:text-emerald-700 block truncate underline decoration-slate-300/80 group-hover:decoration-emerald-500 underline-offset-2 transition">${escapeHtml(item.name)}</span>
+              <span class="text-[10px] text-slate-400 font-medium block truncate">
+                ${item.p || 0}g P • ${item.c || 0}g C • ${item.f || 0}g F${item.fib ? ' • ' + item.fib + 'g Fib' : ''}${item.note ? ' • 📝 ' + escapeHtml(item.note) : ''}
               </span>
-            </div>
+            </button>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
             <select aria-label="Move meal category" onchange="moveMealItemToCategory('${mealKey}', ${idx}, this.value)" class="text-[10px] font-semibold bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200/80 rounded-lg px-1.5 py-0.5 outline-none cursor-pointer transition" title="Move item to another meal">
               <option value="" selected disabled>⇄ Move</option>
               ${mealOptions.filter(m => m.key !== mealKey).map(m => `<option value="${m.key}">Move to ${m.label}</option>`).join('')}
             </select>
-            <span class="font-bold text-slate-700 whitespace-nowrap">${item.cal} kcal</span>
-            <button onclick="removeMealItem('${mealKey}', ${idx})" class="text-slate-300 hover:text-rose-500 p-1 transition" title="Delete">
+            <button type="button" onclick="openLoggedFoodDetailModal('${mealKey}', ${idx})" class="font-bold text-slate-700 hover:text-emerald-700 whitespace-nowrap cursor-pointer" title="View logged details">${item.cal} kcal</button>
+            <button type="button" onclick="removeMealItem('${mealKey}', ${idx})" class="text-slate-300 hover:text-rose-500 p-1 transition" title="Delete">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -3933,6 +4275,304 @@
       saveState();
       refreshUI();
       showToast("Meal item removed");
+    }
+
+    // --- LOGGED FOOD ITEM INSPECTOR & FULL-DAY LOGGED SUMMARY ---
+    let activeLoggedFoodRef = null; // { mealKey, index }
+    let loggedFoodNoteTimer = null;
+
+    function findMatchingRecipeForLoggedItem(item) {
+      if (!item) return null;
+      const cleanRawName = String(item.name || '').replace(/\s*\(\d+\s*servings?\)\s*$/i, '').trim().toLowerCase();
+
+      if (item.recipeId) {
+        const byCustomId = (appState.customRecipes || []).find(r => String(r.id) === String(item.recipeId));
+        if (byCustomId) return { type: 'custom', recipe: byCustomId };
+        const byCuratedId = CURATED_RECIPES.find(r => String(r.id) === String(item.recipeId));
+        if (byCuratedId) return { type: 'curated', recipe: byCuratedId };
+      }
+
+      const byCustomName = (appState.customRecipes || []).find(r => String(r.name || '').trim().toLowerCase() === cleanRawName);
+      if (byCustomName) return { type: 'custom', recipe: byCustomName };
+
+      const byCuratedName = CURATED_RECIPES.find(r => String(r.title || '').trim().toLowerCase() === cleanRawName);
+      if (byCuratedName) return { type: 'curated', recipe: byCuratedName };
+
+      return null;
+    }
+
+    function findPortionHintForLoggedItem(item) {
+      if (!item) return 'Logged portion';
+      if (item.portion) return item.portion;
+      const norm = normalizeFoodKey(String(item.name || '').replace(/^\d+x\s+/i, ''));
+      const savedMatch = (appState.savedMeals || []).find(m => normalizeFoodKey(m.name) === norm);
+      if (savedMatch && savedMatch.portion) return savedMatch.portion;
+      const commonMatch = COMMON_FOODS.find(c => normalizeFoodKey(c.name) === norm);
+      if (commonMatch && commonMatch.portion) return commonMatch.portion;
+      if (/\(\d+\s*servings?\)/i.test(item.name || '')) return '1 recipe serving';
+      return 'Logged diary entry';
+    }
+
+    function getLoggedItemSourceLabel(item) {
+      const id = String(item?.id || '');
+      if (id.startsWith('ai_log_')) return '✨ AI Logged Meal';
+      if (id.startsWith('rec_')) return '📖 Saved Recipe';
+      if (id.startsWith('cur_')) return '🥗 Recommended Meal';
+      if (id.startsWith('food_plan_')) return '📅 Scheduled Plan';
+      return '📒 Food Diary Entry';
+    }
+
+    function openLoggedFoodDetailModal(mealKey, index) {
+      const day = appState.days[appState.activeDate];
+      if (!day || !day[mealKey] || !day[mealKey][index]) return;
+
+      const item = day[mealKey][index];
+      activeLoggedFoodRef = { mealKey, index };
+
+      const mealLabels = {
+        breakfast: '☕ Breakfast',
+        lunch: '🥗 Lunch',
+        dinner: '🍲 Dinner',
+        snack: '🍎 Snack',
+        drink: '🥤 Drink'
+      };
+
+      document.getElementById('lfdMealBadge').innerText = mealLabels[mealKey] || mealKey.toUpperCase();
+      document.getElementById('lfdSourceBadge').innerText = getLoggedItemSourceLabel(item);
+      document.getElementById('lfdTitle').innerText = item.name || 'Logged Food';
+      document.getElementById('lfdPortionText').innerText = `${findPortionHintForLoggedItem(item)} • ${appState.activeDate}`;
+
+      const cal = Math.round(Number(item.cal) || 0);
+      const p = Math.round((Number(item.p) || 0) * 10) / 10;
+      const c = Math.round((Number(item.c) || 0) * 10) / 10;
+      const f = Math.round((Number(item.f) || 0) * 10) / 10;
+      const fib = Math.round((Number(item.fib) || 0) * 10) / 10;
+
+      document.getElementById('lfdCalories').innerText = `${cal} kcal`;
+      document.getElementById('lfdProtein').innerText = `${p}g`;
+      document.getElementById('lfdCarbs').innerText = `${c}g`;
+      document.getElementById('lfdFat').innerText = `${f}g`;
+      document.getElementById('lfdFiber').innerText = `${fib}g`;
+
+      const targetBudget = Number(appState.targetBudget) || 1250;
+      const targetProt = Number(appState.targetProtein) || 85;
+      const calShare = Math.round((cal / Math.max(1, targetBudget)) * 100);
+      const protShare = Math.round((p / Math.max(1, targetProt)) * 100);
+      document.getElementById('lfdBudgetShareLine').innerHTML = `
+        <span>${calShare}% of daily ${targetBudget.toLocaleString()} kcal goal</span>
+        <span class="font-bold text-rose-600">${protShare}% of ${targetProt}g protein floor</span>
+      `;
+
+      // Check if linked to a saved or curated recipe
+      const matchedRec = findMatchingRecipeForLoggedItem(item);
+      const recBox = document.getElementById('lfdRecipeContextBox');
+      const openFullBtn = document.getElementById('lfdOpenFullRecipeBtn');
+      const recIngEl = document.getElementById('lfdRecipeIngredients');
+      const recStepsEl = document.getElementById('lfdRecipeSteps');
+      const recNotesEl = document.getElementById('lfdRecipeNotes');
+
+      if (matchedRec) {
+        recBox.classList.remove('hidden');
+        if (matchedRec.type === 'custom') {
+          const r = matchedRec.recipe;
+          const ings = normalizeRecipeIngredientsArray(r.ingredients).map(i => i.label);
+          const steps = normalizeRecipeStepsArray(r.steps || r.instructions);
+          recIngEl.innerHTML = ings.length > 0
+            ? `<strong class="text-slate-800">Ingredients:</strong> ${escapeHtml(ings.join(', '))}`
+            : `<span class="italic text-slate-400">No ingredients listed on recipe.</span>`;
+          recStepsEl.innerHTML = steps.length > 0
+            ? `<strong class="text-slate-800">Steps:</strong> ${escapeHtml(steps.join(' '))}`
+            : '';
+          if (r.notes && String(r.notes).trim()) {
+            recNotesEl.classList.remove('hidden');
+            recNotesEl.innerText = `📝 Note: ${String(r.notes).trim()}`;
+          } else {
+            recNotesEl.classList.add('hidden');
+          }
+          openFullBtn.classList.remove('hidden');
+          openFullBtn.onclick = () => {
+            closeLoggedFoodDetailModal();
+            openSavedRecipeModal(r.id);
+          };
+        } else {
+          const r = matchedRec.recipe;
+          recIngEl.innerHTML = `<strong class="text-slate-800">Ingredients:</strong> ${escapeHtml((r.ingredients || []).join(', '))}`;
+          recStepsEl.innerHTML = r.steps ? `<strong class="text-slate-800">Prep:</strong> ${escapeHtml(r.steps)}` : '';
+          recNotesEl.classList.add('hidden');
+          openFullBtn.classList.add('hidden');
+        }
+      } else {
+        recBox.classList.add('hidden');
+      }
+
+      // Entry Note
+      const noteInput = document.getElementById('lfdQuickNoteInput');
+      if (noteInput) noteInput.value = item.note || '';
+      document.getElementById('lfdQuickNoteSaved').classList.add('hidden');
+
+      // Populate Edit Form
+      document.getElementById('lfdEditName').value = item.name || '';
+      document.getElementById('lfdEditMealSlot').value = mealKey;
+      document.getElementById('lfdEditCal').value = cal;
+      document.getElementById('lfdEditP').value = p;
+      document.getElementById('lfdEditC').value = c;
+      document.getElementById('lfdEditF').value = f;
+      document.getElementById('lfdEditFib').value = fib;
+
+      // Delete handler
+      document.getElementById('lfdDeleteBtn').onclick = () => {
+        removeMealItem(mealKey, index);
+        closeLoggedFoodDetailModal();
+      };
+
+      toggleLoggedFoodEditMode(false);
+      document.getElementById('loggedFoodDetailModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeLoggedFoodDetailModal() {
+      document.getElementById('loggedFoodDetailModal').classList.add('hidden');
+      activeLoggedFoodRef = null;
+    }
+
+    function toggleLoggedFoodEditMode(isEdit) {
+      document.getElementById('lfdReadView').classList.toggle('hidden', isEdit);
+      document.getElementById('lfdEditView').classList.toggle('hidden', !isEdit);
+      document.getElementById('lfdFooter').classList.toggle('hidden', isEdit);
+    }
+
+    function saveLoggedFoodQuickNote() {
+      if (!activeLoggedFoodRef) return;
+      clearTimeout(loggedFoodNoteTimer);
+      loggedFoodNoteTimer = setTimeout(() => {
+        const { mealKey, index } = activeLoggedFoodRef;
+        const day = appState.days[appState.activeDate];
+        if (!day || !day[mealKey] || !day[mealKey][index]) return;
+        day[mealKey][index].note = (document.getElementById('lfdQuickNoteInput')?.value || '').trim();
+        saveState();
+        refreshUI();
+        const badge = document.getElementById('lfdQuickNoteSaved');
+        if (badge) {
+          badge.classList.remove('hidden');
+          setTimeout(() => badge.classList.add('hidden'), 1800);
+        }
+      }, 450);
+    }
+
+    function saveEditedLoggedFoodItem() {
+      if (!activeLoggedFoodRef) return;
+      const { mealKey, index } = activeLoggedFoodRef;
+      const day = appState.days[appState.activeDate];
+      if (!day || !day[mealKey] || !day[mealKey][index]) return;
+
+      const updatedName = document.getElementById('lfdEditName').value.trim();
+      const newMealSlot = document.getElementById('lfdEditMealSlot').value || mealKey;
+      const updatedCal = Math.max(0, Math.round(Number(document.getElementById('lfdEditCal').value) || 0));
+      const updatedP = Math.max(0, Math.round((Number(document.getElementById('lfdEditP').value) || 0) * 10) / 10);
+      const updatedC = Math.max(0, Math.round((Number(document.getElementById('lfdEditC').value) || 0) * 10) / 10);
+      const updatedF = Math.max(0, Math.round((Number(document.getElementById('lfdEditF').value) || 0) * 10) / 10);
+      const updatedFib = Math.max(0, Math.round((Number(document.getElementById('lfdEditFib').value) || 0) * 10) / 10);
+
+      if (!updatedName) {
+        showToast("Please enter a food name");
+        return;
+      }
+
+      const item = day[mealKey][index];
+      item.name = updatedName;
+      item.cal = updatedCal;
+      item.p = updatedP;
+      item.c = updatedC;
+      item.f = updatedF;
+      item.fib = updatedFib;
+
+      let finalMealKey = mealKey;
+      let finalIndex = index;
+      if (newMealSlot !== mealKey) {
+        if (!day[newMealSlot]) day[newMealSlot] = [];
+        day[mealKey].splice(index, 1);
+        day[newMealSlot].push(item);
+        finalMealKey = newMealSlot;
+        finalIndex = day[newMealSlot].length - 1;
+      }
+
+      saveState();
+      refreshUI();
+      openLoggedFoodDetailModal(finalMealKey, finalIndex);
+      showToast("Logged food updated! ✓");
+    }
+
+    function openTodayFoodLogSummaryModal() {
+      const dateStr = appState.activeDate;
+      ensureDayExists(dateStr);
+      const day = appState.days[dateStr];
+      document.getElementById('tfsDateLabel').innerText = dateStr;
+
+      const sections = [
+        { key: 'breakfast', label: '☕ Breakfast' },
+        { key: 'lunch', label: '🥗 Lunch' },
+        { key: 'dinner', label: '🍲 Dinner' },
+        { key: 'snack', label: '🍎 Snacks' },
+        { key: 'drink', label: '🥤 Drinks & Beverages' }
+      ];
+
+      let totalItems = 0, totalCal = 0, totalP = 0, totalC = 0, totalF = 0, totalFib = 0;
+      const htmlBlocks = [];
+
+      sections.forEach(sec => {
+        const arr = day[sec.key] || [];
+        if (arr.length === 0) return;
+        const secCal = arr.reduce((s, i) => s + (Number(i.cal) || 0), 0);
+        htmlBlocks.push(`
+          <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 space-y-1.5">
+            <div class="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+              <span class="text-xs font-bold text-slate-800">${sec.label}</span>
+              <span class="text-xs font-extrabold text-emerald-700">${Math.round(secCal)} kcal</span>
+            </div>
+            <div class="divide-y divide-slate-200/50">
+              ${arr.map((it, idx) => {
+                totalItems++;
+                totalCal += Number(it.cal) || 0;
+                totalP += Number(it.p) || 0;
+                totalC += Number(it.c) || 0;
+                totalF += Number(it.f) || 0;
+                totalFib += Number(it.fib) || 0;
+                return `
+                  <button type="button" onclick="closeTodayFoodLogSummaryModal(); openLoggedFoodDetailModal('${sec.key}', ${idx});" class="w-full py-2 flex items-center justify-between text-left text-xs hover:bg-white rounded-lg px-1.5 transition cursor-pointer group">
+                    <div class="pr-2 min-w-0 flex-1">
+                      <span class="font-semibold text-slate-800 group-hover:text-emerald-700 block truncate underline decoration-slate-300 group-hover:decoration-emerald-500 underline-offset-2">${escapeHtml(it.name)}</span>
+                      <span class="text-[10px] text-slate-400">${it.p || 0}g P • ${it.c || 0}g C • ${it.f || 0}g F${it.fib ? ' • ' + it.fib + 'g Fib' : ''}</span>
+                    </div>
+                    <span class="font-bold text-slate-700 shrink-0">${it.cal} kcal →</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `);
+      });
+
+      document.getElementById('tfsTotalsSubtitle').innerText =
+        `${totalItems} item${totalItems === 1 ? '' : 's'} • ${Math.round(totalCal).toLocaleString()} kcal • ${Math.round(totalP)}g P • ${Math.round(totalC)}g C • ${Math.round(totalF)}g F • ${Math.round(totalFib)}g Fib`;
+
+      const listEl = document.getElementById('tfsContentList');
+      if (totalItems === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-1.5">
+            <p class="text-xs font-semibold text-slate-600">No food or drinks logged yet for ${dateStr}.</p>
+            <p class="text-[11px] text-slate-400">Tap "Log More Food" below or use AI Log Meal to get started.</p>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = htmlBlocks.join('');
+      }
+
+      document.getElementById('todayFoodSummaryModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeTodayFoodLogSummaryModal() {
+      document.getElementById('todayFoodSummaryModal').classList.add('hidden');
     }
 
     function removeFitnessItem(index) {
@@ -5216,12 +5856,16 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
               </div>
             </div>
             <div class="flex items-center gap-1.5 pt-1.5 border-t border-slate-200/60">
-              <button type="button" onclick="openSavedRecipeModal('${r.id}')" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-lg text-[11px] transition flex items-center gap-1 shadow-2xs">
+              <button type="button" onclick="openSavedRecipeModal('${r.id}')" class="px-2.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold rounded-lg text-[11px] transition flex items-center gap-1 shadow-2xs">
                 <i data-lucide="book-open" class="w-3.5 h-3.5 text-emerald-600"></i>
-                <span>View Recipe</span>
+                <span>View</span>
+              </button>
+              <button type="button" onclick="addRecipeIngredientsToShoppingList('${r.id}')" class="px-2.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-semibold rounded-lg text-[11px] transition flex items-center gap-1" title="Add ingredients to Shopping List">
+                <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-teal-600"></i>
+                <span>Shop</span>
               </button>
               <button type="button" onclick="logRecipeServingToDay('${r.id}')" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[11px] transition">
-                Log 1 Serving (${Math.round(ps.cal || 0)} kcal)
+                Log (${Math.round(ps.cal || 0)} kcal)
               </button>
               <button type="button" onclick="deleteSavedRecipe('${r.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition" title="Delete Recipe">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -5319,6 +5963,10 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       const logMealSelect = document.getElementById('srModalLogMealSelect');
       if (logMealSelect && ['breakfast', 'lunch', 'dinner', 'snack', 'drink'].includes(mealSlot)) {
         logMealSelect.value = mealSlot;
+      }
+      const addShopBtn = document.getElementById('srModalAddToShopBtn');
+      if (addShopBtn) {
+        addShopBtn.onclick = () => addRecipeIngredientsToShoppingList(rec.id);
       }
       document.getElementById('srModalLogBtnText').innerText = `Log (${Math.round(ps.cal || 0)} kcal)`;
       document.getElementById('srModalLogBtn').onclick = () => {
@@ -5439,6 +6087,7 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
       recordFoodUsage({ name: `${rec.name} (1 serving)`, cal: rec.perServing.cal, p: rec.perServing.p, c: rec.perServing.c, f: rec.perServing.f, fib: fibVal }, targetMeal, true);
       appState.days[appState.activeDate][targetMeal].push({
         id: 'rec_log_' + Date.now(),
+        recipeId: rec.id,
         name: `${rec.name} (1 serving)`,
         cal: rec.perServing.cal,
         p: rec.perServing.p,
@@ -5603,9 +6252,15 @@ Include a short clinical coaching tip for muscle preservation and hydration on a
             ` : ''}
           </div>
 
-          <button onclick="logCuratedMeal('${r.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-xs">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Log to Today's ${capitalize(r.meal)} (${r.cal} kcal)
-          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="addRecipeIngredientsToShoppingList('${r.id}')" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition shrink-0" title="Send ingredients to Shopping List">
+              <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-teal-600"></i>
+              <span>+ Shop List</span>
+            </button>
+            <button type="button" onclick="logCuratedMeal('${r.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-xs">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Log to ${capitalize(r.meal)} (${r.cal} kcal)
+            </button>
+          </div>
         </div>
       `).join('');
 
@@ -5785,6 +6440,7 @@ Maximize lean protein (e.g. egg whites, shrimp, tuna, chicken breast, Greek yogu
       recordFoodUsage({ name: rec.title, cal: rec.cal, p: rec.protein, c: rec.carbs, f: rec.fat, fib: rec.fiber || 0 }, rec.meal, true);
       appState.days[appState.activeDate][rec.meal].push({
         id: 'cur_' + Date.now(),
+        recipeId: rec.id,
         name: rec.title,
         cal: rec.cal,
         p: rec.protein,
@@ -7483,7 +8139,31 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       }
     }
 
+    let isScheduledPlanExpanded = false; // Collapsed by default
+
+    function syncScheduledPlanCollapseUI() {
+      const body = document.getElementById('dashScheduledCollapsibleBody');
+      const chevron = document.getElementById('scheduledPlanChevron');
+      const btn = document.getElementById('scheduledPlanToggleBtn');
+      if (!body) return;
+      if (isScheduledPlanExpanded) {
+        body.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      } else {
+        body.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    function toggleScheduledPlanSection() {
+      isScheduledPlanExpanded = !isScheduledPlanExpanded;
+      syncScheduledPlanCollapseUI();
+    }
+
     function renderDashboardScheduledPlan() {
+      syncScheduledPlanCollapseUI();
       const container = document.getElementById('dashScheduledItemsList');
       const countBadge = document.getElementById('dashPlanCountBadge');
       const dayLabel = document.getElementById('dashPlanDayLabel');
@@ -7594,6 +8274,453 @@ Generate clear step-by-step cooking directions and assign an appropriate meal sl
       });
 
       container.innerHTML = rows.join('');
+    }
+
+    // --- SMART SHOPPING LIST ENGINE ---
+    const SHOPPING_AISLES = [
+      { key: 'Protein & Seafood', icon: '🥩', label: 'Protein & Seafood' },
+      { key: 'Produce', icon: '🥬', label: 'Produce' },
+      { key: 'Dairy & Eggs', icon: '🥛', label: 'Dairy & Eggs' },
+      { key: 'Pantry & Crackers', icon: '🥫', label: 'Pantry, Spices & Crackers' },
+      { key: 'Drinks & Electrolytes', icon: '💧', label: 'Drinks, Shakes & Electrolytes' },
+      { key: 'Frozen', icon: '❄️', label: 'Frozen' },
+      { key: 'Household & Other', icon: '🏠', label: 'Household & Other' }
+    ];
+
+    function detectShoppingAisle(itemText) {
+      const lower = String(itemText || '').toLowerCase();
+      if (/frozen|ice/.test(lower)) return 'Frozen';
+      if (/electrolyte|mineral|liquid iv|lmnt|protein shake|premier protein|coffee|cold brew|tea|coconut water|sparkling water|juice|whey|protein powder/.test(lower)) {
+        return 'Drinks & Electrolytes';
+      }
+      if (/egg|yogurt|cottage cheese|feta|cheese|milk|fairlife|almond milk|butter|cream/.test(lower)) {
+        return 'Dairy & Eggs';
+      }
+      if (/shrimp|tuna|chicken|salmon|turkey|cod|fish|crab|beef|steak|tenderloin|pork|tofu|bacon|sausage|seafood|scallop/.test(lower)) {
+        return 'Protein & Seafood';
+      }
+      if (/spinach|asparagus|zucchini|cucumber|tomato|lettuce|romaine|greens|berry|berries|blueberr|strawberr|apple|lemon|lime|cilantro|dill|chive|avocado|broccoli|cauliflower|pepper|onion|garlic\s+clove|green bean|edamame|pea|banana|produce|salad/.test(lower)) {
+        return 'Produce';
+      }
+      if (/cracker|saltine|flatbread|bettergoods|olive oil|spray|relish|mayo|mayonnaise|vinaigrette|mustard|sauce|curry|paste|oat|chia|rice|almond|nut|cinnamon|paprika|seasoning|garlic powder|onion powder|pepper|salt|chili|vinegar|broth|can/.test(lower)) {
+        return 'Pantry & Crackers';
+      }
+      return 'Household & Other';
+    }
+
+    function cleanShoppingIngredientLabel(rawName) {
+      return String(rawName || '')
+        .replace(/\(\s*\d+\s*kcal\s*\)/gi, '')
+        .replace(/^\s*[-*•]+\s*/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function normalizeShoppingItemKey(name) {
+      return cleanShoppingIngredientLabel(name)
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .trim();
+    }
+
+    function updateShoppingNavBadge() {
+      const badge = document.getElementById('navShopCountBadge');
+      if (!badge) return;
+      const list = appState.shoppingList || [];
+      const uncheckedCount = list.filter(it => !it.checked).length;
+      if (uncheckedCount > 0) {
+        badge.innerText = uncheckedCount > 99 ? '99+' : String(uncheckedCount);
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function upsertShoppingItem(rawName, category = 'auto', sourceLabel = '') {
+      if (!Array.isArray(appState.shoppingList)) appState.shoppingList = [];
+      const cleanName = cleanShoppingIngredientLabel(rawName);
+      if (!cleanName) return false;
+
+      const normKey = normalizeShoppingItemKey(cleanName);
+      const resolvedCategory = (!category || category === 'auto') ? detectShoppingAisle(cleanName) : category;
+
+      // Merge with existing unchecked item if normalized name matches
+      const existing = appState.shoppingList.find(it => !it.checked && normalizeShoppingItemKey(it.name) === normKey);
+      if (existing) {
+        existing.count = (Number(existing.count) || 1) + 1;
+        if (sourceLabel && (!existing.source || !existing.source.includes(sourceLabel))) {
+          existing.source = existing.source ? `${existing.source}, ${sourceLabel}` : sourceLabel;
+        }
+        return 'merged';
+      }
+
+      appState.shoppingList.unshift({
+        id: 'shop_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name: cleanName,
+        category: resolvedCategory,
+        checked: false,
+        count: 1,
+        source: sourceLabel || '',
+        createdAt: Date.now()
+      });
+      return 'added';
+    }
+
+    function addManualShoppingItem() {
+      const input = document.getElementById('shopItemNameInput');
+      const catSelect = document.getElementById('shopItemCategorySelect');
+      const rawText = (input?.value || '').trim();
+      if (!rawText) {
+        showToast("Please enter an item to add");
+        return;
+      }
+
+      // Support comma-separated quick entry (e.g., "Eggs, spinach, canned tuna")
+      const parts = rawText.includes(',')
+        ? rawText.split(',').map(s => s.trim()).filter(Boolean)
+        : [rawText];
+
+      const chosenCat = catSelect ? catSelect.value : 'auto';
+      let addedCount = 0;
+      parts.forEach(part => {
+        if (upsertShoppingItem(part, chosenCat, '')) addedCount++;
+      });
+
+      if (input) input.value = '';
+      if (catSelect) catSelect.value = 'auto';
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+      showToast(addedCount > 1 ? `Added ${addedCount} items to Shopping List 🛒` : `Added "${parts[0]}" to Shopping List 🛒`);
+    }
+
+    function quickAddStapleToShop(itemName, category) {
+      upsertShoppingItem(itemName, category, 'GLP-1 Staple');
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+      showToast(`Added "${itemName}" to Shopping List 🛒`);
+    }
+
+    function addRecipeIngredientsToShoppingList(recipeId) {
+      let title = '';
+      let ingLines = [];
+
+      const customRec = (appState.customRecipes || []).find(r => String(r.id) === String(recipeId));
+      if (customRec) {
+        title = customRec.name || 'Saved Recipe';
+        ingLines = normalizeRecipeIngredientsArray(customRec.ingredients).map(i => i.label);
+      } else {
+        const curatedRec = CURATED_RECIPES.find(r => String(r.id) === String(recipeId));
+        if (curatedRec) {
+          title = curatedRec.title || 'Recommended Meal';
+          ingLines = Array.isArray(curatedRec.ingredients) ? curatedRec.ingredients : [];
+        }
+      }
+
+      if (ingLines.length === 0) {
+        if (title) {
+          upsertShoppingItem(title, 'auto', 'Recipe');
+          saveState();
+          updateShoppingNavBadge();
+          if (!document.getElementById('tab-shopping').classList.contains('hidden')) renderShoppingTab();
+          showToast(`Added "${title}" to Shopping List 🛒`);
+        } else {
+          showToast("No ingredients found on this recipe");
+        }
+        return;
+      }
+
+      let count = 0;
+      ingLines.forEach(line => {
+        if (upsertShoppingItem(line, 'auto', title)) count++;
+      });
+
+      saveState();
+      updateShoppingNavBadge();
+      if (!document.getElementById('tab-shopping').classList.contains('hidden')) {
+        renderShoppingTab();
+      }
+      showToast(`Added ${count} ingredient${count === 1 ? '' : 's'} from "${title}" to Shop List! 🛒`);
+    }
+
+    function populateShoppingRecipeDropdown() {
+      const sel = document.getElementById('shopRecipeImportSelect');
+      if (!sel) return;
+      const currentVal = sel.value;
+
+      const customOpts = (appState.customRecipes || []).map(r => {
+        const cnt = normalizeRecipeIngredientsArray(r.ingredients).length;
+        return `<option value="${escapeHtml(r.id)}">⭐ ${escapeHtml(r.name)} (${cnt} ing)</option>`;
+      });
+
+      const curatedOpts = CURATED_RECIPES.map(cr => {
+        const cnt = (cr.ingredients || []).length;
+        return `<option value="${escapeHtml(cr.id)}">🥗 ${escapeHtml(cr.title)} (${cnt} ing)</option>`;
+      });
+
+      sel.innerHTML = `<option value="">-- Choose a Saved or Recommended Recipe --</option>` +
+        (customOpts.length > 0 ? `<optgroup label="My Saved Custom Recipes">${customOpts.join('')}</optgroup>` : '') +
+        `<optgroup label="Recommended GLP-1 Recipes">${curatedOpts.join('')}</optgroup>`;
+
+      if (currentVal) sel.value = currentVal;
+    }
+
+    function importSelectedRecipeToShoppingList() {
+      const sel = document.getElementById('shopRecipeImportSelect');
+      if (!sel || !sel.value) {
+        showToast("Select a recipe from the dropdown first");
+        return;
+      }
+      addRecipeIngredientsToShoppingList(sel.value);
+      sel.value = '';
+    }
+
+    function importPlannedMealsToShoppingList() {
+      const plannedMeals = (appState.weeklyPlanner && appState.weeklyPlanner.meals) || [];
+      if (plannedMeals.length === 0) {
+        showToast("No meals scheduled in your Planner yet!");
+        return;
+      }
+
+      let totalAdded = 0;
+      plannedMeals.forEach(pm => {
+        const matched = findMatchingRecipeForLoggedItem({ name: pm.name, recipeId: pm.recipeId });
+        if (matched && matched.type === 'custom') {
+          const ings = normalizeRecipeIngredientsArray(matched.recipe.ingredients).map(i => i.label);
+          if (ings.length > 0) {
+            ings.forEach(line => { if (upsertShoppingItem(line, 'auto', matched.recipe.name)) totalAdded++; });
+            return;
+          }
+        } else if (matched && matched.type === 'curated') {
+          const ings = matched.recipe.ingredients || [];
+          if (ings.length > 0) {
+            ings.forEach(line => { if (upsertShoppingItem(line, 'auto', matched.recipe.title)) totalAdded++; });
+            return;
+          }
+        }
+        if (upsertShoppingItem(pm.name, 'auto', `Planned ${capitalize(pm.mealSlot || 'Meal')}`)) {
+          totalAdded++;
+        }
+      });
+
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+      showToast(`Imported ${totalAdded} item${totalAdded === 1 ? '' : 's'} from your Weekly Meal Plan! 🛒`);
+    }
+
+    function toggleShoppingItemChecked(itemId) {
+      const item = (appState.shoppingList || []).find(it => String(it.id) === String(itemId));
+      if (!item) return;
+      item.checked = !item.checked;
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+    }
+
+    function adjustShoppingItemQty(itemId, delta) {
+      const idx = (appState.shoppingList || []).findIndex(it => String(it.id) === String(itemId));
+      if (idx < 0) return;
+      const item = appState.shoppingList[idx];
+      const nextCount = (Number(item.count) || 1) + delta;
+      if (nextCount <= 0) {
+        appState.shoppingList.splice(idx, 1);
+        showToast("Item removed from Shopping List");
+      } else {
+        item.count = nextCount;
+      }
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+    }
+
+    function removeShoppingItem(itemId) {
+      if (!Array.isArray(appState.shoppingList)) return;
+      appState.shoppingList = appState.shoppingList.filter(it => String(it.id) !== String(itemId));
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+      showToast("Item removed");
+    }
+
+    function clearCheckedShoppingItems() {
+      const before = (appState.shoppingList || []).length;
+      appState.shoppingList = (appState.shoppingList || []).filter(it => !it.checked);
+      const removed = before - appState.shoppingList.length;
+      if (removed === 0) {
+        showToast("No checked items to clear");
+        return;
+      }
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+      showToast(`Cleared ${removed} checked item${removed === 1 ? '' : 's'} ✓`);
+    }
+
+    function clearAllShoppingItems() {
+      if (!appState.shoppingList || appState.shoppingList.length === 0) {
+        showToast("Shopping list is already empty");
+        return;
+      }
+      appState.shoppingList = [];
+      saveState();
+      updateShoppingNavBadge();
+      renderShoppingTab();
+      showToast("Cleared shopping list");
+    }
+
+    function copyShoppingListToClipboard() {
+      const list = (appState.shoppingList || []).filter(it => !it.checked);
+      if (list.length === 0) {
+        showToast("No unchecked items to copy!");
+        return;
+      }
+
+      const lines = [`🛒 GLP-1 & B12 Grocery List (${getTodayDateString()})`];
+      SHOPPING_AISLES.forEach(aisle => {
+        const items = list.filter(it => (it.category || 'Household & Other') === aisle.key);
+        if (items.length > 0) {
+          lines.push(`\n${aisle.icon} ${aisle.label}:`);
+          items.forEach(it => {
+            const qty = (it.count && it.count > 1) ? ` (x${it.count})` : '';
+            lines.push(`- [ ] ${it.name}${qty}`);
+          });
+        }
+      });
+
+      const textOut = lines.join('\n');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textOut).then(() => {
+          showToast("Copied shopping list to clipboard! 📋");
+        }).catch(() => fallbackCopyText(textOut));
+      } else {
+        fallbackCopyText(textOut);
+      }
+    }
+
+    function fallbackCopyText(txt) {
+      const ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied shopping list to clipboard! 📋");
+      } catch (e) {
+        showToast("Could not copy automatically");
+      }
+      document.body.removeChild(ta);
+    }
+
+    function renderShoppingTab() {
+      populateShoppingRecipeDropdown();
+      updateShoppingNavBadge();
+
+      const allItems = appState.shoppingList || [];
+      const total = allItems.length;
+      const checkedCount = allItems.filter(i => i.checked).length;
+      const uncheckedCount = total - checkedCount;
+      const pct = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+
+      const progBadge = document.getElementById('shopProgressBadge');
+      const sumTxt = document.getElementById('shopCartSummaryText');
+      const pctTxt = document.getElementById('shopCartPctText');
+      const barEl = document.getElementById('shopCartProgressBar');
+
+      if (progBadge) progBadge.innerText = uncheckedCount === 0 && total > 0 ? 'All in cart ✓' : `${uncheckedCount} to buy`;
+      if (sumTxt) sumTxt.innerText = `${checkedCount} of ${total} item${total === 1 ? '' : 's'} in cart`;
+      if (pctTxt) pctTxt.innerText = `${pct}%`;
+      if (barEl) barEl.style.width = `${pct}%`;
+
+      const container = document.getElementById('shoppingListGroupedContainer');
+      if (!container) return;
+
+      if (total === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2 px-4">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+              <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            </div>
+            <p class="text-xs font-bold text-slate-700">Your Shopping List is empty</p>
+            <p class="text-[11px] text-slate-400 max-w-xs mx-auto">Add items above, tap a GLP-1 staple chip, or pull ingredients directly from any Saved Recipe or Weekly Meal Plan.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const query = (document.getElementById('shopSearchInput')?.value || '').toLowerCase().trim();
+      const hideChecked = !!document.getElementById('shopHideCheckedToggle')?.checked;
+
+      const visibleItems = allItems.filter(it => {
+        if (hideChecked && it.checked) return false;
+        if (!query) return true;
+        return (it.name || '').toLowerCase().includes(query) ||
+               (it.source || '').toLowerCase().includes(query) ||
+               (it.category || '').toLowerCase().includes(query);
+      });
+
+      if (visibleItems.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-1">
+            <p class="text-xs font-semibold text-slate-600">No shopping items match your current filter.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const aisleHtmlBlocks = [];
+      SHOPPING_AISLES.forEach(aisle => {
+        const group = visibleItems.filter(it => (it.category || 'Household & Other') === aisle.key);
+        if (group.length === 0) return;
+
+        // Sort unchecked first within each aisle
+        group.sort((a, b) => Number(!!a.checked) - Number(!!b.checked));
+        const remainingInAisle = group.filter(i => !i.checked).length;
+
+        aisleHtmlBlocks.push(`
+          <div class="rounded-2xl border border-slate-200/80 overflow-hidden bg-slate-50/50">
+            <div class="px-3.5 py-2 bg-slate-100/80 border-b border-slate-200/70 flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span>${aisle.icon}</span>
+                <span>${escapeHtml(aisle.label)}</span>
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${remainingInAisle > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                ${remainingInAisle > 0 ? `${remainingInAisle} needed` : 'Done ✓'}
+              </span>
+            </div>
+            <div class="divide-y divide-slate-200/60 bg-white">
+              ${group.map(it => `
+                <div class="px-3 py-2.5 flex items-center justify-between gap-2 text-xs transition ${it.checked ? 'bg-slate-50/80 opacity-65' : 'hover:bg-emerald-50/30'}">
+                  <label class="flex items-start gap-2.5 cursor-pointer flex-1 min-w-0 select-none">
+                    <input type="checkbox" ${it.checked ? 'checked' : ''} onchange="toggleShoppingItemChecked('${it.id}')" class="mt-0.5 w-4 h-4 rounded accent-emerald-600 cursor-pointer shrink-0" />
+                    <div class="min-w-0 flex-1">
+                      <span class="font-semibold block break-words ${it.checked ? 'line-through text-slate-400' : 'text-slate-800'}">
+                        ${escapeHtml(it.name)}
+                        ${(it.count && it.count > 1) ? `<span class="ml-1 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">x${it.count}</span>` : ''}
+                      </span>
+                      ${it.source ? `<span class="text-[10px] text-slate-400 block truncate">From: ${escapeHtml(it.source)}</span>` : ''}
+                    </div>
+                  </label>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" onclick="adjustShoppingItemQty('${it.id}', -1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center transition" title="Decrease quantity">-</button>
+                    <button type="button" onclick="adjustShoppingItemQty('${it.id}', 1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-800 font-bold text-xs flex items-center justify-center transition" title="Increase quantity">+</button>
+                    <button type="button" onclick="removeShoppingItem('${it.id}')" class="p-1 text-slate-300 hover:text-rose-500 rounded-lg transition" title="Remove item">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `);
+      });
+
+      container.innerHTML = aisleHtmlBlocks.join('');
+      lucide.createIcons();
     }
 
     // --- INITIALIZATION ---
